@@ -1,0 +1,28 @@
+import ProductCard from "@/components/ProductCard";
+
+import type { ProductWithShop } from "@/lib/types";
+
+export default function ProductGrid({
+  products,
+}: {
+  products: ProductWithShop[];
+}) {
+  if (products.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
+        <p className="text-lg font-semibold text-slate-700">No products found</p>
+        <p className="mt-1 text-sm text-slate-500">
+          Try a different search or category.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+}

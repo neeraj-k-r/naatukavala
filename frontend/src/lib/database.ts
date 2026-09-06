@@ -1,0 +1,125 @@
+/**
+ * Minimal generated-style database types for the Naatukavala schema.
+ * These mirror `supabase/schema.sql`. After running the migration you can
+ * regenerate authoritative types with:
+ *   npx supabase gen types typescript --project-id <ref> > src/lib/database.ts
+ */
+
+export type UserRole = "superadmin" | "admin" | "seller" | "buyer";
+export type ShopStatus = "pending" | "approved" | "rejected" | "suspended";
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+interface Row {
+  profiles: {
+    id: string;
+    full_name: string;
+    role: UserRole;
+    phone: string | null;
+    address: string | null;
+    created_at: string;
+    updated_at: string;
+  };
+  shops: {
+    id: string;
+    owner_id: string;
+    name: string;
+    slug: string;
+    tagline: string | null;
+    description: string | null;
+    logo_url: string | null;
+    banner_url: string | null;
+    status: ShopStatus;
+    delivery_charge: number;
+    approved_by: string | null;
+    approved_at: string | null;
+    created_at: string;
+  };
+  products: {
+    id: string;
+    shop_id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    currency: string;
+    category: string | null;
+    stock: number;
+    images: string[];
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+  orders: {
+    id: string;
+    buyer_id: string;
+    shop_id: string;
+    status: OrderStatus;
+    total: number;
+    currency: string;
+    shipping_address: string | null;
+    buyer_note: string | null;
+    created_at: string;
+  };
+  order_items: {
+    id: string;
+    order_id: string;
+    product_id: string;
+    product_name: string;
+    image_url: string | null;
+    quantity: number;
+    unit_price: number;
+    currency: string;
+  };
+}
+
+type InsertOf<T extends keyof Row> = Partial<Row[T]> & Record<string, unknown>;
+type UpdateOf<T extends keyof Row> = Partial<Row[T]> & Record<string, unknown>;
+
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: Row["profiles"];
+        Insert: InsertOf<"profiles">;
+        Update: UpdateOf<"profiles">;
+        Relationships: [];
+      };
+      shops: {
+        Row: Row["shops"];
+        Insert: InsertOf<"shops">;
+        Update: UpdateOf<"shops">;
+        Relationships: [];
+      };
+      products: {
+        Row: Row["products"];
+        Insert: InsertOf<"products">;
+        Update: UpdateOf<"products">;
+        Relationships: [];
+      };
+      orders: {
+        Row: Row["orders"];
+        Insert: InsertOf<"orders">;
+        Update: UpdateOf<"orders">;
+        Relationships: [];
+      };
+      order_items: {
+        Row: Row["order_items"];
+        Insert: InsertOf<"order_items">;
+        Update: UpdateOf<"order_items">;
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: {
+      user_role: UserRole;
+      shop_status: ShopStatus;
+      order_status: OrderStatus;
+    };
+    CompositeTypes: Record<string, never>;
+  };
+};

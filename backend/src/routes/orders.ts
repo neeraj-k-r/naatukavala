@@ -134,6 +134,136 @@ router.get("/seller", requireAuth, requireRole(["seller", "admin", "superadmin"]
   return res.json({ orders: data ?? [] });
 });
 
+router.get("/seller/stats", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const empty = {
+    summary: {
+      orders: 0,
+      revenue: 0,
+      avgOrderValue: 0,
+      delivered: 0,
+      pending: 0,
+      confirmed: 0,
+      shipped: 0,
+      cancelled: 0,
+    },
+    monthly: [] as { month: string; orders: number; revenue: number }[],
+    products: [] as {
+      product_id: string;
+      product_name: string;
+      image_url: string | null;
+      currency: string;
+      units: number;
+      revenue: number;
+    }[],
+  };
+
+  const supabase = getSupabaseAdmin();
+  const { data: shop } = await supabase
+    .from("shops")
+    .select("id")
+    .eq("owner_id", req.user.id)
+    .maybeSingle();
+
+  if (!shop) return res.json(empty);
+
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select("id, status, total, created_at")
+    .eq("shop_id", shop.id);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const all = orders ?? [];
+  const sales = all.filter((order) => order.status !== "cancelled");
+
+  const orderIds = all.map((order) => order.id);
+  let items: {
+    order_id: string;
+    product_id: string;
+    product_name: string;
+    image_url: string | null;
+    quantity: number;
+    unit_price: number;
+    currency: string;
+  }[] = [];
+
+  if (orderIds.length > 0) {
+    const { data, error: itemsError } = await supabase
+      .from("order_items")
+      .select("order_id, product_id, product_name, image_url, quantity, unit_price, currency")
+      .in("order_id", orderIds);
+
+    if (itemsError) return res.status(500).json({ error: itemsError.message });
+    items = data ?? [];
+  }
+
+  const soldOrders = new Set(sales.map((order) => order.id));
+  const productMap = new Map<
+    string,
+    {
+      product_id: string;
+      product_name: string;
+      image_url: string | null;
+      currency: string;
+      units: number;
+      revenue: number;
+    }
+  >();
+
+  for (const item of items) {
+    if (!soldOrders.has(item.order_id)) continue;
+    const row =
+      productMap.get(item.product_id) ?? {
+        product_id: item.product_id,
+        product_name: item.product_name,
+        image_url: item.image_url,
+        currency: item.currency,
+        units: 0,
+        revenue: 0,
+      };
+    row.units += item.quantity;
+    row.revenue += Number(item.unit_price) * item.quantity;
+    productMap.set(item.product_id, row);
+  }
+
+  const revenue = sales.reduce((sum, order) => sum + Number(order.total), 0);
+  const round2 = (value: number) => Math.round(value * 100) / 100;
+
+  const now = new Date();
+  const monthly: { month: string; orders: number; revenue: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    monthly.push({ month: key, orders: 0, revenue: 0 });
+  }
+  const monthIndex = new Map(monthly.map((entry, index) => [entry.month, index]));
+  for (const order of sales) {
+    const key = (order.created_at ?? "").slice(0, 7);
+    const index = monthIndex.get(key);
+    if (index !== undefined) {
+      monthly[index].orders += 1;
+      monthly[index].revenue += Number(order.total);
+    }
+  }
+
+  return res.json({
+    summary: {
+      orders: sales.length,
+      revenue: round2(revenue),
+      avgOrderValue: sales.length ? round2(revenue / sales.length) : 0,
+      delivered: all.filter((order) => order.status === "delivered").length,
+      pending: all.filter((order) => order.status === "pending").length,
+      confirmed: all.filter((order) => order.status === "confirmed").length,
+      shipped: all.filter((order) => order.status === "shipped").length,
+      cancelled: all.filter((order) => order.status === "cancelled").length,
+    },
+    monthly,
+    products: [...productMap.values()].sort((a, b) => b.revenue - a.revenue),
+  });
+});
+
 router.get("/:id/items", requireAuth, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 

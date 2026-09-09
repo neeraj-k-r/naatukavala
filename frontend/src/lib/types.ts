@@ -92,6 +92,38 @@ export interface RatingSummary {
   reviews: Review[];
 }
 
+export interface SellerStatsSummary {
+  orders: number;
+  revenue: number;
+  avgOrderValue: number;
+  delivered: number;
+  pending: number;
+  confirmed: number;
+  shipped: number;
+  cancelled: number;
+}
+
+export interface SellerProductStat {
+  product_id: string;
+  product_name: string;
+  image_url: string | null;
+  currency: string;
+  units: number;
+  revenue: number;
+}
+
+export interface SellerMonthlyStat {
+  month: string;
+  orders: number;
+  revenue: number;
+}
+
+export interface SellerStats {
+  summary: SellerStatsSummary;
+  monthly: SellerMonthlyStat[];
+  products: SellerProductStat[];
+}
+
 export interface OrderItem {
   id: string;
   order_id: string;

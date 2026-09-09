@@ -9,6 +9,7 @@ import type {
   Product,
   ProductWithShop,
   RatingSummary,
+  SellerStats,
   Shop,
 } from "@/lib/types";
 
@@ -172,6 +173,11 @@ export async function getSellerOrders(_ownerId: string): Promise<Order[]> {
   void _ownerId;
   const { orders } = await fetchApi<{ orders: Order[] }>("/orders/seller");
   return orders ?? [];
+}
+
+/** Sales analytics for the signed-in seller's shop. */
+export async function getSellerStats(): Promise<SellerStats> {
+  return fetchApi("/orders/seller/stats");
 }
 
 /** Flat list of order-item rows for the given orders. */

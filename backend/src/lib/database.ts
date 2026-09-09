@@ -62,6 +62,7 @@ interface Row {
     currency: string;
     shipping_address: string | null;
     buyer_note: string | null;
+    tracking_number: string | null;
     rating: number | null;
     feedback: string | null;
     feedback_at: string | null;
@@ -76,6 +77,13 @@ interface Row {
     quantity: number;
     unit_price: number;
     currency: string;
+  };
+  order_status_history: {
+    id: string;
+    order_id: string;
+    status: OrderStatus;
+    note: string | null;
+    created_at: string;
   };
 }
 
@@ -113,6 +121,12 @@ export type Database = {
         Row: Row["order_items"];
         Insert: InsertOf<"order_items">;
         Update: UpdateOf<"order_items">;
+        Relationships: [];
+      };
+      order_status_history: {
+        Row: Row["order_status_history"];
+        Insert: InsertOf<"order_status_history">;
+        Update: UpdateOf<"order_status_history">;
         Relationships: [];
       };
     };

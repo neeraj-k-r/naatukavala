@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database";
 import type {
   Order,
+  OrderStatusEvent,
   Product,
   ProductWithShop,
   Shop,
@@ -182,6 +183,21 @@ export async function getOrderItems(orderIds: string[]) {
     items.push(...(rows ?? []));
   }
   return items;
+}
+
+/** Tracking details (current status + timeline) for one order. */
+export async function getOrderTracking(orderId: string) {
+  const { order, history } = await fetchApi<{
+    order: {
+      id: string;
+      status: Order["status"];
+      tracking_number: string | null;
+      created_at: string;
+      shop: Pick<Shop, "name" | "slug"> & { slug: string } | null;
+    };
+    history: OrderStatusEvent[];
+  }>(`/orders/${encodeURIComponent(orderId)}/tracking`);
+  return { order, history: history ?? [] };
 }
 
 // ---------------------------------------------------------------- Admin

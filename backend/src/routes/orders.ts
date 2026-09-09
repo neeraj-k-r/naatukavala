@@ -3,6 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
+import type { OrderStatus } from "../lib/types.js";
 
 const router: Router = express.Router();
 
@@ -170,11 +171,16 @@ router.get("/:id/items", requireAuth, async (req, res) => {
 router.patch("/:id/status", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
-  const { status } = req.body ?? {};
+  const { status, tracking_number } = req.body ?? {};
   const allowed = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
-  if (!allowed.includes(status)) {
+  if (status !== undefined && !allowed.includes(status)) {
     return res.status(400).json({ error: "Invalid status." });
   }
+
+  const tracking =
+    tracking_number === undefined || tracking_number === null
+      ? undefined
+      : String(tracking_number).trim();
 
   const supabase = getSupabaseAdmin();
   const { data: shop } = await supabase
@@ -185,14 +191,100 @@ router.patch("/:id/status", requireAuth, requireRole(["seller", "admin", "supera
 
   if (!shop) return res.status(400).json({ error: "Shop not found." });
 
-  const { error } = await supabase
+  const { data: order } = await supabase
     .from("orders")
-    .update({ status })
+    .select("id, status, tracking_number")
     .eq("id", String(req.params.id))
-    .eq("shop_id", shop.id);
+    .eq("shop_id", shop.id)
+    .maybeSingle();
+
+  if (!order) return res.status(404).json({ error: "Order not found." });
+
+  const update: {
+    status?: OrderStatus;
+    tracking_number?: string | null;
+  } = {};
+  const hasStatus = typeof status === "string" && allowed.includes(status);
+  if (hasStatus) update.status = status as OrderStatus;
+  if (tracking !== undefined) update.tracking_number = tracking || null;
+
+  if (Object.keys(update).length === 0) {
+    return res.status(400).json({ error: "Nothing to update." });
+  }
+
+  const { error } = await supabase.from("orders").update(update).eq("id", order.id);
 
   if (error) return res.status(500).json({ error: error.message });
+
+  const history: { order_id: string; status: OrderStatus; note?: string }[] = [];
+  if (hasStatus && order.status !== (status as OrderStatus)) {
+    history.push({ order_id: order.id, status: status as OrderStatus });
+  }
+  if (tracking !== undefined && tracking !== (order.tracking_number ?? "")) {
+    history.push({
+      order_id: order.id,
+      status: order.status,
+      note: tracking ? `Tracking number updated to ${tracking}` : "Tracking number removed",
+    });
+  }
+
+  if (history.length > 0) {
+    const { error: historyError } = await supabase
+      .from("order_status_history")
+      .insert(history);
+
+    if (historyError) {
+      return res.status(500).json({ error: "Status saved but tracking history could not be recorded." });
+    }
+  }
+
   return res.json({ ok: true });
+});
+
+router.get("/:id/tracking", requireAuth, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const supabase = getSupabaseAdmin();
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id, status, tracking_number, created_at, buyer_id, shop_id")
+    .eq("id", String(req.params.id))
+    .single();
+
+  if (orderError || !order) {
+    return res.status(404).json({ error: "Order not found." });
+  }
+
+  const { data: shop } = await supabase
+    .from("shops")
+    .select("owner_id, name, slug")
+    .eq("id", order.shop_id)
+    .maybeSingle();
+
+  const isBuyer = order.buyer_id === req.user.id;
+  const isOwner = shop?.owner_id === req.user.id;
+  if (!isBuyer && !isOwner) {
+    return res.status(403).json({ error: "You cannot track this order." });
+  }
+
+  const { data: history, error: historyError } = await supabase
+    .from("order_status_history")
+    .select("*")
+    .eq("order_id", order.id)
+    .order("created_at", { ascending: true });
+
+  if (historyError) return res.status(500).json({ error: historyError.message });
+
+  return res.json({
+    order: {
+      id: order.id,
+      status: order.status,
+      tracking_number: order.tracking_number,
+      created_at: order.created_at,
+      shop: shop ? { name: shop.name, slug: shop.slug } : null,
+    },
+    history: history ?? [],
+  });
 });
 
 router.patch("/:id/feedback", requireAuth, requireRole(["buyer", "seller", "admin", "superadmin"]), async (req, res) => {

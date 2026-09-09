@@ -62,11 +62,20 @@ export interface Order {
   currency: string;
   shipping_address: string | null;
   buyer_note: string | null;
+  tracking_number: string | null;
   rating: number | null;
   feedback: string | null;
   feedback_at: string | null;
   created_at: string;
   shop?: Pick<Shop, "name" | "slug"> | null;
+}
+
+export interface OrderStatusEvent {
+  id: string;
+  order_id: string;
+  status: OrderStatus;
+  note: string | null;
+  created_at: string;
 }
 
 export interface OrderItem {

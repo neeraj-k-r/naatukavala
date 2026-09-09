@@ -79,6 +79,7 @@ create table if not exists public.orders (
   currency text not null default 'INR',
   shipping_address text,
   buyer_note text,
+  tracking_number text,
   rating smallint check (rating between 1 and 5),
   feedback text,
   feedback_at timestamptz,
@@ -100,6 +101,19 @@ create table if not exists public.order_items (
 );
 
 create index if not exists order_items_order_idx on public.order_items (order_id);
+
+-- ------------------------------------------------------------
+-- Order status history (package tracking timeline)
+-- ------------------------------------------------------------
+create table if not exists public.order_status_history (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders (id) on delete cascade,
+  status public.order_status not null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists order_status_history_order_idx on public.order_status_history (order_id);
 
 -- ------------------------------------------------------------
 -- updated_at trigger
@@ -164,6 +178,7 @@ alter table public.shops enable row level security;
 alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
+alter table public.order_status_history enable row level security;
 
 -- profiles: users manage their own; a signed-in user may always read their own row.
 create policy profiles_select_own on public.profiles
@@ -275,6 +290,23 @@ create policy order_items_insert_buyer on public.order_items
     )
   );
 
+-- order_status_history: readable through the parent order.
+create policy order_status_history_select_buyer on public.order_status_history
+  for select using (
+    exists (
+      select 1 from public.orders o
+      where o.id = order_id and o.buyer_id = auth.uid()
+    )
+  );
+create policy order_status_history_select_seller on public.order_status_history
+  for select using (
+    exists (
+      select 1 from public.orders o
+      join public.shops s on s.id = o.shop_id
+      where o.id = order_id and s.owner_id = auth.uid()
+    )
+  );
+
 -- ------------------------------------------------------------
 -- Migration: delivery charge (idempotent — safe to re-run).
 -- ------------------------------------------------------------
@@ -290,3 +322,37 @@ alter table public.orders
   add column if not exists feedback text;
 alter table public.orders
   add column if not exists feedback_at timestamptz;
+
+-- ------------------------------------------------------------
+-- Migration: package tracking (idempotent — safe to re-run).
+-- ------------------------------------------------------------
+alter table public.orders
+  add column if not exists tracking_number text;
+
+create table if not exists public.order_status_history (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders (id) on delete cascade,
+  status public.order_status not null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists order_status_history_order_idx on public.order_status_history (order_id);
+
+alter table public.order_status_history enable row level security;
+
+create policy order_status_history_select_buyer on public.order_status_history
+  for select using (
+    exists (
+      select 1 from public.orders o
+      where o.id = order_id and o.buyer_id = auth.uid()
+    )
+  );
+create policy order_status_history_select_seller on public.order_status_history
+  for select using (
+    exists (
+      select 1 from public.orders o
+      join public.shops s on s.id = o.shop_id
+      where o.id = order_id and s.owner_id = auth.uid()
+    )
+  );

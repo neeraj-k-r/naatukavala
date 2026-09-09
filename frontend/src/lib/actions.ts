@@ -320,6 +320,7 @@ export async function updateOrderStatus(state: unknown, formData: FormData) {
 
   const orderId = String(formData.get("order_id") ?? "");
   const status = String(formData.get("status") ?? "") as OrderStatus;
+  const trackingNumber = String(formData.get("tracking_number") ?? "").trim();
 
   if (!orderId || !["pending", "confirmed", "shipped", "delivered", "cancelled"].includes(status)) {
     return { error: "Invalid status." };
@@ -328,10 +329,39 @@ export async function updateOrderStatus(state: unknown, formData: FormData) {
   try {
     await fetchApi(`/orders/${orderId}/status`, {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({
+        status,
+        tracking_number: trackingNumber || undefined,
+      }),
     });
   } catch (err) {
     return { error: messageOf(err, "Could not update the order.") };
+  }
+
+  revalidatePath("/dashboard/orders");
+  revalidatePath("/account");
+  return { success: true };
+}
+
+export async function addTrackingNumber(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user || user.role !== "seller") redirect("/login");
+
+  const orderId = String(formData.get("order_id") ?? "");
+  const trackingNumber = String(formData.get("tracking_number") ?? "").trim();
+
+  if (!orderId) return { error: "Missing order." };
+
+  try {
+    await fetchApi(`/orders/${orderId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: String(formData.get("status") ?? ""),
+        tracking_number: trackingNumber || undefined,
+      }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not save the tracking number.") };
   }
 
   revalidatePath("/dashboard/orders");

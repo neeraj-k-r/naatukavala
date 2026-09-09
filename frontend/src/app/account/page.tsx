@@ -96,6 +96,23 @@ export default async function AccountPage({
                   </Link>
                 )}
 
+                {order.status !== "cancelled" && (
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <Link
+                      href={`/account/orders/${order.id}`}
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-slate-800 hover:text-emerald-700"
+                    >
+                      Track package
+                      <span aria-hidden>→</span>
+                    </Link>
+                    {order.tracking_number && (
+                      <span className="rounded-lg bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-600">
+                        {order.tracking_number}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="mt-4 divide-y divide-slate-100">
                   {lineItems.map((item) => (
                     <div

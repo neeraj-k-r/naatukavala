@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import OrderStatusSelect from "@/components/OrderStatusSelect";
+import SellerTrackingForm from "@/components/SellerTrackingForm";
 import { requireSeller } from "@/lib/auth";
 import { getOrderItems, getSellerOrders } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -91,6 +92,24 @@ export default async function SellerOrdersPage() {
                 <p className="mt-1 text-xs italic text-slate-500">
                   Note: {order.buyer_note}
                 </p>
+              )}
+
+              {["shipped", "delivered"].includes(order.status) && (
+                <div className="mt-3 rounded-xl bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Package tracking
+                  </p>
+                  {order.tracking_number && (
+                    <p className="mt-1 font-mono text-sm font-bold text-slate-800">
+                      {order.tracking_number}
+                    </p>
+                  )}
+                  <SellerTrackingForm
+                    orderId={order.id}
+                    status={order.status}
+                    initialTracking={order.tracking_number}
+                  />
+                </div>
               )}
 
               {(order.rating || order.feedback) && (

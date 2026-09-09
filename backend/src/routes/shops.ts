@@ -2,6 +2,7 @@ import type { Router } from "express";
 import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
+import { cached, clearCache } from "../lib/cache.js";
 import { slugify } from "../lib/utils.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
@@ -9,36 +10,47 @@ const router: Router = express.Router();
 
 router.get("/marketplace", async (_req, res) => {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
-    .from("shops")
-    .select("*")
-    .eq("status", "approved")
-    .order("created_at", { ascending: false });
+  const shops = await cached("shops:marketplace", async () => {
+    const { data, error } = await supabase
+      .from("shops")
+      .select("*")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
-  return res.json({ shops: data ?? [] });
+    if (error) throw error;
+    return data ?? [];
+  });
+
+  return res.json({ shops });
 });
 
 router.get("/:slug", async (req, res) => {
   const supabase = getSupabaseAdmin();
-  const { data: shop, error } = await supabase
-    .from("shops")
-    .select("*")
-    .eq("slug", String(req.params.slug))
-    .eq("status", "approved")
-    .maybeSingle();
+  const slug = String(req.params.slug);
 
-  if (error) return res.status(500).json({ error: error.message });
-  if (!shop) return res.status(404).json({ error: "Shop not found." });
+  const data = await cached(`shops:slug:${slug}`, async () => {
+    const { data: shop, error } = await supabase
+      .from("shops")
+      .select("*")
+      .eq("slug", slug)
+      .eq("status", "approved")
+      .maybeSingle();
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("*")
-    .eq("shop_id", shop.id)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+    if (error) throw error;
+    if (!shop) return null;
 
-  return res.json({ shop, products: products ?? [] });
+    const { data: products } = await supabase
+      .from("products")
+      .select("*")
+      .eq("shop_id", shop.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    return { shop, products: products ?? [] };
+  });
+
+  if (!data) return res.status(404).json({ error: "Shop not found." });
+  return res.json(data);
 });
 
 router.get("/owner/:ownerId", async (req, res) => {
@@ -84,6 +96,7 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
   if (error) {
     return res.status(409).json({ error: "That shop URL is already taken. Try a different one." });
   }
+  clearCache();
   return res.status(201).json({ ok: true });
 });
 
@@ -111,6 +124,7 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
     .eq("owner_id", req.user.id);
 
   if (error) return res.status(500).json({ error: error.message });
+  clearCache();
   return res.json({ ok: true });
 });
 

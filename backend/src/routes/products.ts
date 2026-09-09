@@ -2,6 +2,7 @@ import type { Router } from "express";
 import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
+import { cached, clearCache } from "../lib/cache.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
@@ -10,40 +11,55 @@ router.get("/marketplace", async (req, res) => {
   const { search, category, shopSlug, limit } = req.query as Record<string, string | undefined>;
   const supabase = getSupabaseAdmin();
 
-  let query = supabase
-    .from("products")
-    .select("*, shop:shops!inner(name, slug, delivery_charge)")
-    .eq("is_active", true)
-    .eq("shop.status", "approved");
+  const key = [
+    "marketplace",
+    search?.trim() ?? "",
+    category ?? "",
+    shopSlug ?? "",
+    limit ?? "",
+  ].join("|");
 
-  if (category) query = query.eq("category", category);
-  if (shopSlug) query = query.eq("shop.slug", shopSlug);
-  if (search && search.trim()) query = query.ilike("name", `%${search.trim()}%`);
-  if (limit) query = query.limit(Number(limit));
-  query = query.order("created_at", { ascending: false });
+  const products = await cached(key, async () => {
+    let query = supabase
+      .from("products")
+      .select("*, shop:shops!inner(name, slug, delivery_charge)")
+      .eq("is_active", true)
+      .eq("shop.status", "approved");
 
-  const { data, error } = await query;
-  if (error) return res.status(500).json({ error: error.message });
-  return res.json({ products: data ?? [] });
+    if (category) query = query.eq("category", category);
+    if (shopSlug) query = query.eq("shop.slug", shopSlug);
+    if (search && search.trim()) query = query.ilike("name", `%${search.trim()}%`);
+    if (limit) query = query.limit(Number(limit));
+    query = query.order("created_at", { ascending: false });
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data ?? [];
+  });
+
+  return res.json({ products });
 });
 
 router.get("/categories", async (_req, res) => {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
-    .from("products")
-    .select("category, shop:shops!inner(status)")
-    .eq("is_active", true)
-    .eq("shop.status", "approved")
-    .not("category", "is", null);
+  const categories = await cached("categories", async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("category, shop:shops!inner(status)")
+      .eq("is_active", true)
+      .eq("shop.status", "approved")
+      .not("category", "is", null);
 
-  if (error) return res.status(500).json({ error: error.message });
+    if (error) throw error;
 
-  const categories = [...new Set(
-    ((data ?? []) as { category: string | null }[])
-      .map((row) => row.category)
-      .filter(Boolean)
-      .sort(),
-  )] as string[];
+    return [...new Set(
+      ((data ?? []) as { category: string | null }[])
+        .map((row) => row.category)
+        .filter(Boolean)
+        .sort(),
+    )] as string[];
+  });
+
   return res.json({ categories });
 });
 
@@ -71,16 +87,22 @@ router.get("/owner", requireAuth, requireRole(["seller", "admin", "superadmin"])
 
 router.get("/:id", async (req, res) => {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
-    .from("products")
-    .select("*, shop:shops!inner(name, slug, delivery_charge)")
-    .eq("id", String(req.params.id))
-    .eq("shop.status", "approved")
-    .maybeSingle();
+  const id = String(req.params.id);
 
-  if (error) return res.status(500).json({ error: error.message });
-  if (!data) return res.status(404).json({ error: "Product not found." });
-  return res.json({ product: data });
+  const product = await cached(`product:${id}`, async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, shop:shops!inner(name, slug, delivery_charge)")
+      .eq("id", id)
+      .eq("shop.status", "approved")
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ?? null;
+  });
+
+  if (!product) return res.status(404).json({ error: "Product not found." });
+  return res.json({ product });
 });
 
 router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
@@ -118,6 +140,7 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
   });
 
   if (error) return res.status(500).json({ error: error.message });
+  clearCache();
   return res.status(201).json({ ok: true });
 });
 
@@ -156,6 +179,7 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
     .eq("shop_id", shop.id);
 
   if (error) return res.status(500).json({ error: error.message });
+  clearCache();
   return res.json({ ok: true });
 });
 
@@ -178,6 +202,7 @@ router.delete("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]
     .eq("shop_id", shop.id);
 
   if (error) return res.status(500).json({ error: error.message });
+  clearCache();
   return res.json({ ok: true });
 });
 

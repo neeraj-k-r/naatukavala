@@ -2,6 +2,7 @@ import type { Router } from "express";
 import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
+import { clearCache } from "../lib/cache.js";
 import type { Database } from "../lib/database.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
@@ -116,6 +117,7 @@ router.patch("/shops/:id", async (req, res) => {
     .eq("id", req.params.id);
 
   if (error) return res.status(500).json({ error: error.message });
+  clearCache();
   return res.json({ ok: true });
 });
 

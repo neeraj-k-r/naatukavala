@@ -47,48 +47,56 @@ router.get("/reviews/:slug", async (req, res) => {
 });
 
 router.get("/marketplace", async (_req, res) => {
-  const supabase = getSupabaseAdmin();
-  const shops = await cached("shops:marketplace", async () => {
-    const { data, error } = await supabase
-      .from("shops")
-      .select("*")
-      .eq("status", "approved")
-      .order("created_at", { ascending: false });
+  try {
+    const supabase = getSupabaseAdmin();
+    const shops = await cached("shops:marketplace", async () => {
+      const { data, error } = await supabase
+        .from("shops")
+        .select("*")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return data ?? [];
-  });
+      if (error) throw error;
+      return data ?? [];
+    });
 
-  return res.json({ shops });
+    return res.json({ shops });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load shops." });
+  }
 });
 
 router.get("/:slug", async (req, res) => {
-  const supabase = getSupabaseAdmin();
   const slug = String(req.params.slug);
 
-  const data = await cached(`shops:slug:${slug}`, async () => {
-    const { data: shop, error } = await supabase
-      .from("shops")
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "approved")
-      .maybeSingle();
+  try {
+    const supabase = getSupabaseAdmin();
+    const data = await cached(`shops:slug:${slug}`, async () => {
+      const { data: shop, error } = await supabase
+        .from("shops")
+        .select("*")
+        .eq("slug", slug)
+        .eq("status", "approved")
+        .maybeSingle();
 
-    if (error) throw error;
-    if (!shop) return null;
+      if (error) throw error;
+      if (!shop) return null;
 
-    const { data: products } = await supabase
-      .from("products")
-      .select("*")
-      .eq("shop_id", shop.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
+      const { data: products } = await supabase
+        .from("products")
+        .select("*")
+        .eq("shop_id", shop.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
-    return { shop, products: products ?? [] };
-  });
+      return { shop, products: products ?? [] };
+    });
 
-  if (!data) return res.status(404).json({ error: "Shop not found." });
-  return res.json(data);
+    if (!data) return res.status(404).json({ error: "Shop not found." });
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load the shop." });
+  }
 });
 
 router.get("/owner/:ownerId", async (req, res) => {
@@ -141,10 +149,15 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
 router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
-  const { name, tagline, description, delivery_charge, logo_url, banner_url } = req.body ?? {};
+  const { name, tagline, description, delivery_charge, return_policy, logo_url, banner_url } = req.body ?? {};
   const charge = Number(delivery_charge ?? 0);
   if (!Number.isFinite(charge) || charge < 0) {
     return res.status(400).json({ error: "Please enter a valid delivery charge." });
+  }
+
+  const policy = typeof return_policy === "string" ? return_policy.trim() : "";
+  if (policy.length > 500) {
+    return res.status(400).json({ error: "Return policy must be under 500 characters." });
   }
 
   const supabase = getSupabaseAdmin();
@@ -155,6 +168,7 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
       tagline: tagline || null,
       description: description || null,
       delivery_charge: charge,
+      return_policy: policy || null,
       logo_url: logo_url || null,
       banner_url: banner_url || null,
     })

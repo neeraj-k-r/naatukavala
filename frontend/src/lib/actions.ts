@@ -190,11 +190,15 @@ export async function updateShop(state: unknown, formData: FormData) {
   const tagline = String(formData.get("tagline") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const deliveryCharge = Number(formData.get("delivery_charge") ?? 0);
+  const returnPolicy = String(formData.get("return_policy") ?? "").trim();
   const logoUrl = String(formData.get("logo_url") ?? "").trim();
   const bannerUrl = String(formData.get("banner_url") ?? "").trim();
 
   if (!Number.isFinite(deliveryCharge) || deliveryCharge < 0) {
     return { error: "Please enter a valid delivery charge." };
+  }
+  if (returnPolicy.length > 500) {
+    return { error: "Return policy must be under 500 characters." };
   }
 
   if (!shopId) return { error: "Shop not found." };
@@ -207,6 +211,7 @@ export async function updateShop(state: unknown, formData: FormData) {
         tagline: tagline || null,
         description: description || null,
         delivery_charge: deliveryCharge,
+        return_policy: returnPolicy || null,
         logo_url: logoUrl || null,
         banner_url: bannerUrl || null,
       }),
@@ -402,7 +407,59 @@ export async function submitFeedback(state: unknown, formData: FormData) {
   return { success: true };
 }
 
-// ---------------------------------------------------------------- Buyer
+export async function requestReturn(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+
+  const orderId = String(formData.get("order_id") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+
+  if (!orderId) return { error: "Missing order." };
+  if (!reason) return { error: "Please choose a reason for the return." };
+  if (/other/i.test(reason) && !description) {
+    return { error: "Please describe the issue in a few words." };
+  }
+
+  try {
+    await fetchApi(`/orders/${orderId}/return`, {
+      method: "POST",
+      body: JSON.stringify({ reason, description: description || null }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not request a return.") };
+  }
+
+  revalidatePath("/account");
+  revalidatePath("/dashboard/orders");
+  return { success: true };
+}
+
+export async function decideReturn(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || user.profile.role !== "seller") redirect("/login");
+
+  const orderId = String(formData.get("order_id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+
+  if (!orderId || !["approved", "rejected"].includes(decision)) {
+    return { error: "Invalid decision." };
+  }
+
+  try {
+    await fetchApi(`/orders/${orderId}/return`, {
+      method: "PATCH",
+      body: JSON.stringify({ decision }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not update the return request.") };
+  }
+
+  revalidatePath("/dashboard/orders");
+  revalidatePath("/account");
+  return { success: true };
+}
 
 export async function placeOrder(state: unknown, formData: FormData) {
   const user = await getUser();

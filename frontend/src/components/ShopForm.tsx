@@ -138,6 +138,27 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
         </p>
       </div>
 
+      <div>
+        <label
+          htmlFor="shop_return_policy"
+          className="mb-1.5 block text-sm font-medium text-slate-700"
+        >
+          Return policy
+        </label>
+        <input
+          id="shop_return_policy"
+          name="return_policy"
+          type="text"
+          defaultValue={shop?.return_policy ?? ""}
+          placeholder="e.g. 7 days replacement on damaged or defective items"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        />
+        <p className="mt-1 text-xs text-slate-400">
+          Buyers can request a return for delivered orders. Leave empty for no
+          returns.
+        </p>
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <ShopImageUpload
           name="logo_url"

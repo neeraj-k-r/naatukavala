@@ -37,6 +37,7 @@ create table if not exists public.shops (
   banner_url text,
   status public.shop_status not null default 'pending',
   delivery_charge numeric(12, 2) not null default 0 check (delivery_charge >= 0),
+  return_policy text,
   approved_by uuid references auth.users (id),
   approved_at timestamptz,
   created_at timestamptz not null default now()
@@ -116,6 +117,24 @@ create table if not exists public.order_status_history (
 create index if not exists order_status_history_order_idx on public.order_status_history (order_id);
 
 -- ------------------------------------------------------------
+-- Order returns (buyers request returns on shops with a policy)
+-- ------------------------------------------------------------
+create table if not exists public.order_returns (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null unique references public.orders (id) on delete cascade,
+  buyer_id uuid not null references auth.users (id) on delete cascade,
+  reason text not null,
+  description text,
+  status text not null default 'requested' check (status in ('requested', 'approved', 'rejected')),
+  created_at timestamptz not null default now(),
+  decided_at timestamptz,
+  decision_note text
+);
+
+create index if not exists order_returns_order_idx on public.order_returns (order_id);
+create index if not exists order_returns_buyer_idx on public.order_returns (buyer_id);
+
+-- ------------------------------------------------------------
 -- updated_at trigger
 -- ------------------------------------------------------------
 create or replace function public.set_updated_at()
@@ -179,6 +198,7 @@ alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.order_status_history enable row level security;
+alter table public.order_returns enable row level security;
 
 -- profiles: users manage their own; a signed-in user may always read their own row.
 create policy profiles_select_own on public.profiles
@@ -307,6 +327,20 @@ create policy order_status_history_select_seller on public.order_status_history
     )
   );
 
+-- order_returns: buyers manage their own; sellers read returns for their shop's orders.
+create policy order_returns_select_buyer on public.order_returns
+  for select using (buyer_id = auth.uid());
+create policy order_returns_select_seller on public.order_returns
+  for select using (
+    exists (
+      select 1 from public.orders o
+      join public.shops s on s.id = o.shop_id
+      where o.id = order_id and s.owner_id = auth.uid()
+    )
+  );
+create policy order_returns_insert_buyer on public.order_returns
+  for insert with check (buyer_id = auth.uid());
+
 -- ------------------------------------------------------------
 -- Migration: delivery charge (idempotent — safe to re-run).
 -- ------------------------------------------------------------
@@ -356,3 +390,39 @@ create policy order_status_history_select_seller on public.order_status_history
       where o.id = order_id and s.owner_id = auth.uid()
     )
   );
+
+-- ------------------------------------------------------------
+-- Migration: order returns (idempotent — safe to re-run).
+-- ------------------------------------------------------------
+alter table public.shops
+  add column if not exists return_policy text;
+
+create table if not exists public.order_returns (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null unique references public.orders (id) on delete cascade,
+  buyer_id uuid not null references auth.users (id) on delete cascade,
+  reason text not null,
+  description text,
+  status text not null default 'requested' check (status in ('requested', 'approved', 'rejected')),
+  created_at timestamptz not null default now(),
+  decided_at timestamptz,
+  decision_note text
+);
+
+create index if not exists order_returns_order_idx on public.order_returns (order_id);
+create index if not exists order_returns_buyer_idx on public.order_returns (buyer_id);
+
+alter table public.order_returns enable row level security;
+
+create policy order_returns_select_buyer on public.order_returns
+  for select using (buyer_id = auth.uid());
+create policy order_returns_select_seller on public.order_returns
+  for select using (
+    exists (
+      select 1 from public.orders o
+      join public.shops s on s.id = o.shop_id
+      where o.id = order_id and s.owner_id = auth.uid()
+    )
+  );
+create policy order_returns_insert_buyer on public.order_returns
+  for insert with check (buyer_id = auth.uid());

@@ -3,10 +3,12 @@ import Link from "next/link";
 
 import ClearCartOnMount from "@/components/ClearCartOnMount";
 import FeedbackForm from "@/components/FeedbackForm";
+import ReturnRequestForm from "@/components/ReturnRequestForm";
 import { requireBuyer } from "@/lib/auth";
-import { getBuyerOrders, getOrderItems } from "@/lib/api";
+import { getBuyerOrders, getOrderItems, getOrderReturn } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
+import type { OrderReturn } from "@/lib/types";
 
 export const metadata = {
   title: "My orders",
@@ -35,6 +37,13 @@ export default async function AccountPage({
   const itemsByOrder = new Map(
     orderIds.map((id) => [id, items.filter((item) => item.order_id === id)]),
   );
+
+  const returnsByOrder = new Map<string, OrderReturn | null>();
+  for (const order of orders) {
+    if (order.status === "delivered" && order.shop?.return_policy) {
+      returnsByOrder.set(order.id, await getOrderReturn(order.id));
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -161,6 +170,15 @@ export default async function AccountPage({
                     initialFeedback={order.feedback}
                   />
                 )}
+
+                {order.status === "delivered" &&
+                  order.shop?.return_policy && (
+                    <ReturnRequestForm
+                      orderId={order.id}
+                      policy={order.shop.return_policy}
+                      existing={returnsByOrder.get(order.id) ?? null}
+                    />
+                  )}
               </div>
             );
           })}

@@ -35,6 +35,7 @@ interface Row {
     banner_url: string | null;
     status: ShopStatus;
     delivery_charge: number;
+    return_policy: string | null;
     approved_by: string | null;
     approved_at: string | null;
     created_at: string;
@@ -85,7 +86,20 @@ interface Row {
     note: string | null;
     created_at: string;
   };
+  order_returns: {
+    id: string;
+    order_id: string;
+    buyer_id: string;
+    reason: string;
+    description: string | null;
+    status: ReturnStatus;
+    created_at: string;
+    decided_at: string | null;
+    decision_note: string | null;
+  };
 }
+
+export type ReturnStatus = "requested" | "approved" | "rejected";
 
 type InsertOf<T extends keyof Row> = Partial<Row[T]> & Record<string, unknown>;
 type UpdateOf<T extends keyof Row> = Partial<Row[T]> & Record<string, unknown>;
@@ -127,6 +141,12 @@ export type Database = {
         Row: Row["order_status_history"];
         Insert: InsertOf<"order_status_history">;
         Update: UpdateOf<"order_status_history">;
+        Relationships: [];
+      };
+      order_returns: {
+        Row: Row["order_returns"];
+        Insert: InsertOf<"order_returns">;
+        Update: UpdateOf<"order_returns">;
         Relationships: [];
       };
     };

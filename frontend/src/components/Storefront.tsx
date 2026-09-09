@@ -67,6 +67,20 @@ export default async function Storefront({ slug }: { slug: string }) {
           </p>
         )}
 
+        <div className="mb-8 flex flex-wrap gap-3 text-xs">
+          <span className="rounded-full bg-slate-50 px-3 py-1.5 font-medium text-slate-600">
+            Delivery:{" "}
+            {shop.delivery_charge > 0
+              ? `₹${shop.delivery_charge} per order`
+              : "Free"}
+          </span>
+          {shop.return_policy && (
+            <span className="rounded-full bg-emerald-50 px-3 py-1.5 font-medium text-emerald-700">
+              Returns: {shop.return_policy}
+            </span>
+          )}
+        </div>
+
         <div className="mb-5 flex items-baseline justify-between gap-3">
           <h2 className="text-xl font-bold text-slate-900">
             Products from {shop.name}
@@ -83,6 +97,7 @@ export default async function Storefront({ slug }: { slug: string }) {
               name: shop.name,
               slug: shop.slug,
               delivery_charge: shop.delivery_charge,
+              return_policy: shop.return_policy,
             },
           }))}
         />

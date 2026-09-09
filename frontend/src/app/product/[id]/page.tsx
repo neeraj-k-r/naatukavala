@@ -96,6 +96,15 @@ export default async function ProductPage({
             </span>
           </p>
 
+          {product.shop.return_policy && (
+            <p className="mt-1 text-sm text-slate-500">
+              Return policy:{" "}
+              <span className="font-medium text-slate-700">
+                {product.shop.return_policy}
+              </span>
+            </p>
+          )}
+
           {product.description && (
             <p className="mt-6 whitespace-pre-line text-sm leading-relaxed text-slate-600">
               {product.description}

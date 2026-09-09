@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database";
 import type {
   Order,
+  OrderReturn,
   OrderStatusEvent,
   Product,
   ProductWithShop,
@@ -200,11 +201,19 @@ export async function getOrderTracking(orderId: string) {
       status: Order["status"];
       tracking_number: string | null;
       created_at: string;
-      shop: Pick<Shop, "name" | "slug"> & { slug: string } | null;
+      shop: Pick<Shop, "name" | "slug"> | null;
     };
     history: OrderStatusEvent[];
   }>(`/orders/${encodeURIComponent(orderId)}/tracking`);
   return { order, history: history ?? [] };
+}
+
+/** Return request for one order, if any (buyer or shop owner). */
+export async function getOrderReturn(orderId: string) {
+  const { return: ret } = await fetchApi<{ return: OrderReturn | null }>(
+    `/orders/${encodeURIComponent(orderId)}/return`,
+  );
+  return ret ?? null;
 }
 
 // ---------------------------------------------------------------- Reviews

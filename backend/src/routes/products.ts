@@ -68,10 +68,12 @@ router.get("/reviews/:productId", async (req, res) => {
 
 router.get("/marketplace", async (req, res) => {
   const { search, category, shopSlug, limit } = req.query as Record<string, string | undefined>;
-  const supabase = getSupabaseAdmin();
 
-  const key = [
-    "marketplace",
+  try {
+    const supabase = getSupabaseAdmin();
+
+    const key = [
+      "marketplace",
     search?.trim() ?? "",
     category ?? "",
     shopSlug ?? "",
@@ -81,7 +83,7 @@ router.get("/marketplace", async (req, res) => {
   const products = await cached(key, async () => {
     let query = supabase
       .from("products")
-      .select("*, shop:shops!inner(name, slug, delivery_charge)")
+      .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy)")
       .eq("is_active", true)
       .eq("shop.status", "approved");
 
@@ -97,29 +99,36 @@ router.get("/marketplace", async (req, res) => {
   });
 
   return res.json({ products });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load products." });
+  }
 });
 
 router.get("/categories", async (_req, res) => {
-  const supabase = getSupabaseAdmin();
-  const categories = await cached("categories", async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("category, shop:shops!inner(status)")
-      .eq("is_active", true)
-      .eq("shop.status", "approved")
-      .not("category", "is", null);
+  try {
+    const supabase = getSupabaseAdmin();
+    const categories = await cached("categories", async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("category, shop:shops!inner(status)")
+        .eq("is_active", true)
+        .eq("shop.status", "approved")
+        .not("category", "is", null);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    return [...new Set(
-      ((data ?? []) as { category: string | null }[])
-        .map((row) => row.category)
-        .filter(Boolean)
-        .sort(),
-    )] as string[];
-  });
+      return [...new Set(
+        ((data ?? []) as { category: string | null }[])
+          .map((row) => row.category)
+          .filter(Boolean)
+          .sort(),
+      )] as string[];
+    });
 
-  return res.json({ categories });
+    return res.json({ categories });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load categories." });
+  }
 });
 
 router.get("/owner", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
@@ -145,23 +154,27 @@ router.get("/owner", requireAuth, requireRole(["seller", "admin", "superadmin"])
 });
 
 router.get("/:id", async (req, res) => {
-  const supabase = getSupabaseAdmin();
   const id = String(req.params.id);
 
-  const product = await cached(`product:${id}`, async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*, shop:shops!inner(name, slug, delivery_charge)")
-      .eq("id", id)
-      .eq("shop.status", "approved")
-      .maybeSingle();
+  try {
+    const supabase = getSupabaseAdmin();
+    const product = await cached(`product:${id}`, async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy)")
+        .eq("id", id)
+        .eq("shop.status", "approved")
+        .maybeSingle();
 
-    if (error) throw error;
-    return data ?? null;
-  });
+      if (error) throw error;
+      return data ?? null;
+    });
 
-  if (!product) return res.status(404).json({ error: "Product not found." });
-  return res.json({ product });
+    if (!product) return res.status(404).json({ error: "Product not found." });
+    return res.json({ product });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load the product." });
+  }
 });
 
 router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {

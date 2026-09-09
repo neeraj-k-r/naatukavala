@@ -29,6 +29,7 @@ export interface Shop {
   banner_url: string | null;
   status: ShopStatus;
   delivery_charge: number;
+  return_policy: string | null;
   approved_by: string | null;
   approved_at: string | null;
   created_at: string;
@@ -46,11 +47,11 @@ export interface Product {
   images: string[];
   is_active: boolean;
   created_at: string;
-  shop?: Pick<Shop, "name" | "slug" | "delivery_charge"> | null;
+  shop?: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy"> | null;
 }
 
 export interface ProductWithShop extends Product {
-  shop: Pick<Shop, "name" | "slug" | "delivery_charge">;
+  shop: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy">;
 }
 
 export interface Order {
@@ -67,8 +68,31 @@ export interface Order {
   feedback: string | null;
   feedback_at: string | null;
   created_at: string;
-  shop?: Pick<Shop, "name" | "slug"> | null;
+  shop?: Pick<Shop, "name" | "slug" | "return_policy"> | null;
 }
+
+export type ReturnStatus = "requested" | "approved" | "rejected";
+
+export interface OrderReturn {
+  id: string;
+  order_id: string;
+  buyer_id: string;
+  reason: string;
+  description: string | null;
+  status: ReturnStatus;
+  created_at: string;
+  decided_at: string | null;
+  decision_note: string | null;
+}
+
+export const DEFAULT_RETURN_REASONS = [
+  "Item is damaged or defective",
+  "Received the wrong item",
+  "Item not as described",
+  "Missing item or accessories",
+  "Product quality not good",
+  "Other",
+] as const;
 
 export interface OrderStatusEvent {
   id: string;

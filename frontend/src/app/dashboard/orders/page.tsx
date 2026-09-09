@@ -1,10 +1,12 @@
 import Image from "next/image";
 
 import OrderStatusSelect from "@/components/OrderStatusSelect";
+import ReturnDecision from "@/components/ReturnDecision";
 import SellerTrackingForm from "@/components/SellerTrackingForm";
 import { requireSeller } from "@/lib/auth";
-import { getOrderItems, getSellerOrders } from "@/lib/api";
+import { getOrderItems, getOrderReturn, getSellerOrders } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import type { OrderReturn } from "@/lib/types";
 
 export const metadata = {
   title: "Orders",
@@ -18,6 +20,11 @@ export default async function SellerOrdersPage() {
   const itemsByOrder = new Map(
     orderIds.map((id) => [id, items.filter((item) => item.order_id === id)]),
   );
+
+  const returnsByOrder = new Map<string, OrderReturn | null>();
+  for (const order of orders) {
+    returnsByOrder.set(order.id, await getOrderReturn(order.id));
+  }
 
   return (
     <div className="space-y-6">
@@ -93,6 +100,21 @@ export default async function SellerOrdersPage() {
                   Note: {order.buyer_note}
                 </p>
               )}
+
+              {order.shop?.return_policy &&
+                (() => {
+                  const ret = returnsByOrder.get(order.id) ?? null;
+                  return ret ? (
+                    <ReturnDecision orderId={order.id} ret={ret} />
+                  ) : (
+                    order.status === "delivered" && (
+                      <p className="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-500">
+                        Your shop accepts returns — buyers can request them once
+                        an order is delivered.
+                      </p>
+                    )
+                  );
+                })()}
 
               {["shipped", "delivered"].includes(order.status) && (
                 <div className="mt-3 rounded-xl bg-slate-50 p-3">

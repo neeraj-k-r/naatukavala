@@ -104,7 +104,7 @@ router.get("/buyer", requireAuth, requireRole(["buyer", "seller", "admin", "supe
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("orders")
-    .select("*, shop:shops(name, slug)")
+    .select("*, shop:shops(name, slug, return_policy)")
     .eq("buyer_id", req.user.id)
     .order("created_at", { ascending: false });
 
@@ -126,7 +126,7 @@ router.get("/seller", requireAuth, requireRole(["seller", "admin", "superadmin"]
 
   const { data, error } = await supabase
     .from("orders")
-    .select("*, shop:shops(name, slug)")
+    .select("*, shop:shops(name, slug, return_policy)")
     .eq("shop_id", shop.id)
     .order("created_at", { ascending: false });
 
@@ -460,6 +460,160 @@ router.patch("/:id/feedback", requireAuth, requireRole(["buyer", "seller", "admi
 
   if (error) return res.status(500).json({ error: error.message });
   clearCache();
+  return res.json({ ok: true });
+});
+
+router.post("/:id/return", requireAuth, requireRole(["buyer", "seller", "admin", "superadmin"]), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const { reason, description } = req.body ?? {};
+  const reasonText = typeof reason === "string" ? reason.trim() : "";
+  const descriptionText = typeof description === "string" ? description.trim() : "";
+
+  if (!reasonText) {
+    return res.status(400).json({ error: "Please choose a reason for the return." });
+  }
+  if (/other/i.test(reasonText) && !descriptionText) {
+    return res.status(400).json({ error: "Please describe the issue in a few words." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id, status, shop_id")
+    .eq("id", String(req.params.id))
+    .eq("buyer_id", req.user.id)
+    .single();
+
+  if (orderError || !order) {
+    return res.status(404).json({ error: "Order not found." });
+  }
+  if (order.status !== "delivered") {
+    return res.status(400).json({ error: "You can request a return only after the order is delivered." });
+  }
+
+  const { data: shop } = await supabase
+    .from("shops")
+    .select("return_policy")
+    .eq("id", order.shop_id)
+    .maybeSingle();
+
+  if (!shop?.return_policy) {
+    return res.status(400).json({ error: "This shop does not accept returns." });
+  }
+
+  const { data: existing } = await supabase
+    .from("order_returns")
+    .select("id")
+    .eq("order_id", order.id)
+    .maybeSingle();
+
+  if (existing) {
+    return res.status(400).json({ error: "A return request already exists for this order." });
+  }
+
+  const { data: created, error } = await supabase
+    .from("order_returns")
+    .insert({
+      order_id: order.id,
+      buyer_id: req.user.id,
+      reason: reasonText,
+      description: descriptionText || null,
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  return res.status(201).json({ return: created });
+});
+
+router.get("/:id/return", requireAuth, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const supabase = getSupabaseAdmin();
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id, buyer_id, shop_id")
+    .eq("id", String(req.params.id))
+    .single();
+
+  if (orderError || !order) {
+    return res.status(404).json({ error: "Order not found." });
+  }
+
+  const { data: shop } = await supabase
+    .from("shops")
+    .select("owner_id")
+    .eq("id", order.shop_id)
+    .maybeSingle();
+
+  const isBuyer = order.buyer_id === req.user.id;
+  const isOwner = shop?.owner_id === req.user.id;
+  if (!isBuyer && !isOwner) {
+    return res.status(403).json({ error: "You cannot view returns for this order." });
+  }
+
+  const { data, error } = await supabase
+    .from("order_returns")
+    .select("*")
+    .eq("order_id", order.id)
+    .maybeSingle();
+
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ return: data ?? null });
+});
+
+router.patch("/:id/return", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const { decision, note } = req.body ?? {};
+  const status = decision === "approved" ? "approved" : decision === "rejected" ? "rejected" : null;
+  if (!status) {
+    return res.status(400).json({ error: "Decision must be approved or rejected." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data: shop } = await supabase
+    .from("shops")
+    .select("id")
+    .eq("owner_id", req.user.id)
+    .maybeSingle();
+
+  if (!shop) return res.status(400).json({ error: "Shop not found." });
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select("shop_id")
+    .eq("id", String(req.params.id))
+    .eq("shop_id", shop.id)
+    .maybeSingle();
+
+  if (!order) return res.status(404).json({ error: "Order not found." });
+
+  const { data: existing } = await supabase
+    .from("order_returns")
+    .select("id, status")
+    .eq("order_id", String(req.params.id))
+    .maybeSingle();
+
+  if (!existing) {
+    return res.status(404).json({ error: "No return requested for this order." });
+  }
+  if (existing.status !== "requested") {
+    return res.status(400).json({ error: "This return has already been decided." });
+  }
+
+  const noteText = typeof note === "string" ? note.trim() : "";
+  const { error } = await supabase
+    .from("order_returns")
+    .update({
+      status,
+      decided_at: new Date().toISOString(),
+      decision_note: noteText || null,
+    })
+    .eq("id", existing.id);
+
+  if (error) return res.status(500).json({ error: error.message });
   return res.json({ ok: true });
 });
 

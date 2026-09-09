@@ -93,6 +93,30 @@ export default async function SellerOrdersPage() {
                 </p>
               )}
 
+              {(order.rating || order.feedback) && (
+                <div className="mt-3 rounded-xl bg-amber-50 p-3">
+                  <p className="text-sm font-semibold text-slate-800">
+                    Buyer feedback
+                  </p>
+                  {order.rating && (
+                    <p className="mt-1 text-base leading-none tracking-wide text-amber-400">
+                      {"★".repeat(order.rating)}
+                      <span className="text-slate-300">
+                        {"★".repeat(5 - order.rating)}
+                      </span>
+                    </p>
+                  )}
+                  {order.feedback && (
+                    <p className="mt-2 text-sm text-slate-700">{order.feedback}</p>
+                  )}
+                  {order.feedback_at && (
+                    <p className="mt-1 text-xs text-slate-400">
+                      {formatDate(order.feedback_at)}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="mt-3 flex justify-between border-t border-slate-100 pt-3 text-sm font-bold text-slate-900">
                 <span>Order total</span>
                 <span>{formatCurrency(order.total, order.currency)}</span>

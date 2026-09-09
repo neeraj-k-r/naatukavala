@@ -62,6 +62,9 @@ interface Row {
     currency: string;
     shipping_address: string | null;
     buyer_note: string | null;
+    rating: number | null;
+    feedback: string | null;
+    feedback_at: string | null;
     created_at: string;
   };
   order_items: {

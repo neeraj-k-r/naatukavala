@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import ClearCartOnMount from "@/components/ClearCartOnMount";
+import FeedbackForm from "@/components/FeedbackForm";
 import { requireBuyer } from "@/lib/auth";
 import { getBuyerOrders, getOrderItems } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -135,6 +136,14 @@ export default async function AccountPage({
                   <span>Total</span>
                   <span>{formatCurrency(order.total, order.currency)}</span>
                 </div>
+
+                {order.status === "delivered" && (
+                  <FeedbackForm
+                    orderId={order.id}
+                    initialRating={order.rating}
+                    initialFeedback={order.feedback}
+                  />
+                )}
               </div>
             );
           })}

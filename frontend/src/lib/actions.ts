@@ -339,6 +339,39 @@ export async function updateOrderStatus(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+export async function submitFeedback(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+
+  const orderId = String(formData.get("order_id") ?? "");
+  const ratingRaw = String(formData.get("rating") ?? "").trim();
+  const feedback = String(formData.get("feedback") ?? "").trim();
+
+  if (!orderId) return { error: "Missing order." };
+
+  const rating = ratingRaw === "" ? null : Math.round(Number(ratingRaw));
+  if (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5)) {
+    return { error: "Rating must be between 1 and 5 stars." };
+  }
+  if (!rating && !feedback) return { error: "Add a rating, a comment, or both." };
+
+  try {
+    await fetchApi(`/orders/${orderId}/feedback`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        rating,
+        feedback: feedback || null,
+      }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not save your feedback.") };
+  }
+
+  revalidatePath("/account");
+  revalidatePath("/dashboard/orders");
+  return { success: true };
+}
+
 // ---------------------------------------------------------------- Buyer
 
 export async function placeOrder(state: unknown, formData: FormData) {

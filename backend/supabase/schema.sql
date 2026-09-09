@@ -79,6 +79,9 @@ create table if not exists public.orders (
   currency text not null default 'INR',
   shipping_address text,
   buyer_note text,
+  rating smallint check (rating between 1 and 5),
+  feedback text,
+  feedback_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -277,3 +280,13 @@ create policy order_items_insert_buyer on public.order_items
 -- ------------------------------------------------------------
 alter table public.shops
   add column if not exists delivery_charge numeric(12, 2) not null default 0;
+
+-- ------------------------------------------------------------
+-- Migration: buyer feedback on orders (idempotent — safe to re-run).
+-- ------------------------------------------------------------
+alter table public.orders
+  add column if not exists rating smallint check (rating between 1 and 5);
+alter table public.orders
+  add column if not exists feedback text;
+alter table public.orders
+  add column if not exists feedback_at timestamptz;

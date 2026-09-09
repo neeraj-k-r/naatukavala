@@ -195,4 +195,47 @@ router.patch("/:id/status", requireAuth, requireRole(["seller", "admin", "supera
   return res.json({ ok: true });
 });
 
+router.patch("/:id/feedback", requireAuth, requireRole(["buyer", "seller", "admin", "superadmin"]), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const { rating, feedback } = req.body ?? {};
+  const ratingNum = rating === undefined || rating === null ? null : Math.round(Number(rating));
+  const feedbackText = typeof feedback === "string" ? feedback.trim() : "";
+
+  if (ratingNum !== null && (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5)) {
+    return res.status(400).json({ error: "Rating must be a whole number between 1 and 5." });
+  }
+  if (!ratingNum && !feedbackText) {
+    return res.status(400).json({ error: "Add a rating, a comment, or both." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id, status")
+    .eq("id", String(req.params.id))
+    .eq("buyer_id", req.user.id)
+    .maybeSingle();
+
+  if (orderError || !order) {
+    return res.status(403).json({ error: "You can only leave feedback on your own orders." });
+  }
+
+  if (order.status !== "delivered") {
+    return res.status(400).json({ error: "You can leave feedback only after the order is delivered." });
+  }
+
+  const { error } = await supabase
+    .from("orders")
+    .update({
+      rating: ratingNum,
+      feedback: feedbackText || null,
+      feedback_at: new Date().toISOString(),
+    })
+    .eq("id", order.id);
+
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ ok: true });
+});
+
 export default router;

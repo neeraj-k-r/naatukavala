@@ -3,13 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import ProductGrid from "@/components/ProductGrid";
-import { getShopBySlug } from "@/lib/api";
+import ReviewsSection from "@/components/ReviewsSection";
+import { getShopBySlug, getShopReviews } from "@/lib/api";
 
 export default async function Storefront({ slug }: { slug: string }) {
   const result = await getShopBySlug(slug);
   if (!result) notFound();
 
   const { shop, products } = result;
+  const reviews = await getShopReviews(slug);
 
   return (
     <div>
@@ -93,6 +95,12 @@ export default async function Storefront({ slug }: { slug: string }) {
             ← Back to the full Naatukavala marketplace
           </Link>
         </div>
+
+        <ReviewsSection
+          summary={reviews}
+          title={`${shop.name} ratings & reviews`}
+          emptyMessage="No reviews yet for this shop. Orders rated after delivery appear here."
+        />
       </div>
     </div>
   );

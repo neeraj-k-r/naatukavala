@@ -8,6 +8,7 @@ import type {
   OrderStatusEvent,
   Product,
   ProductWithShop,
+  RatingSummary,
   Shop,
 } from "@/lib/types";
 
@@ -198,6 +199,18 @@ export async function getOrderTracking(orderId: string) {
     history: OrderStatusEvent[];
   }>(`/orders/${encodeURIComponent(orderId)}/tracking`);
   return { order, history: history ?? [] };
+}
+
+// ---------------------------------------------------------------- Reviews
+
+/** Aggregated public reviews (rating summary + recent list) for a product. */
+export async function getProductReviews(productId: string): Promise<RatingSummary> {
+  return fetchApi(`/products/reviews/${encodeURIComponent(productId)}`);
+}
+
+/** Aggregated public reviews (rating summary + recent list) for a shop. */
+export async function getShopReviews(slug: string): Promise<RatingSummary> {
+  return fetchApi(`/shops/reviews/${encodeURIComponent(slug)}`);
 }
 
 // ---------------------------------------------------------------- Admin

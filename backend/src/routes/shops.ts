@@ -3,10 +3,48 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
+import { summarize, type ReviewRow } from "../lib/reviews.js";
 import { slugify } from "../lib/utils.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
+
+router.get("/reviews/:slug", async (req, res) => {
+  const slug = String(req.params.slug);
+
+  let result;
+  try {
+    result = await cached(`shops:reviews:${slug}`, async () => {
+    const supabase = getSupabaseAdmin();
+    const { data: shop } = await supabase
+      .from("shops")
+      .select("id")
+      .eq("slug", slug)
+      .eq("status", "approved")
+      .maybeSingle();
+
+    if (!shop) return null;
+
+    const { data, error } = await supabase
+      .from("orders")
+      .select("rating, feedback, feedback_at, buyer_id")
+      .eq("shop_id", shop.id)
+      .eq("status", "delivered")
+      .gt("rating", 0);
+
+    if (error) throw error;
+
+    return summarize((data ?? []) as ReviewRow[]);
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load reviews." });
+  }
+
+  if (result === null) {
+    return res.status(404).json({ error: "Shop not found." });
+  }
+  return res.json(result);
+});
 
 router.get("/marketplace", async (_req, res) => {
   const supabase = getSupabaseAdmin();

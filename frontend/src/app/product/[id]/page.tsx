@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import AddToCartButton from "@/components/AddToCartButton";
-import { getProductById } from "@/lib/api";
+import ReviewsSection from "@/components/ReviewsSection";
+import { getProductById, getProductReviews } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
 
@@ -14,7 +15,7 @@ export default async function ProductPage({
   const product = await getProductById(id);
   if (!product) notFound();
 
-  const image = product.images?.[0];
+  const [image, reviews] = [product.images?.[0], await getProductReviews(id)];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -137,6 +138,12 @@ export default async function ProductPage({
           </div>
         </div>
       </div>
+
+      <ReviewsSection
+        summary={reviews}
+        title="Customer reviews"
+        emptyMessage="No reviews yet for this product. Buy it and be the first to review!"
+      />
     </div>
   );
 }

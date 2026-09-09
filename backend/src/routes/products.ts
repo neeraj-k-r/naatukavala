@@ -3,9 +3,68 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
+import { summarize, type ReviewRow } from "../lib/reviews.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
+
+router.get("/reviews/:productId", async (req, res) => {
+  const id = String(req.params.productId);
+
+  let result;
+  try {
+    result = await cached(`product-reviews:${id}`, async () => {
+    const supabase = getSupabaseAdmin();
+    const { data: product } = await supabase
+      .from("products")
+      .select("id, shop:shops!inner(status)")
+      .eq("id", id)
+      .eq("shop.status", "approved")
+      .maybeSingle();
+
+    if (!product) return null;
+
+    const { data, error } = await supabase
+      .from("order_items")
+      .select("order_id, orders!inner(id, buyer_id, rating, feedback, feedback_at)")
+      .eq("product_id", id)
+      .eq("orders.status", "delivered")
+      .gt("orders.rating", 0);
+
+    if (error) throw error;
+
+    type RatedOrder = {
+      buyer_id: string;
+      rating: number | null;
+      feedback: string | null;
+      feedback_at: string | null;
+    };
+    const raw = (data ?? []) as unknown as {
+      order_id: string;
+      orders: RatedOrder | RatedOrder[];
+    }[];
+
+    const rows: ReviewRow[] = raw.map((item) => {
+      const order = Array.isArray(item.orders) ? item.orders[0] : item.orders;
+      return {
+        rating: Number(order?.rating ?? 0),
+        feedback: order?.feedback ?? null,
+        feedback_at: order?.feedback_at ?? null,
+        buyer_id: String(order?.buyer_id ?? ""),
+      };
+    });
+
+    return summarize(rows);
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load reviews." });
+  }
+
+  if (result === null) {
+    return res.status(404).json({ error: "Product not found." });
+  }
+  return res.json(result);
+});
 
 router.get("/marketplace", async (req, res) => {
   const { search, category, shopSlug, limit } = req.query as Record<string, string | undefined>;

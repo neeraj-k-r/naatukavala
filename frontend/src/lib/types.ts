@@ -78,6 +78,20 @@ export interface OrderStatusEvent {
   created_at: string;
 }
 
+export interface Review {
+  rating: number;
+  feedback: string | null;
+  created_at: string;
+  buyer_name: string | null;
+}
+
+export interface RatingSummary {
+  average: number | null;
+  count: number;
+  distribution: { stars: number; count: number }[];
+  reviews: Review[];
+}
+
 export interface OrderItem {
   id: string;
   order_id: string;

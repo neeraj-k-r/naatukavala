@@ -2,6 +2,7 @@ import type { Router } from "express";
 import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
+import { clearCache } from "../lib/cache.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import type { OrderStatus } from "../lib/types.js";
 
@@ -238,6 +239,7 @@ router.patch("/:id/status", requireAuth, requireRole(["seller", "admin", "supera
     }
   }
 
+  clearCache();
   return res.json({ ok: true });
 });
 
@@ -327,6 +329,7 @@ router.patch("/:id/feedback", requireAuth, requireRole(["buyer", "seller", "admi
     .eq("id", order.id);
 
   if (error) return res.status(500).json({ error: error.message });
+  clearCache();
   return res.json({ ok: true });
 });
 

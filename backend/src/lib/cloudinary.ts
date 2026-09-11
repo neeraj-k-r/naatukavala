@@ -6,5 +6,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || "naatukavala_product";
+const preset = process.env.CLOUDINARY_UPLOAD_PRESET || "naatukavala_product";
+
 export default cloudinary;

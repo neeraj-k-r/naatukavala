@@ -181,16 +181,28 @@ export async function getSellerStats(): Promise<SellerStats> {
   return fetchApi("/orders/seller/stats");
 }
 
-/** Flat list of order-item rows for the given orders. */
+/** Flat list of order-item rows for the given orders (fetched in parallel). */
 export async function getOrderItems(orderIds: string[]) {
-  const items: Database["public"]["Tables"]["order_items"]["Row"][] = [];
-  for (const orderId of orderIds) {
-    const { items: rows } = await fetchApi<{
-      items: Database["public"]["Tables"]["order_items"]["Row"][];
-    }>(`/orders/${encodeURIComponent(orderId)}/items`);
-    items.push(...(rows ?? []));
-  }
-  return items;
+  const batches = await Promise.all(
+    orderIds.map((orderId) =>
+      fetchApi<{
+        items: Database["public"]["Tables"]["order_items"]["Row"][];
+      }>(`/orders/${encodeURIComponent(orderId)}/items`),
+    ),
+  );
+  return batches.flatMap((batch) => batch.items ?? []);
+}
+
+/** Return request per order (fetched in parallel, resolved values in order). */
+export async function getOrderReturns(orderIds: string[]): Promise<(OrderReturn | null)[]> {
+  const result = await Promise.all(
+    orderIds.map((orderId) =>
+      fetchApi<{ return: OrderReturn | null }>(
+        `/orders/${encodeURIComponent(orderId)}/return`,
+      ),
+    ),
+  );
+  return result.map((row) => row.return ?? null);
 }
 
 /** Tracking details (current status + timeline) for one order. */

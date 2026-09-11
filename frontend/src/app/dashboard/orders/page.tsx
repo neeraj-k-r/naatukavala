@@ -4,7 +4,7 @@ import OrderStatusSelect from "@/components/OrderStatusSelect";
 import ReturnDecision from "@/components/ReturnDecision";
 import SellerTrackingForm from "@/components/SellerTrackingForm";
 import { requireSeller } from "@/lib/auth";
-import { getOrderItems, getOrderReturn, getSellerOrders } from "@/lib/api";
+import { getOrderItems, getOrderReturns, getSellerOrders } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { OrderReturn } from "@/lib/types";
 
@@ -16,15 +16,17 @@ export default async function SellerOrdersPage() {
   const user = await requireSeller();
   const orders = await getSellerOrders(user.id);
   const orderIds = orders.map((order) => order.id);
-  const items = await getOrderItems(orderIds);
+  const [items, returns] = await Promise.all([
+    getOrderItems(orderIds.length > 0 ? orderIds : []),
+    getOrderReturns(orderIds),
+  ]);
   const itemsByOrder = new Map(
     orderIds.map((id) => [id, items.filter((item) => item.order_id === id)]),
   );
-
   const returnsByOrder = new Map<string, OrderReturn | null>();
-  for (const order of orders) {
-    returnsByOrder.set(order.id, await getOrderReturn(order.id));
-  }
+  orders.forEach((order, index) => {
+    returnsByOrder.set(order.id, returns[index] ?? null);
+  });
 
   return (
     <div className="space-y-6">

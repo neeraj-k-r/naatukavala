@@ -41,6 +41,41 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
     byShop.set(product.shop_id, list);
   }
 
+  const qtyById = new Map<string, number>();
+  for (const line of cart) {
+    const id = String(line.product_id ?? "");
+    if (!id) continue;
+    qtyById.set(id, (qtyById.get(id) ?? 0) + Math.max(1, Math.floor(Number(line.quantity))));
+  }
+
+  const deducted: { id: string; qty: number }[] = [];
+  const revertStocks = async () => {
+    for (const d of deducted) {
+      const product = products.find((p) => p.id === d.id);
+      await supabase
+        .from("products")
+        .update({ stock: Math.max(0, Number(product?.stock ?? 0) + d.qty) })
+        .eq("id", d.id);
+    }
+    deducted.length = 0;
+  };
+
+  for (const [productId, qty] of qtyById) {
+    const product = products.find((p) => p.id === productId);
+    if (!product) continue;
+    const { data, error } = await supabase
+      .from("products")
+      .update({ stock: Math.max(0, Number(product.stock ?? 0) - qty) })
+      .eq("id", productId)
+      .eq("stock", Number(product.stock ?? 0))
+      .select("id");
+    if (error || !data || data.length === 0) {
+      await revertStocks();
+      return res.status(409).json({ error: `"${product.name}" is no longer in stock. Please refresh your cart.` });
+    }
+    deducted.push({ id: productId, qty });
+  }
+
   const shopIds = [...byShop.keys()];
   if (shopIds.length === 0) {
     return res.status(400).json({ error: "Your cart is empty." });
@@ -75,6 +110,7 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
       .single();
 
     if (orderError || !order) {
+      await revertStocks();
       return res.status(500).json({ error: "Could not place your order. Please try again." });
     }
 
@@ -91,10 +127,12 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
     );
 
     if (itemsError) {
+      await revertStocks();
       return res.status(500).json({ error: "Could not save your order items. Please try again." });
     }
   }
 
+  clearCache();
   return res.status(201).json({ ok: true });
 });
 
@@ -370,6 +408,26 @@ router.patch("/:id/status", requireAuth, requireRole(["seller", "admin", "supera
   }
 
   clearCache();
+
+  if (hasStatus && (status as OrderStatus) === "cancelled" && order.status !== "cancelled") {
+    const { data: items } = await supabase
+      .from("order_items")
+      .select("product_id, quantity")
+      .eq("order_id", order.id);
+
+    for (const item of items ?? []) {
+      const { data: prod } = await supabase
+        .from("products")
+        .select("stock")
+        .eq("id", item.product_id)
+        .maybeSingle();
+      await supabase
+        .from("products")
+        .update({ stock: Math.max(0, Number(prod?.stock ?? 0) + item.quantity) })
+        .eq("id", item.product_id);
+    }
+  }
+
   return res.json({ ok: true });
 });
 

@@ -11,6 +11,7 @@ node_modules/
 /build
 /backend/dist
 /uploads
+backend/uploads
 
 # misc
 .DS_Store

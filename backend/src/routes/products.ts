@@ -267,13 +267,28 @@ router.delete("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]
 
   if (!shop) return res.status(400).json({ error: "Shop not found." });
 
+  const productId = String(req.params.id);
   const { error } = await supabase
     .from("products")
     .delete()
-    .eq("id", String(req.params.id))
+    .eq("id", productId)
     .eq("shop_id", shop.id);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    if (error.message.includes("foreign key constraint") || error.code === "23503") {
+      const { error: softError } = await supabase
+        .from("products")
+        .update({ is_active: false })
+        .eq("id", productId)
+        .eq("shop_id", shop.id);
+
+      if (softError) return res.status(500).json({ error: softError.message });
+      clearCache();
+      return res.json({ ok: true, soft: true });
+    }
+    return res.status(500).json({ error: error.message });
+  }
+
   clearCache();
   return res.json({ ok: true });
 });

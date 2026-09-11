@@ -5,7 +5,7 @@ import ClearCartOnMount from "@/components/ClearCartOnMount";
 import FeedbackForm from "@/components/FeedbackForm";
 import ReturnRequestForm from "@/components/ReturnRequestForm";
 import { requireBuyer } from "@/lib/auth";
-import { getBuyerOrders, getOrderItems, getOrderReturn } from "@/lib/api";
+import { getBuyerOrders, getOrderItems, getOrderReturns } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
 import type { OrderReturn } from "@/lib/types";
@@ -33,17 +33,20 @@ export default async function AccountPage({
 
   const orders = await getBuyerOrders(userId);
   const orderIds = orders.map((order) => order.id);
-  const items = await getOrderItems(orderIds);
+  const returnEligible = orders.filter(
+    (order) => order.status === "delivered" && order.shop?.return_policy,
+  );
+  const [items, returns] = await Promise.all([
+    getOrderItems(orderIds.length > 0 ? orderIds : []),
+    getOrderReturns(returnEligible.map((order) => order.id)),
+  ]);
   const itemsByOrder = new Map(
     orderIds.map((id) => [id, items.filter((item) => item.order_id === id)]),
   );
-
   const returnsByOrder = new Map<string, OrderReturn | null>();
-  for (const order of orders) {
-    if (order.status === "delivered" && order.shop?.return_policy) {
-      returnsByOrder.set(order.id, await getOrderReturn(order.id));
-    }
-  }
+  returnEligible.forEach((order, index) => {
+    returnsByOrder.set(order.id, returns[index] ?? null);
+  });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">

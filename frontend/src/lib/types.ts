@@ -2,6 +2,8 @@ export type UserRole = "superadmin" | "admin" | "seller" | "buyer";
 
 export type ShopStatus = "pending" | "approved" | "rejected" | "suspended";
 
+export type VerificationStatus = "none" | "pending" | "verified" | "rejected";
+
 export type OrderStatus =
   | "pending"
   | "confirmed"
@@ -30,6 +32,9 @@ export interface Shop {
   status: ShopStatus;
   delivery_charge: number;
   return_policy: string | null;
+  verification_doc_url: string | null;
+  verification_status: VerificationStatus;
+  verified_at: string | null;
   approved_by: string | null;
   approved_at: string | null;
   created_at: string;
@@ -47,11 +52,11 @@ export interface Product {
   images: string[];
   is_active: boolean;
   created_at: string;
-  shop?: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy"> | null;
+  shop?: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy" | "verification_status"> | null;
 }
 
 export interface ProductWithShop extends Product {
-  shop: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy">;
+  shop: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy" | "verification_status">;
 }
 
 export interface Order {

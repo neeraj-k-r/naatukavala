@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import AddToCartButton from "@/components/AddToCartButton";
 import ReviewsSection from "@/components/ReviewsSection";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { getProductById, getProductReviews } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
@@ -134,7 +135,13 @@ export default async function ProductPage({
           <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-5 text-sm text-slate-600">
             <p className="font-semibold text-slate-800">About this shop</p>
             <p className="mt-1">
-              Sold by <span className="font-medium text-emerald-700">{product.shop.name}</span>{" "}
+              Sold by{" "}
+              <span className="font-medium text-emerald-700">
+                {product.shop.name}
+              </span>{" "}
+              {product.shop.verification_status === "verified" && (
+                <VerifiedBadge />
+              )}{" "}
               on Naatukavala.{" "}
               <Link
                 href={shopUrl(product.shop.slug)}

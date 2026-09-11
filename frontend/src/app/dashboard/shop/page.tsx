@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import ShopForm from "@/components/ShopForm";
+import VerificationUpload from "@/components/VerificationUpload";
 import { requireSeller } from "@/lib/auth";
 import { getShopByOwner } from "@/lib/api";
 import { shopUrl } from "@/lib/subdomain";
@@ -36,6 +37,8 @@ export default async function ShopProfilePage() {
       )}
 
       <ShopForm shop={shop} />
+
+      {shop && <VerificationUpload shop={shop} />}
     </div>
   );
 }

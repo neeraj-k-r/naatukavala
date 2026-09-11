@@ -7,6 +7,7 @@
 
 export type UserRole = "superadmin" | "admin" | "seller" | "buyer";
 export type ShopStatus = "pending" | "approved" | "rejected" | "suspended";
+export type VerificationStatus = "none" | "pending" | "verified" | "rejected";
 export type OrderStatus =
   | "pending"
   | "confirmed"
@@ -36,6 +37,9 @@ interface Row {
     status: ShopStatus;
     delivery_charge: number;
     return_policy: string | null;
+    verification_doc_url: string | null;
+    verification_status: VerificationStatus;
+    verified_at: string | null;
     approved_by: string | null;
     approved_at: string | null;
     created_at: string;

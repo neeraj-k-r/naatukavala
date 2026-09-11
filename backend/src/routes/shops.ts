@@ -6,6 +6,7 @@ import { cached, clearCache } from "../lib/cache.js";
 import { summarize, type ReviewRow } from "../lib/reviews.js";
 import { slugify } from "../lib/utils.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
+import type { VerificationStatus } from "../lib/database.js";
 
 const router: Router = express.Router();
 
@@ -179,5 +180,48 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
   clearCache();
   return res.json({ ok: true });
 });
+
+router.post(
+  "/:id/verification",
+  requireAuth,
+  requireRole(["seller", "admin", "superadmin"]),
+  async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+    const { doc_url } = req.body ?? {};
+    if (typeof doc_url !== "string" || !doc_url.trim()) {
+      return res.status(400).json({ error: "Please upload an identity document first." });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data: shop, error } = await supabase
+      .from("shops")
+      .select("id, verification_status")
+      .eq("id", String(req.params.id))
+      .eq("owner_id", req.user.id)
+      .maybeSingle();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    if (!shop) return res.status(404).json({ error: "Shop not found." });
+
+    if (shop.verification_status === "pending") {
+      return res.status(400).json({ error: "Your verification is already under review." });
+    }
+
+    const { error: updateError } = await supabase
+      .from("shops")
+      .update({
+        verification_doc_url: String(doc_url).trim(),
+        verification_status: "pending",
+        verified_at: null,
+      })
+      .eq("id", shop.id);
+
+    if (updateError) return res.status(500).json({ error: updateError.message });
+    clearCache();
+    return res.json({ ok: true });
+  },
+);
 
 export default router;

@@ -83,7 +83,7 @@ router.get("/marketplace", async (req, res) => {
   const products = await cached(key, async () => {
     let query = supabase
       .from("products")
-      .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy)")
+      .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
       .eq("is_active", true)
       .eq("shop.status", "approved");
 
@@ -161,7 +161,7 @@ router.get("/:id", async (req, res) => {
     const product = await cached(`product:${id}`, async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy)")
+        .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
         .eq("id", id)
         .eq("shop.status", "approved")
         .maybeSingle();

@@ -3,11 +3,13 @@ import Link from "next/link";
 
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
+import VerifiedBadge from "@/components/VerifiedBadge";
 
 import type { ProductWithShop } from "@/lib/types";
 
 export default function ProductCard({ product }: { product: ProductWithShop }) {
   const image = product.images?.[0];
+  const verified = product.shop?.verification_status === "verified";
 
   return (
     <Link
@@ -35,8 +37,11 @@ export default function ProductCard({ product }: { product: ProductWithShop }) {
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
-        <p className="text-xs font-medium text-emerald-700">
-          {product.shop?.name}
+        <p className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-emerald-700">
+            {product.shop?.name}
+          </span>
+          {verified && <VerifiedBadge />}
         </p>
         <h3 className="line-clamp-2 text-sm font-semibold text-slate-800 group-hover:text-emerald-700">
           {product.name}

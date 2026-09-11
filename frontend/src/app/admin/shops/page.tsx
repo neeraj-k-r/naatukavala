@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getAllShops } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import ShopDecisionButtons from "@/components/ShopDecisionButtons";
+import VerificationDecision from "@/components/VerificationDecision";
 
 export const metadata = {
   title: "Shops & sellers",
@@ -40,6 +41,12 @@ export default async function AdminShopsPage() {
               </div>
               <ShopDecisionButtons shopId={shop.id} status={shop.status} />
             </div>
+
+            <VerificationDecision
+              shopId={shop.id}
+              docUrl={shop.verification_doc_url ?? null}
+              status={shop.verification_status ?? "none"}
+            />
           </div>
         ))}
       </div>

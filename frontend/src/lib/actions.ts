@@ -526,6 +526,57 @@ export async function approveShop(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+export async function decideVerification(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || !["superadmin", "admin"].includes(user.profile.role)) {
+    redirect("/");
+  }
+
+  const shopId = String(formData.get("shop_id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+
+  if (!shopId || !["verified", "rejected"].includes(decision)) {
+    return { error: "Invalid decision." };
+  }
+
+  try {
+    await fetchApi(`/admin/shops/${shopId}/verification`, {
+      method: "PATCH",
+      body: JSON.stringify({ decision }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not update verification.") };
+  }
+
+  revalidatePath("/admin/shops");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function submitVerification(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user || user.role !== "seller") redirect("/login");
+
+  const shopId = String(formData.get("shop_id") ?? "");
+  const docUrl = String(formData.get("doc_url") ?? "").trim();
+
+  if (!shopId) return { error: "Shop not found." };
+  if (!docUrl) return { error: "Please upload your identity document first." };
+
+  try {
+    await fetchApi(`/shops/${shopId}/verification`, {
+      method: "POST",
+      body: JSON.stringify({ doc_url: docUrl }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not submit verification.") };
+  }
+
+  revalidatePath("/dashboard/shop");
+  return { success: true };
+}
+
 export async function updateUserRole(state: unknown, formData: FormData) {
   const user = await getUser();
   if (!user) redirect("/login");

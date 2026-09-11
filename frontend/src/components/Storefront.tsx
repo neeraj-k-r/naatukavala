@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import ProductGrid from "@/components/ProductGrid";
 import ReviewsSection from "@/components/ReviewsSection";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { getShopBySlug, getShopReviews } from "@/lib/api";
 
 export default async function Storefront({ slug }: { slug: string }) {
@@ -47,9 +48,14 @@ export default async function Storefront({ slug }: { slug: string }) {
               )}
             </div>
             <div className="pb-1">
-              <h1 className="text-2xl font-extrabold text-slate-900">
-                {shop.name}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-extrabold text-slate-900">
+                  {shop.name}
+                </h1>
+                {shop.verification_status === "verified" && (
+                  <VerifiedBadge size="lg" />
+                )}
+              </div>
               {shop.tagline && (
                 <p className="mt-1 text-sm text-slate-500">{shop.tagline}</p>
               )}
@@ -98,6 +104,7 @@ export default async function Storefront({ slug }: { slug: string }) {
               slug: shop.slug,
               delivery_charge: shop.delivery_charge,
               return_policy: shop.return_policy,
+              verification_status: shop.verification_status,
             },
           }))}
         />

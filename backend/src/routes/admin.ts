@@ -121,6 +121,33 @@ router.patch("/shops/:id", async (req, res) => {
   return res.json({ ok: true });
 });
 
+router.patch("/shops/:id/verification", async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const { decision } = req.body ?? {};
+  const statusFor: Record<string, "verified" | "rejected"> = {
+    verified: "verified",
+    rejected: "rejected",
+  };
+  const status = statusFor[decision];
+  if (!status) {
+    return res.status(400).json({ error: "Decision must be verified or rejected." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("shops")
+    .update({
+      verification_status: status,
+      verified_at: status === "verified" ? new Date().toISOString() : null,
+    })
+    .eq("id", req.params.id);
+
+  if (error) return res.status(500).json({ error: error.message });
+  clearCache();
+  return res.json({ ok: true });
+});
+
 router.patch("/users/:id/role", async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 

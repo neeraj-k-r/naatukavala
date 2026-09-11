@@ -38,6 +38,9 @@ create table if not exists public.shops (
   status public.shop_status not null default 'pending',
   delivery_charge numeric(12, 2) not null default 0 check (delivery_charge >= 0),
   return_policy text,
+  verification_doc_url text,
+  verification_status text not null default 'none' check (verification_status in ('none', 'pending', 'verified', 'rejected')),
+  verified_at timestamptz,
   approved_by uuid references auth.users (id),
   approved_at timestamptz,
   created_at timestamptz not null default now()
@@ -269,10 +272,20 @@ create policy orders_select_seller on public.orders
     exists (
       select 1 from public.shops s
       where s.id = shop_id and s.owner_id = auth.uid()
-    )
+)
   );
-create policy orders_insert_buyer on public.orders
+create policy order_returns_insert_buyer on public.order_returns
   for insert with check (buyer_id = auth.uid());
+
+-- ------------------------------------------------------------
+-- Migration: seller verification (Aadhaar, idempotent — safe to re-run).
+-- ------------------------------------------------------------
+alter table public.shops
+  add column if not exists verification_doc_url text;
+alter table public.shops
+  add column if not exists verification_status text not null default 'none';
+alter table public.shops
+  add column if not exists verified_at timestamptz;
 create policy orders_update_seller on public.orders
   for update using (
     exists (

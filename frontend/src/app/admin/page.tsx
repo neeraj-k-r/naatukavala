@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth";
-import { getAllShops } from "@/lib/api";
+import { getAllPromotions, getAllShops } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = {
@@ -10,8 +10,14 @@ export const metadata = {
 
 export default async function AdminOverviewPage() {
   const user = await requireAdmin();
-  const shops = await getAllShops();
+  const [shops, promotions] = await Promise.all([
+    getAllShops(),
+    getAllPromotions(),
+  ]);
   const pending = shops.filter((shop) => shop.status === "pending");
+  const pendingPromotions = promotions.filter(
+    (promotion) => promotion.status === "requested",
+  );
 
   return (
     <div className="space-y-6">
@@ -28,17 +34,30 @@ export default async function AdminOverviewPage() {
             <p className="text-sm font-semibold text-amber-900">
               {pending.length} shop{pending.length === 1 ? "" : "s"} awaiting
               approval
+              {pendingPromotions.length > 0 && (
+                <> · {pendingPromotions.length} promotion request{pendingPromotions.length === 1 ? "" : "s"}</>
+              )}
             </p>
             <p className="text-xs text-amber-700">
               Review new sellers so their stores go live.
             </p>
           </div>
-          <Link
-            href="/admin/shops"
-            className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700"
-          >
-            Review shops
-          </Link>
+          <div className="flex gap-2">
+            {pendingPromotions.length > 0 && (
+              <Link
+                href="/admin/promotions"
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Review promotions
+              </Link>
+            )}
+            <Link
+              href="/admin/shops"
+              className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+            >
+              Review shops
+            </Link>
+          </div>
         </div>
       </div>
 

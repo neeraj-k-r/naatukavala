@@ -22,11 +22,19 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
   const { count } = useCart();
 
   // The layout re-renders with a new `initialUser` after login/logout/signup
-  // navigations. useState only reads the first value, so sync it — otherwise
-  // the previous account's name stays visible until a manual refresh.
-  useEffect(() => {
+  // navigations, but useState only reads the first value — so the previous
+  // account's name stays visible until a manual refresh. Adjust the state
+  // during render when the account actually changed (logout, login, or a
+  // different user signing up). Comparing ids keeps fresher client-fetched
+  // profile data for same-user navigations.
+  const [syncedUserId, setSyncedUserId] = useState<string | null>(
+    initialUser?.id ?? null,
+  );
+  const incomingUserId = initialUser?.id ?? null;
+  if (incomingUserId !== syncedUserId) {
+    setSyncedUserId(incomingUserId);
     setUser(initialUser);
-  }, [initialUser]);
+  }
 
   async function handleSignOut() {
     // Clear the browser session first: the server action only clears

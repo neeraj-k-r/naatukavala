@@ -103,8 +103,10 @@ export async function signUp(state: unknown, formData: FormData) {
   }
 
   if (session) {
+    revalidatePath("/", "layout");
     redirect(role === "seller" ? "/dashboard" : "/");
   }
+  revalidatePath("/", "layout");
   redirect("/auth/verify");
 }
 
@@ -135,12 +137,14 @@ export async function signIn(state: unknown, formData: FormData) {
   }
 
   const user = await getUser();
+  revalidatePath("/", "layout");
   redirect(user?.role === "seller" ? "/dashboard" : "/");
 }
 
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  revalidatePath("/", "layout");
   redirect("/");
 }
 

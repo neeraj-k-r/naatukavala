@@ -7,6 +7,9 @@ export const metadata = {
   title: "Seller dashboard",
 };
 
+// Never serve one seller's stats to another account from the static cache.
+export const dynamic = "force-dynamic";
+
 export default async function DashboardOverviewPage() {
   const user = await requireSeller();
   const [shop, products, orders] = await Promise.all([

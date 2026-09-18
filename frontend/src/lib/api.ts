@@ -9,9 +9,11 @@ import type {
   OrderStatusEvent,
   Product,
   ProductWithShop,
+  Promotion,
   RatingSummary,
   SellerStats,
   Shop,
+  Spotlight,
 } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -244,6 +246,40 @@ export async function getProductReviews(productId: string): Promise<RatingSummar
 /** Aggregated public reviews (rating summary + recent list) for a shop. */
 export async function getShopReviews(slug: string): Promise<RatingSummary> {
   return fetchApi(`/shops/reviews/${encodeURIComponent(slug)}`);
+}
+
+// ---------------------------------------------------------------- Promotions
+
+/**
+ * Approved promotions inside their active window. Fails closed to an empty
+ * spotlight so the marketplace still renders when promotions are unavailable.
+ */
+export async function getSpotlight(): Promise<Spotlight> {
+  try {
+    const data = await fetchApi<Spotlight>("/promotions/spotlight");
+    return {
+      products: data.products ?? [],
+      shops: data.shops ?? [],
+    };
+  } catch {
+    return { products: [], shops: [] };
+  }
+}
+
+/** Promotion requests filed by the signed-in seller's shop. */
+export async function getMyPromotions(): Promise<Promotion[]> {
+  const { promotions } = await fetchApi<{ promotions: Promotion[] }>(
+    "/promotions/mine",
+  );
+  return promotions ?? [];
+}
+
+/** Every promotion request (admin review queue). */
+export async function getAllPromotions(): Promise<Promotion[]> {
+  const { promotions } = await fetchApi<{ promotions: Promotion[] }>(
+    "/promotions/requests",
+  );
+  return promotions ?? [];
 }
 
 // ---------------------------------------------------------------- Admin

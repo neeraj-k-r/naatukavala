@@ -175,6 +175,71 @@ export async function signOut() {
   redirect("/");
 }
 
+// ---------------------------------------------------------------- Promotions
+
+/** Sellers request a sponsored spot for their shop or one product. */
+export async function requestPromotion(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user || user.role !== "seller") redirect("/login");
+
+  const target = String(formData.get("target") ?? "shop");
+  const note = String(formData.get("note") ?? "").trim();
+
+  if (note.length > 300) {
+    return { error: "Note must be under 300 characters." };
+  }
+
+  try {
+    await fetchApi("/promotions", {
+      method: "POST",
+      body: JSON.stringify({
+        product_id: target === "shop" ? null : target,
+        note: note || null,
+      }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not request the promotion.") };
+  }
+
+  revalidatePath("/dashboard/promotion");
+  return { success: true };
+}
+
+/** Admins approve (time-boxed), reject, or expire a promotion. */
+export async function decidePromotion(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || !["superadmin", "admin"].includes(user.profile.role)) {
+    redirect("/");
+  }
+
+  const promotionId = String(formData.get("promotion_id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  const durationDays = Number(formData.get("duration_days") ?? 30);
+  const decisionNote = String(formData.get("decision_note") ?? "").trim();
+
+  if (!promotionId || !["approve", "reject", "expire"].includes(decision)) {
+    return { error: "Invalid decision." };
+  }
+
+  try {
+    await fetchApi(`/promotions/${promotionId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        decision,
+        duration_days: durationDays,
+        decision_note: decisionNote || null,
+      }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not update the promotion.") };
+  }
+
+  revalidatePath("/admin/promotions");
+  revalidatePath("/");
+  return { success: true };
+}
+
 // ---------------------------------------------------------------- Seller
 
 /** Creates the seller's shop after signup/onboarding. */

@@ -78,6 +78,29 @@ export interface Order {
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
 
+export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
+
+export interface Promotion {
+  id: string;
+  shop_id: string;
+  product_id: string | null;
+  status: PromotionStatus;
+  note: string | null;
+  decision_note: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  decided_at: string | null;
+  created_at: string;
+  shop_name?: string | null;
+  shop_slug?: string | null;
+  product_name?: string | null;
+}
+
+export interface Spotlight {
+  products: ProductWithShop[];
+  shops: Shop[];
+}
+
 export interface OrderReturn {
   id: string;
   order_id: string;

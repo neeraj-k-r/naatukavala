@@ -14,6 +14,7 @@ export type OrderStatus =
   | "shipped"
   | "delivered"
   | "cancelled";
+export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
 
 interface Row {
   profiles: {
@@ -101,6 +102,19 @@ interface Row {
     decided_at: string | null;
     decision_note: string | null;
   };
+  promotions: {
+    id: string;
+    shop_id: string;
+    product_id: string | null;
+    status: PromotionStatus;
+    note: string | null;
+    decision_note: string | null;
+    starts_at: string | null;
+    ends_at: string | null;
+    decided_by: string | null;
+    decided_at: string | null;
+    created_at: string;
+  };
 }
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
@@ -151,6 +165,12 @@ export type Database = {
         Row: Row["order_returns"];
         Insert: InsertOf<"order_returns">;
         Update: UpdateOf<"order_returns">;
+        Relationships: [];
+      };
+      promotions: {
+        Row: Row["promotions"];
+        Insert: InsertOf<"promotions">;
+        Update: UpdateOf<"promotions">;
         Relationships: [];
       };
     };

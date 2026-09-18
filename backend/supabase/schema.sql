@@ -468,3 +468,48 @@ create policy order_returns_select_seller on public.order_returns
   );
 create policy order_returns_insert_buyer on public.order_returns
   for insert with check (buyer_id = auth.uid());
+-- ------------------------------------------------------------
+-- Promotions / sponsored spots (sellers request, admins approve).
+-- Sellers promote their whole shop (product_id null) or one product.
+-- ------------------------------------------------------------
+create table if not exists public.promotions (
+  id uuid primary key default gen_random_uuid(),
+  shop_id uuid not null references public.shops (id) on delete cascade,
+  product_id uuid references public.products (id) on delete cascade,
+  status text not null default 'requested' check (status in ('requested', 'approved', 'rejected', 'expired')),
+  note text,
+  decision_note text,
+  starts_at timestamptz,
+  ends_at timestamptz,
+  decided_by uuid references auth.users (id),
+  decided_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists promotions_shop_idx on public.promotions (shop_id);
+create index if not exists promotions_product_idx on public.promotions (product_id);
+create index if not exists promotions_status_idx on public.promotions (status);
+
+alter table public.promotions enable row level security;
+
+create policy promotions_select_owner on public.promotions
+  for select using (
+    exists (
+      select 1 from public.shops s
+      where s.id = shop_id and s.owner_id = auth.uid()
+    )
+  );
+create policy promotions_insert_owner on public.promotions
+  for insert with check (
+    exists (
+      select 1 from public.shops s
+      where s.id = shop_id and s.owner_id = auth.uid()
+    )
+  );
+create policy promotions_select_public on public.promotions
+  for select using (
+    status = 'approved'
+    and (starts_at is null or starts_at <= now())
+    and (ends_at is null or ends_at > now())
+  );
+

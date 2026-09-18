@@ -45,7 +45,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   req.user = {
     id: data.user.id,
     email: data.user.email ?? "",
-    role: data.user.user_metadata?.role ?? "buyer",
+    // Never trust user_metadata for authorization: it is client-writable at
+    // signup. The profiles table (guarded by RLS + escalation trigger) is the
+    // only source of truth for roles.
+    role: profile?.role ?? "buyer",
     profile: profile ?? null,
   };
 

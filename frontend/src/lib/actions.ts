@@ -31,6 +31,14 @@ function messageOf(err: unknown, fallback: string): string {
 const roleAllowed = (role: string): role is UserRole =>
   role === "buyer" || role === "seller";
 
+// Keep client-side checks aligned with Supabase/bcrypt limits and reject
+// over-long input before it ever reaches the database.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_EMAIL_LENGTH = 254;
+const MAX_PASSWORD_LENGTH = 72;
+const MAX_NAME_LENGTH = 100;
+const MAX_TAGLINE_LENGTH = 160;
+
 export async function signUp(state: unknown, formData: FormData) {
   const supabase = await createClient();
 
@@ -46,8 +54,23 @@ export async function signUp(state: unknown, formData: FormData) {
   if (!fullName || !email || !password) {
     return { error: "Name, email and password are required." };
   }
+  if (!EMAIL_RE.test(email) || email.length > MAX_EMAIL_LENGTH) {
+    return { error: "Please enter a valid email address." };
+  }
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters long." };
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { error: "Password must be under 72 characters." };
+  }
+  if (fullName.length > MAX_NAME_LENGTH) {
+    return { error: "Name must be under 100 characters." };
+  }
+  if (brandName.length > MAX_NAME_LENGTH) {
+    return { error: "Brand name must be under 100 characters." };
+  }
+  if (tagline.length > MAX_TAGLINE_LENGTH) {
+    return { error: "Tagline must be under 160 characters." };
   }
   if (!roleAllowed(role)) {
     return { error: "Invalid account type." };
@@ -112,8 +135,12 @@ export async function signUp(state: unknown, formData: FormData) {
 
 export async function signIn(state: unknown, formData: FormData) {
   const supabase = await createClient();
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+
+  if (!EMAIL_RE.test(email) || email.length > MAX_EMAIL_LENGTH) {
+    return { error: "Invalid email or password, or the account was not confirmed yet." };
+  }
 
   const { data: signInData, error } = await supabase.auth.signInWithPassword({
     email,
@@ -121,8 +148,8 @@ export async function signIn(state: unknown, formData: FormData) {
   });
 
   if (error) {
+    // Never log the email address — auth logs should not contain PII.
     console.error("[signIn] auth error", {
-      email,
       code: error.code ?? null,
       status: error.status ?? null,
       message: error.message,

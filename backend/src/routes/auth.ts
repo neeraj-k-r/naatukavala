@@ -6,14 +6,49 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router: Router = express.Router();
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Tiny in-memory rate limiter: slows credential stuffing/brute force on the
+// public auth endpoints without adding a dependency. Resets per window.
+const attempts = new Map<string, { count: number; resetAt: number }>();
+const AUTH_LIMIT = 20;
+const AUTH_WINDOW_MS = 10 * 60 * 1000;
+
+function authRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = attempts.get(ip);
+  if (!entry || entry.resetAt <= now) {
+    attempts.set(ip, { count: 1, resetAt: now + AUTH_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > AUTH_LIMIT;
+}
+
 router.post("/signup", async (req, res) => {
-  const { email, password, full_name, role } = req.body ?? {};
+  if (authRateLimited(req.ip ?? "unknown")) {
+    return res.status(429).json({ error: "Too many attempts. Please try again later." });
+  }
+
+  const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const password = String(req.body?.password ?? "");
+  const full_name = String(req.body?.full_name ?? "").trim();
+  const { role } = req.body ?? {};
 
   if (!email || !password || !full_name) {
     return res.status(400).json({ error: "Name, email and password are required." });
   }
+  if (!EMAIL_RE.test(email) || email.length > 254) {
+    return res.status(400).json({ error: "Please enter a valid email address." });
+  }
   if (String(password).length < 8) {
     return res.status(400).json({ error: "Password must be at least 8 characters long." });
+  }
+  if (String(password).length > 72) {
+    return res.status(400).json({ error: "Password must be under 72 characters." });
+  }
+  if (full_name.length > 100) {
+    return res.status(400).json({ error: "Name must be under 100 characters." });
   }
   if (role !== "buyer" && role !== "seller") {
     return res.status(400).json({ error: "Invalid account type." });
@@ -40,12 +75,24 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body ?? {};
+  if (authRateLimited(req.ip ?? "unknown")) {
+    return res.status(429).json({ error: "Too many attempts. Please try again later." });
+  }
+
+  const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const password = String(req.body?.password ?? "");
   const supabase = getSupabaseAdmin();
 
+  if (!EMAIL_RE.test(email) || email.length > 254 || !password) {
+    // Generic message — never reveal whether the email exists.
+    return res.status(401).json({
+      error: "Invalid email or password, or the account was not confirmed yet.",
+    });
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: String(email ?? "").trim(),
-    password: String(password ?? ""),
+    email,
+    password,
   });
 
   if (error || !data.user) {

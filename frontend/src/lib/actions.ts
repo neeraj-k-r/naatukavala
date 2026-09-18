@@ -699,6 +699,39 @@ export async function updateUserRole(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+export async function updateAdminBooking(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || !["superadmin", "admin"].includes(user.profile.role)) {
+    redirect("/");
+  }
+
+  const orderId = String(formData.get("order_id") ?? "");
+  const status = String(formData.get("status") ?? "") as OrderStatus;
+  const trackingNumber = String(formData.get("tracking_number") ?? "").trim();
+
+  if (!orderId || !["pending", "confirmed", "shipped", "delivered", "cancelled"].includes(status)) {
+    return { error: "Invalid status." };
+  }
+
+  try {
+    await fetchApi(`/admin/orders/${orderId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status,
+        tracking_number: trackingNumber || undefined,
+      }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not update the booking.") };
+  }
+
+  revalidatePath("/admin/reports");
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
 export async function deleteUser(state: unknown, formData: FormData) {
   const user = await getUser();
   if (!user) redirect("/login");

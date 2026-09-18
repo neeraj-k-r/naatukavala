@@ -191,3 +191,78 @@ export interface CartLine {
   product_id: string;
   quantity: number;
 }
+
+export interface AdminSalesSummary {
+  totalOrders: number;
+  netOrders: number;
+  totalRevenue: number;
+  avgOrderValue: number;
+  todayOrders: number;
+  todayRevenue: number;
+  last7Revenue: number;
+  last30Revenue: number;
+  delivered: number;
+  pending: number;
+  confirmed: number;
+  shipped: number;
+  cancelled: number;
+  upcoming: number;
+  inTransit: number;
+  needsTracking: number;
+  pendingReturns: number;
+}
+
+export interface AdminDailyStat {
+  date: string;
+  label: string;
+  orders: number;
+  revenue: number;
+}
+
+export interface AdminStatusBreakdown {
+  status: string;
+  orders: number;
+  revenue: number;
+}
+
+export interface AdminTopShop {
+  shop_id: string;
+  shop_name: string;
+  shop_slug: string | null;
+  orders: number;
+  revenue: number;
+}
+
+export interface AdminPendingReturn {
+  id: string;
+  order_id: string;
+  reason: string;
+  status: string;
+  created_at: string;
+}
+
+export interface AdminSalesReport {
+  summary: AdminSalesSummary;
+  daily: AdminDailyStat[];
+  monthly: SellerMonthlyStat[];
+  byStatus: AdminStatusBreakdown[];
+  topShops: AdminTopShop[];
+  topProducts: SellerProductStat[];
+  pendingReturns: AdminPendingReturn[];
+  currency: string;
+}
+
+export interface AdminBooking {
+  id: string;
+  buyer_id: string;
+  buyer_name: string | null;
+  shop_id: string;
+  status: OrderStatus;
+  total: number;
+  currency: string;
+  shipping_address: string | null;
+  buyer_note: string | null;
+  tracking_number: string | null;
+  created_at: string;
+  shop: { name: string; slug: string } | null;
+}

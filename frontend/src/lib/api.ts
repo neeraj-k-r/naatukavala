@@ -303,3 +303,31 @@ export async function getAllUsers() {
   }>("/admin/users");
   return users ?? [];
 }
+
+/** Marketplace-wide sales report for the admin panel (KPIs + graphs + queues). */
+export async function getAdminSalesReport(
+  days = 30,
+): Promise<import("@/lib/types").AdminSalesReport> {
+  return fetchApi(`/admin/sales-report?days=${encodeURIComponent(String(days))}`);
+}
+
+/** Every booking/order across the marketplace, filterable by fulfilment group. */
+export async function getAdminBookings(options: {
+  group?: string;
+  status?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+} = {}): Promise<{ orders: import("@/lib/types").AdminBooking[]; total: number }> {
+  const qs = new URLSearchParams();
+  if (options.group) qs.set("group", options.group);
+  if (options.status) qs.set("status", options.status);
+  if (options.search) qs.set("search", options.search);
+  if (options.limit) qs.set("limit", String(options.limit));
+  if (options.offset) qs.set("offset", String(options.offset));
+  const { orders, total } = await fetchApi<{
+    orders: import("@/lib/types").AdminBooking[];
+    total: number;
+  }>(`/admin/orders${qs.size > 0 ? `?${qs}` : ""}`);
+  return { orders: orders ?? [], total: total ?? 0 };
+}

@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth";
-import { getAllPromotions, getAllShops } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { getAdminSalesReport, getAllPromotions, getAllShops } from "@/lib/api";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 export const metadata = {
   title: "Admin panel",
@@ -10,9 +10,16 @@ export const metadata = {
 
 export default async function AdminOverviewPage() {
   const user = await requireAdmin();
-  const [shops, promotions] = await Promise.all([
+  // Promotions degrades gracefully when the migration hasn't been run yet —
+  // the rest of the overview must still render.
+  let promotionsAvailable = true;
+  const [shops, promotions, report] = await Promise.all([
     getAllShops(),
-    getAllPromotions(),
+    getAllPromotions().catch(() => {
+      promotionsAvailable = false;
+      return [];
+    }),
+    getAdminSalesReport().catch(() => null),
   ]);
   const pending = shops.filter((shop) => shop.status === "pending");
   const pendingPromotions = promotions.filter(
@@ -61,7 +68,76 @@ export default async function AdminOverviewPage() {
         </div>
       </div>
 
+      {!promotionsAvailable && (
+        <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-500">
+          Promotions are unavailable — run{" "}
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
+            backend/supabase/migrations/20260919_promotions.sql
+          </code>{" "}
+          in the Supabase SQL editor to enable them.
+        </div>
+      )}
+
+      {report && (
+        <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">
+                {formatCurrency(report.summary.totalRevenue, report.currency)} lifetime revenue ·{" "}
+                {report.summary.upcoming} upcoming · {report.summary.inTransit} in transit
+                {report.summary.needsTracking > 0 && (
+                  <> · {report.summary.needsTracking} need tracking ⚠️</>
+                )}
+              </p>
+              <p className="text-xs text-emerald-700">
+                Today {formatCurrency(report.summary.todayRevenue, report.currency)} · last 7d{" "}
+                {formatCurrency(report.summary.last7Revenue, report.currency)} · delivered{" "}
+                {report.summary.delivered}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href="/admin/reports"
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Sales report
+              </Link>
+              <Link
+                href="/admin/bookings?group=dispatch"
+                className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"
+              >
+                Dispatch queue
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-3">
+        <Link
+          href="/admin/reports"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"
+        >
+          <p className="text-sm text-slate-500">📊 Sales (30d)</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+            {report ? formatCurrency(report.summary.last30Revenue, report.currency) : "—"}
+          </p>
+          <p className="mt-1 text-xs text-emerald-600">
+            {report ? `${report.summary.netOrders} net orders` : "View sales report"} →
+          </p>
+        </Link>
+        <Link
+          href="/admin/bookings?group=upcoming"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"
+        >
+          <p className="text-sm text-slate-500">📅 Upcoming bookings</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+            {report ? report.summary.upcoming : "—"}
+          </p>
+          <p className="mt-1 text-xs text-amber-600">
+            Pending + confirmed →
+          </p>
+        </Link>
         <Link
           href="/admin/shops"
           className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"

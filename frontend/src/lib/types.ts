@@ -101,6 +101,12 @@ export interface Spotlight {
   shops: Shop[];
 }
 
+export interface WishlistItem {
+  product_id: string;
+  created_at: string;
+  product: ProductWithShop;
+}
+
 export interface OrderReturn {
   id: string;
   order_id: string;

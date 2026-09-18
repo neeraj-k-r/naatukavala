@@ -115,6 +115,11 @@ interface Row {
     decided_at: string | null;
     created_at: string;
   };
+  wishlists: {
+    buyer_id: string;
+    product_id: string;
+    created_at: string;
+  };
 }
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
@@ -171,6 +176,12 @@ export type Database = {
         Row: Row["promotions"];
         Insert: InsertOf<"promotions">;
         Update: UpdateOf<"promotions">;
+        Relationships: [];
+      };
+      wishlists: {
+        Row: Row["wishlists"];
+        Insert: InsertOf<"wishlists">;
+        Update: UpdateOf<"wishlists">;
         Relationships: [];
       };
     };

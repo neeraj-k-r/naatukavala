@@ -14,6 +14,7 @@ import type {
   SellerStats,
   Shop,
   Spotlight,
+  WishlistItem,
 } from "@/lib/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -280,6 +281,24 @@ export async function getAllPromotions(): Promise<Promotion[]> {
     "/promotions/requests",
   );
   return promotions ?? [];
+}
+
+// ---------------------------------------------------------------- Wishlist
+
+/** Saved products of the signed-in user. Fails closed when unavailable. */
+export async function getWishlist(): Promise<WishlistItem[]> {
+  try {
+    const { items } = await fetchApi<{ items: WishlistItem[] }>("/wishlist");
+    return items ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** Ids of wishlisted products, for marking hearts on cards. */
+export async function getWishlistIds(): Promise<Set<string>> {
+  const items = await getWishlist();
+  return new Set(items.map((item) => item.product_id));
 }
 
 // ---------------------------------------------------------------- Admin

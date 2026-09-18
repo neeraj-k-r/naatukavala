@@ -240,6 +240,31 @@ export async function decidePromotion(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+// ---------------------------------------------------------------- Wishlist
+
+/** Toggles a product in the signed-in user's wishlist. */
+export async function toggleWishlist(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+
+  const productId = String(formData.get("product_id") ?? "");
+  if (!productId) return { error: "Product is required." };
+
+  let wished = false;
+  try {
+    const data = await fetchApi<{ wished: boolean }>("/wishlist", {
+      method: "POST",
+      body: JSON.stringify({ product_id: productId }),
+    });
+    wished = data.wished ?? false;
+  } catch (err) {
+    return { error: messageOf(err, "Could not update your wishlist.") };
+  }
+
+  revalidatePath("/wishlist");
+  return { success: true, wished };
+}
+
 // ---------------------------------------------------------------- Seller
 
 /** Creates the seller's shop after signup/onboarding. */

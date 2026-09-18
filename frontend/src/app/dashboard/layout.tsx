@@ -66,6 +66,9 @@ export default async function DashboardLayout({
             <Link href="/dashboard/analytics" className="rounded-lg px-3 py-2 hover:bg-slate-50">
               Sales
             </Link>
+            <Link href="/dashboard/promotion" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+              Promote
+            </Link>
             <Link href="/" className="mt-4 rounded-lg px-3 py-2 text-slate-400 hover:text-emerald-700">
               Marketplace
             </Link>

@@ -12,7 +12,29 @@ import uploadRoutes from "./routes/upload.js";
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 
-app.use(cors({ origin: true, credentials: true }));
+// Reflecting any origin together with credentials lets arbitrary sites make
+// authenticated requests. Restrict to the known frontend origin(s) instead.
+const allowedOrigins = (process.env.FRONTEND_URL ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+if (allowedOrigins.length === 0) {
+  allowedOrigins.push("http://localhost:3000", "http://127.0.0.1:3000");
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Same-origin / server-to-server calls send no Origin header.
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Origin not allowed by CORS."));
+      }
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ ok: true }));

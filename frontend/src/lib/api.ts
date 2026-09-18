@@ -27,6 +27,12 @@ export class ApiError extends Error {
 
 async function getAccessToken(): Promise<string | null> {
   const supabase = await createClient();
+  // Validate the user server-side first: getSession() alone trusts whatever
+  // is in the cookie without checking expiry/revocation.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
   const {
     data: { session },
   } = await supabase.auth.getSession();

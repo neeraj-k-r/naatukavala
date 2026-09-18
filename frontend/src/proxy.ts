@@ -1,24 +1,59 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 import { getShopSlugFromHost } from "@/lib/subdomain";
 
 /**
- * Subdomain routing: requests to `<slug>.<app-domain>` are rewritten to the
- * internal `/_sites/<slug>` route which renders that seller's storefront.
- * Everything on the main domain flows through as-is.
+ * Runs before every matched request:
+ * 1. Refreshes the Supabase session cookie (validates via getUser so expired
+ *    tokens are rotated and stale cookies never linger after logout/signup).
+ * 2. Rewrites `<slug>.<app-domain>/` to the internal `/_sites/<slug>` route.
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request });
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (url && anonKey) {
+    const supabase = createServerClient(url, anonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          );
+        },
+      },
+    });
+
+    // getUser() validates with the Supabase server and refreshes the session
+    // when needed. Never use getSession() here — it only reads cookies.
+    await supabase.auth.getUser();
+  }
+
   const host = request.headers.get("host");
   const slug = getShopSlugFromHost(host);
 
   if (slug && request.nextUrl.pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = `/_sites/${slug}`;
-    return NextResponse.rewrite(url);
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/_sites/${slug}`;
+    const rewritten = NextResponse.rewrite(rewriteUrl, { request });
+    // Carry any refreshed auth cookies onto the rewrite response.
+    response.cookies.getAll().forEach((cookie) => {
+      rewritten.cookies.set(cookie.name, cookie.value);
+    });
+    return rewritten;
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

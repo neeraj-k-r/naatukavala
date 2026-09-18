@@ -121,6 +121,13 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
 
         <div className="flex items-center gap-2">
           <Link
+            href={authUrl("/wishlist")}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
+            aria-label="Wishlist"
+          >
+            Wishlist
+          </Link>
+          <Link
             href={authUrl("/cart")}
             className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
             aria-label="Cart"
@@ -180,6 +187,13 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
                       className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     >
                       My orders
+                    </Link>
+                    <Link
+                      href="/wishlist"
+                      onClick={() => setMenuOpen(false)}
+                      className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      My wishlist
                     </Link>
                     {role === "seller" && (
                       <Link

@@ -8,6 +8,7 @@ import productRoutes from "./routes/products.js";
 import orderRoutes from "./routes/orders.js";
 import adminRoutes from "./routes/admin.js";
 import uploadRoutes from "./routes/upload.js";
+import promotionRoutes from "./routes/promotions.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -45,6 +46,7 @@ app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
 app.use("/admin", adminRoutes);
 app.use("/upload", uploadRoutes);
+app.use("/promotions", promotionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);

@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
 import ReviewsSection from "@/components/ReviewsSection";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { getProductById, getProductReviews } from "@/lib/api";
+import WishlistButton from "@/components/WishlistButton";
+import { getProductById, getProductReviews, getWishlistIds } from "@/lib/api";
+import { getUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
 
@@ -15,6 +17,9 @@ export default async function ProductPage({
   const { id } = await params;
   const product = await getProductById(id);
   if (!product) notFound();
+
+  const user = await getUser();
+  const wishlistIds = user ? await getWishlistIds() : new Set<string>();
 
   const [image, reviews] = [product.images?.[0], await getProductReviews(id)];
 
@@ -112,7 +117,7 @@ export default async function ProductPage({
             </p>
           )}
 
-          <div className="mt-8">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <AddToCartButton
               productId={product.id}
               name={product.name}
@@ -126,10 +131,16 @@ export default async function ProductPage({
             />
             <Link
               href="/cart"
-              className="ml-3 inline-flex items-center justify-center rounded-xl border border-emerald-600 px-6 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+              className="inline-flex items-center justify-center rounded-xl border border-emerald-600 px-6 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
             >
               View cart
             </Link>
+            <WishlistButton
+              productId={product.id}
+              initialWished={wishlistIds.has(product.id)}
+              signedIn={Boolean(user)}
+              size="detail"
+            />
           </div>
 
           <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-5 text-sm text-slate-600">

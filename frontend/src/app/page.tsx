@@ -5,7 +5,8 @@ import { Suspense } from "react";
 import SearchBar from "@/components/SearchBar";
 import CategoryPills from "@/components/CategoryPills";
 import ProductGrid from "@/components/ProductGrid";
-import { getActiveShops, getMarketplaceProducts, getSpotlight } from "@/lib/api";
+import { getActiveShops, getMarketplaceProducts, getSpotlight, getWishlistIds } from "@/lib/api";
+import { getUser } from "@/lib/auth";
 import { shopUrl } from "@/lib/subdomain";
 
 import type { Shop } from "@/lib/types";
@@ -21,11 +22,15 @@ export default async function MarketplacePage({
   const search = typeof params.q === "string" ? params.q : "";
   const category = typeof params.category === "string" ? params.category : "";
 
-  const [products, shops, spotlight] = await Promise.all([
+  const [products, shops, spotlight, user] = await Promise.all([
     getMarketplaceProducts({ search, category }),
     getActiveShops(),
     getSpotlight(),
+    getUser(),
   ]);
+
+  const wishlistIds = user ? await getWishlistIds() : new Set<string>();
+  const signedIn = Boolean(user);
 
   const promotedProductIds = new Set([
     ...spotlight.products.map((product) => product.id),
@@ -85,6 +90,8 @@ export default async function MarketplacePage({
             <ProductGrid
               products={spotlight.products}
               promotedIds={promotedProductIds}
+              wishlistIds={wishlistIds}
+              signedIn={signedIn}
             />
           )}
 
@@ -104,7 +111,7 @@ export default async function MarketplacePage({
         </section>
       )}
 
-      <ProductGrid products={products} promotedIds={promotedProductIds} />
+      <ProductGrid products={products} promotedIds={promotedProductIds} wishlistIds={wishlistIds} signedIn={signedIn} />
 
       {shops.length > 0 && (
         <section className="mt-16">

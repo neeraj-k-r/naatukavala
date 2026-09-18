@@ -5,9 +5,13 @@ import type { ProductWithShop } from "@/lib/types";
 export default function ProductGrid({
   products,
   promotedIds,
+  wishlistIds,
+  signedIn = false,
 }: {
   products: ProductWithShop[];
   promotedIds?: ReadonlySet<string>;
+  wishlistIds?: ReadonlySet<string>;
+  signedIn?: boolean;
 }) {
   if (products.length === 0) {
     return (
@@ -27,6 +31,8 @@ export default function ProductGrid({
           key={product.id}
           product={product}
           promoted={promotedIds?.has(product.id) ?? false}
+          wished={wishlistIds?.has(product.id) ?? false}
+          signedIn={signedIn}
         />
       ))}
     </div>

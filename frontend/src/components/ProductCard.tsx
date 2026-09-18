@@ -4,15 +4,20 @@ import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
 import VerifiedBadge from "@/components/VerifiedBadge";
+import WishlistButton from "@/components/WishlistButton";
 
 import type { ProductWithShop } from "@/lib/types";
 
 export default function ProductCard({
   product,
   promoted = false,
+  wished = false,
+  signedIn = false,
 }: {
   product: ProductWithShop;
   promoted?: boolean;
+  wished?: boolean;
+  signedIn?: boolean;
 }) {
   const image = product.images?.[0];
   const verified = product.shop?.verification_status === "verified";
@@ -46,6 +51,11 @@ export default function ProductCard({
             Sponsored
           </span>
         )}
+        <WishlistButton
+          productId={product.id}
+          initialWished={wished}
+          signedIn={signedIn}
+        />
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <p className="flex items-center gap-1.5">

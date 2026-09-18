@@ -7,7 +7,13 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 
 import type { ProductWithShop } from "@/lib/types";
 
-export default function ProductCard({ product }: { product: ProductWithShop }) {
+export default function ProductCard({
+  product,
+  promoted = false,
+}: {
+  product: ProductWithShop;
+  promoted?: boolean;
+}) {
   const image = product.images?.[0];
   const verified = product.shop?.verification_status === "verified";
 
@@ -33,6 +39,11 @@ export default function ProductCard({ product }: { product: ProductWithShop }) {
         {product.stock === 0 && (
           <span className="absolute left-2 top-2 rounded-full bg-slate-900/80 px-2.5 py-1 text-xs font-semibold text-white">
             Out of stock
+          </span>
+        )}
+        {promoted && (
+          <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-amber-950">
+            Sponsored
           </span>
         )}
       </div>

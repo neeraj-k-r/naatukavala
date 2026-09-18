@@ -5,8 +5,10 @@ import { Suspense } from "react";
 import SearchBar from "@/components/SearchBar";
 import CategoryPills from "@/components/CategoryPills";
 import ProductGrid from "@/components/ProductGrid";
-import { getActiveShops, getMarketplaceProducts } from "@/lib/api";
+import { getActiveShops, getMarketplaceProducts, getSpotlight } from "@/lib/api";
 import { shopUrl } from "@/lib/subdomain";
+
+import type { Shop } from "@/lib/types";
 
 export const metadata = {
   title: "Marketplace — every local shop, online",
@@ -19,10 +21,17 @@ export default async function MarketplacePage({
   const search = typeof params.q === "string" ? params.q : "";
   const category = typeof params.category === "string" ? params.category : "";
 
-  const [products, shops] = await Promise.all([
+  const [products, shops, spotlight] = await Promise.all([
     getMarketplaceProducts({ search, category }),
     getActiveShops(),
+    getSpotlight(),
   ]);
+
+  const promotedProductIds = new Set([
+    ...spotlight.products.map((product) => product.id),
+  ]);
+  const hasSpotlight =
+    spotlight.products.length > 0 || spotlight.shops.length > 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -60,7 +69,42 @@ export default async function MarketplacePage({
         </p>
       </div>
 
-      <ProductGrid products={products} />
+      {/* Sponsored spotlight — admin-approved promotions get top placement */}
+      {hasSpotlight && (
+        <section className="mb-10 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-950">
+              Sponsored
+            </span>
+            <h2 className="text-lg font-bold text-slate-900">
+              Featured picks from our sellers
+            </h2>
+          </div>
+
+          {spotlight.products.length > 0 && (
+            <ProductGrid
+              products={spotlight.products}
+              promotedIds={promotedProductIds}
+            />
+          )}
+
+          {spotlight.shops.length > 0 && (
+            <div
+              className={
+                spotlight.products.length > 0
+                  ? "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+                  : "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+              }
+            >
+              {spotlight.shops.map((shop) => (
+                <ShopCard key={shop.id} shop={shop} promoted />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      <ProductGrid products={products} promotedIds={promotedProductIds} />
 
       {shops.length > 0 && (
         <section className="mt-16">
@@ -69,55 +113,63 @@ export default async function MarketplacePage({
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {shops.map((shop) => (
-              <Link
-                key={shop.id}
-                href={shopUrl(shop.slug)}
-                className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                {shop.banner_url && (
-                  <div className="relative h-20 w-full overflow-hidden bg-slate-100">
-                    <Image
-                      src={shop.banner_url}
-                      alt=""
-                      fill
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                <div className="p-5">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-10 w-10 flex-none items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-base font-bold text-emerald-700">
-                      {shop.logo_url ? (
-                        <Image
-                          src={shop.logo_url}
-                          alt={shop.name}
-                          width={40}
-                          height={40}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span>{shop.name.slice(0, 1).toUpperCase()}</span>
-                      )}
-                    </div>
-                    <p className="text-lg font-bold text-emerald-700 group-hover:underline">
-                      {shop.name}
-                    </p>
-                  </div>
-                  {shop.tagline && (
-                    <p className="mt-1 text-sm text-slate-500">
-                      {shop.tagline}
-                    </p>
-                  )}
-                  <p className="mt-3 text-xs font-medium text-slate-400">
-                    {shop.slug}.{process.env.NEXT_PUBLIC_APP_DOMAIN || "shop"}
-                  </p>
-                </div>
-              </Link>
+              <ShopCard key={shop.id} shop={shop} />
             ))}
           </div>
         </section>
       )}
     </div>
+  );
+}
+
+function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }) {
+  return (
+    <Link
+      href={shopUrl(shop.slug)}
+      className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
+      {promoted && (
+        <span className="absolute right-2 top-2 z-10 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-amber-950">
+          Sponsored
+        </span>
+      )}
+      {shop.banner_url && (
+        <div className="relative h-20 w-full overflow-hidden bg-slate-100">
+          <Image
+            src={shop.banner_url}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 50vw, 25vw"
+            className="object-cover"
+          />
+        </div>
+      )}
+      <div className="p-5">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-base font-bold text-emerald-700">
+            {shop.logo_url ? (
+              <Image
+                src={shop.logo_url}
+                alt={shop.name}
+                width={40}
+                height={40}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span>{shop.name.slice(0, 1).toUpperCase()}</span>
+            )}
+          </div>
+          <p className="text-lg font-bold text-emerald-700 group-hover:underline">
+            {shop.name}
+          </p>
+        </div>
+        {shop.tagline && (
+          <p className="mt-1 text-sm text-slate-500">{shop.tagline}</p>
+        )}
+        <p className="mt-3 text-xs font-medium text-slate-400">
+          {shop.slug}.{process.env.NEXT_PUBLIC_APP_DOMAIN || "shop"}
+        </p>
+      </div>
+    </Link>
   );
 }

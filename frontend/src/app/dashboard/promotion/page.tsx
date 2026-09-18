@@ -18,11 +18,19 @@ const statusStyles: Record<string, string> = {
 
 export default async function PromotionPage() {
   const user = await requireSeller();
-  const [shop, products, promotions] = await Promise.all([
+  const [shop, products] = await Promise.all([
     getShopByOwner(user.id),
     getOwnerProducts(user.id),
-    getMyPromotions(),
   ]);
+
+  // Degrade gracefully when the migration hasn't been run yet.
+  let promotions: Awaited<ReturnType<typeof getMyPromotions>> = [];
+  let loadError: string | null = null;
+  try {
+    promotions = await getMyPromotions();
+  } catch (err) {
+    loadError = err instanceof Error ? err.message : "Could not load promotions.";
+  }
 
   const canRequest = shop?.status === "approved";
 
@@ -51,7 +59,12 @@ export default async function PromotionPage() {
 
       <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <h3 className="font-bold text-slate-900">My requests</h3>
-        {promotions.length === 0 ? (
+        {loadError ? (
+          <p className="mt-2 text-sm text-amber-700">
+            Promotion history is unavailable right now ({loadError}). You can
+            still use the request form above.
+          </p>
+        ) : promotions.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">
             No promotion requests yet.
           </p>

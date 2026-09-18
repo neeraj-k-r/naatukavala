@@ -70,7 +70,16 @@ function PromotionCard({ promotion }: { promotion: Promotion }) {
 
 export default async function AdminPromotionsPage() {
   await requireAdmin();
-  const promotions = await getAllPromotions();
+
+  // Degrade gracefully when the migration hasn't been run yet — show a setup
+  // notice instead of crashing the whole admin section.
+  let promotions: Promotion[] = [];
+  let loadError: string | null = null;
+  try {
+    promotions = await getAllPromotions();
+  } catch (err) {
+    loadError = err instanceof Error ? err.message : "Could not load promotions.";
+  }
 
   const pending = promotions.filter((p) => p.status === "requested");
   const active = promotions.filter((p) => p.status === "approved");
@@ -88,6 +97,22 @@ export default async function AdminPromotionsPage() {
         </p>
       </div>
 
+      {loadError && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
+          <p className="font-semibold">Promotions are not set up yet.</p>
+          <p className="mt-1">
+            Run{" "}
+            <code className="rounded bg-amber-100 px-1.5 py-0.5 text-xs">
+              backend/supabase/migrations/20260919_promotions.sql
+            </code>{" "}
+            in the Supabase SQL editor, then refresh this page.
+          </p>
+          <p className="mt-2 text-xs text-amber-700">{loadError}</p>
+        </div>
+      )}
+
+      {!loadError && (
+      <>
       <section>
         <h3 className="mb-3 font-bold text-slate-900">
           Pending requests ({pending.length})
@@ -133,6 +158,8 @@ export default async function AdminPromotionsPage() {
             ))}
           </div>
         </section>
+      )}
+      </>
       )}
     </div>
   );

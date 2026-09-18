@@ -8,19 +8,25 @@ export const metadata = {
   title: "Admin panel",
 };
 
+async function loadPromotions() {
+  try {
+    return { list: await getAllPromotions(), available: true };
+  } catch {
+    return { list: [], available: false };
+  }
+}
+
 export default async function AdminOverviewPage() {
   const user = await requireAdmin();
-  // Promotions degrades gracefully when the migration hasn't been run yet —
-  // the rest of the overview must still render.
-  let promotionsAvailable = true;
-  const [shops, promotions, report] = await Promise.all([
+  // Promotions (and the sales report) degrade gracefully when their backend
+  // pieces aren't ready yet — the rest of the overview must still render.
+  const [shops, promoResult, report] = await Promise.all([
     getAllShops(),
-    getAllPromotions().catch(() => {
-      promotionsAvailable = false;
-      return [];
-    }),
+    loadPromotions(),
     getAdminSalesReport().catch(() => null),
   ]);
+  const promotions = promoResult.list;
+  const promotionsAvailable = promoResult.available;
   const pending = shops.filter((shop) => shop.status === "pending");
   const pendingPromotions = promotions.filter(
     (promotion) => promotion.status === "requested",

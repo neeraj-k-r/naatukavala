@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/actions";
 import { useCart } from "@/components/CartContext";
-
 import type { AuthUser } from "@/lib/auth";
 import type { Profile } from "@/lib/types";
 
@@ -21,6 +20,23 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
   const [user, setUser] = useState<AuthUser | null>(initialUser);
   const [menuOpen, setMenuOpen] = useState(false);
   const { count } = useCart();
+
+  // The layout re-renders with a new `initialUser` after login/logout/signup
+  // navigations. useState only reads the first value, so sync it — otherwise
+  // the previous account's name stays visible until a manual refresh.
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
+
+  async function handleSignOut() {
+    // Clear the browser session first: the server action only clears
+    // http-only cookies, leaving the local session behind to go stale.
+    const supabase = createBrowserClient();
+    await supabase.auth.signOut();
+    setUser(null);
+    setMenuOpen(false);
+    await signOut();
+  }
 
   useEffect(() => {
     const supabase = createBrowserClient();
@@ -49,7 +65,13 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
     refresh();
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    } = supabase.auth.onAuthStateChange((event) => {
+      // SIGNED_OUT fires with a stale session attached — clear instantly
+      // instead of re-reading it back via refresh().
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        return;
+      }
       refresh();
     });
 
@@ -169,7 +191,7 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
                         Admin panel
                       </Link>
                     )}
-                    <form action={signOut}>
+                    <form action={handleSignOut}>
                       <button
                         type="submit"
                         className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"

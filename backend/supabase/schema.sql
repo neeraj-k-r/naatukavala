@@ -163,8 +163,8 @@ create trigger products_set_updated_at
 
 -- ------------------------------------------------------------
 -- Create a profile automatically whenever a user signs up.
--- The role is read from auth.users.raw_user_meta_data->>'role'
--- (set by the client at signup).
+-- Only 'buyer'/'seller' are accepted from client-supplied metadata —
+-- never grant admin/superadmin from a value the client controls.
 -- ------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger
@@ -172,20 +172,49 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  requested_role text := coalesce(new.raw_user_meta_data ->> 'role', 'buyer');
 begin
   insert into public.profiles (id, full_name, role)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
-    coalesce(
-      (new.raw_user_meta_data ->> 'role'),
-      'buyer'
-    )::public.user_role
+    case
+      when requested_role in ('buyer', 'seller') then requested_role::public.user_role
+      else 'buyer'::public.user_role
+    end
   )
   on conflict (id) do nothing;
   return new;
 end;
 $$;
+
+-- ------------------------------------------------------------
+-- Block self-service role escalation: only the service_role key (backend
+-- admin operations, which bypass RLS) may change a profile's role.
+-- Regular users keep their existing role even if they issue an update.
+-- ------------------------------------------------------------
+create or replace function public.prevent_profile_role_escalation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if (auth.jwt() ->> 'role') = 'service_role' then
+    return new;
+  end if;
+  if new.role is distinct from old.role then
+    new.role := old.role;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_prevent_role_escalation on public.profiles;
+create trigger profiles_prevent_role_escalation
+  before update on public.profiles
+  for each row execute function public.prevent_profile_role_escalation();
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created

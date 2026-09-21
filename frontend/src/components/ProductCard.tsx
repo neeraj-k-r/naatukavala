@@ -13,11 +13,13 @@ export default function ProductCard({
   promoted = false,
   wished = false,
   signedIn = false,
+  dealLabel,
 }: {
   product: ProductWithShop;
   promoted?: boolean;
   wished?: boolean;
   signedIn?: boolean;
+  dealLabel?: string;
 }) {
   const image = product.images?.[0];
   const verified = product.shop?.verification_status === "verified";
@@ -49,6 +51,11 @@ export default function ProductCard({
         {promoted && (
           <span className="absolute right-2 top-2 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-amber-950">
             Sponsored
+          </span>
+        )}
+        {dealLabel && (
+          <span className="absolute bottom-2 left-2 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-bold text-white">
+            {dealLabel}
           </span>
         )}
         <WishlistButton

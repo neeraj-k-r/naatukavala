@@ -7,11 +7,13 @@ export default function ProductGrid({
   promotedIds,
   wishlistIds,
   signedIn = false,
+  dealLabels,
 }: {
   products: ProductWithShop[];
   promotedIds?: ReadonlySet<string>;
   wishlistIds?: ReadonlySet<string>;
   signedIn?: boolean;
+  dealLabels?: Record<string, string>;
 }) {
   if (products.length === 0) {
     return (
@@ -33,6 +35,7 @@ export default function ProductGrid({
           promoted={promotedIds?.has(product.id) ?? false}
           wished={wishlistIds?.has(product.id) ?? false}
           signedIn={signedIn}
+          dealLabel={dealLabels?.[product.id]}
         />
       ))}
     </div>

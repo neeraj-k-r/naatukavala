@@ -7,6 +7,7 @@ import type {
   Order,
   OrderReturn,
   OrderStatusEvent,
+  PriceDrop,
   Product,
   ProductWithShop,
   Promotion,
@@ -299,6 +300,21 @@ export async function getWishlist(): Promise<WishlistItem[]> {
 export async function getWishlistIds(): Promise<Set<string>> {
   const items = await getWishlist();
   return new Set(items.map((item) => item.product_id));
+}
+
+/**
+ * Price drops on saved items. Pass notify to mark them as seen (viewing
+ * the wishlist does this). Fails closed when unavailable.
+ */
+export async function getPriceDrops(notify = false): Promise<PriceDrop[]> {
+  try {
+    const { drops } = await fetchApi<{ drops: PriceDrop[] }>(
+      `/wishlist/drops${notify ? "?notify=1" : ""}`,
+    );
+    return drops ?? [];
+  } catch {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------- Admin

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -7,7 +8,7 @@ import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { signOut } from "@/lib/actions";
 import { useCart } from "@/components/CartContext";
 import type { AuthUser } from "@/lib/auth";
-import type { Profile } from "@/lib/types";
+import type { Profile, Shop } from "@/lib/types";
 
 const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost";
 
@@ -16,7 +17,13 @@ function authUrl(path: string): string {
   return `https://${appDomain}${path}`;
 }
 
-export default function Navbar({ user: initialUser }: { user: AuthUser | null }) {
+export default function Navbar({
+  user: initialUser,
+  siteShop = null,
+}: {
+  user: AuthUser | null;
+  siteShop?: Shop | null;
+}) {
   const [user, setUser] = useState<AuthUser | null>(initialUser);
   const [menuOpen, setMenuOpen] = useState(false);
   const { count } = useCart();
@@ -88,47 +95,82 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
 
   const role = user?.role;
 
+  // On a shop subdomain the visitor is on that shop's private website:
+  // brand the bar for the shop and keep every link inside it. Relative
+  // links stay on the subdomain; marketplace links use the main domain.
+  const shopMode = Boolean(siteShop);
+  const siteUrl = (path: string) => (shopMode ? path : authUrl(path));
+
   return (
     <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href={authUrl("/")} className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-lg font-bold text-white">
-            N
-          </span>
-          <span className="text-xl font-extrabold tracking-tight text-emerald-900">
-            Naatukavala
-          </span>
-        </Link>
+        {siteShop ? (
+          <Link href="/" className="flex min-w-0 items-center gap-2">
+            <span className="flex h-9 w-9 flex-none items-center justify-center overflow-hidden rounded-lg bg-emerald-600 text-lg font-bold text-white">
+              {siteShop.logo_url ? (
+                <Image
+                  src={siteShop.logo_url}
+                  alt={siteShop.name}
+                  width={36}
+                  height={36}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                siteShop.name.slice(0, 1).toUpperCase()
+              )}
+            </span>
+            <span className="truncate text-xl font-extrabold tracking-tight text-emerald-900">
+              {siteShop.name}
+            </span>
+          </Link>
+        ) : (
+          <Link href={authUrl("/")} className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-lg font-bold text-white">
+              N
+            </span>
+            <span className="text-xl font-extrabold tracking-tight text-emerald-900">
+              Naatukavala
+            </span>
+          </Link>
+        )}
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
-          <Link href={authUrl("/")} className="hover:text-emerald-700">
-            Marketplace
-          </Link>
-          <Link href={authUrl("/sell")} className="hover:text-emerald-700">
-            Sell with us
-          </Link>
-          {role === "seller" && (
-            <Link href="/dashboard" className="hover:text-emerald-700">
-              Dashboard
+          {shopMode ? (
+            <Link href="/" className="hover:text-emerald-700">
+              Home
             </Link>
-          )}
-          {(role === "superadmin" || role === "admin") && (
-            <Link href="/admin" className="hover:text-emerald-700">
-              Admin
-            </Link>
+          ) : (
+            <>
+              <Link href={authUrl("/")} className="hover:text-emerald-700">
+                Marketplace
+              </Link>
+              <Link href={authUrl("/sell")} className="hover:text-emerald-700">
+                Sell with us
+              </Link>
+              {role === "seller" && (
+                <Link href="/dashboard" className="hover:text-emerald-700">
+                  Dashboard
+                </Link>
+              )}
+              {(role === "superadmin" || role === "admin") && (
+                <Link href="/admin" className="hover:text-emerald-700">
+                  Admin
+                </Link>
+              )}
+            </>
           )}
         </nav>
 
         <div className="flex items-center gap-2">
           <Link
-            href={authUrl("/wishlist")}
+            href={siteUrl("/wishlist")}
             className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
             aria-label="Wishlist"
           >
             Wishlist
           </Link>
           <Link
-            href={authUrl("/cart")}
+            href={siteUrl("/cart")}
             className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
             aria-label="Cart"
           >
@@ -143,13 +185,13 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
           {!user ? (
             <div className="flex items-center gap-2">
               <Link
-                href={authUrl("/login")}
+                href={siteUrl("/login")}
                 className="rounded-lg px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
               >
                 Log in
               </Link>
               <Link
-                href={authUrl("/signup")}
+                href={siteUrl("/signup")}
                 className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               >
                 Sign up
@@ -195,7 +237,7 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
                     >
                       My wishlist
                     </Link>
-                    {role === "seller" && (
+                    {role === "seller" && !shopMode && (
                       <Link
                         href="/dashboard"
                         onClick={() => setMenuOpen(false)}
@@ -204,7 +246,7 @@ export default function Navbar({ user: initialUser }: { user: AuthUser | null })
                         Seller dashboard
                       </Link>
                     )}
-                    {(role === "superadmin" || role === "admin") && (
+                    {(role === "superadmin" || role === "admin") && !shopMode && (
                       <Link
                         href="/admin"
                         onClick={() => setMenuOpen(false)}

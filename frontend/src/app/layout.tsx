@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { CartProvider } from "@/components/CartContext";
 import { getUser } from "@/lib/auth";
+import { getShopBySlug } from "@/lib/api";
+import { getShopSlugFromHost } from "@/lib/subdomain";
+
+import type { Shop } from "@/lib/types";
 
 import "./globals.css";
 
@@ -30,6 +35,17 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await getUser();
 
+  // On a shop subdomain (myshop.naatukavala.com) the whole visit is that
+  // shop's private website — brand the navbar/footer for the shop. Fails
+  // closed to the normal marketplace chrome.
+  let siteShop: Shop | null = null;
+  try {
+    const slug = getShopSlugFromHost((await headers()).get("host"));
+    if (slug) siteShop = (await getShopBySlug(slug))?.shop ?? null;
+  } catch {
+    siteShop = null;
+  }
+
   return (
     <html
       lang="en"
@@ -38,9 +54,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col bg-slate-50 font-sans">
         <CartProvider>
-          <Navbar user={user} />
+          <Navbar user={user} siteShop={siteShop} />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer siteShop={siteShop} />
         </CartProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import ShopForm from "@/components/ShopForm";
+import ShopShareCard from "@/components/ShopShareCard";
 import VerificationUpload from "@/components/VerificationUpload";
 import { requireSeller } from "@/lib/auth";
 import { getShopByOwner } from "@/lib/api";
@@ -34,6 +35,10 @@ export default async function ShopProfilePage() {
         >
           View {shop.name}→
         </Link>
+      )}
+
+      {shop && shop.status === "approved" && (
+        <ShopShareCard url={shopUrl(shop.slug)} />
       )}
 
       <ShopForm shop={shop} />

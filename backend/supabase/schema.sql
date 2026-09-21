@@ -535,3 +535,9 @@ create policy wishlists_insert_own on public.wishlists
 create policy wishlists_delete_own on public.wishlists
   for delete using (buyer_id = auth.uid());
 
+-- Price-drop alerts: baseline price + last notified price per saved item.
+alter table public.wishlists
+  add column if not exists price_at_save numeric(12, 2);
+alter table public.wishlists
+  add column if not exists notified_price numeric(12, 2);
+

@@ -119,6 +119,8 @@ interface Row {
     buyer_id: string;
     product_id: string;
     created_at: string;
+    price_at_save: number | null;
+    notified_price: number | null;
   };
 }
 

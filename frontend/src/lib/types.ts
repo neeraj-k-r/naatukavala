@@ -104,6 +104,16 @@ export interface Spotlight {
 export interface WishlistItem {
   product_id: string;
   created_at: string;
+  price_at_save: number | null;
+  notified_price: number | null;
+  product: ProductWithShop;
+}
+
+export interface PriceDrop {
+  product_id: string;
+  old_price: number;
+  new_price: number;
+  percent_off: number;
   product: ProductWithShop;
 }
 

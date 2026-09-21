@@ -12,6 +12,22 @@ async function getAccessToken(): Promise<string | null> {
   return session?.access_token ?? null;
 }
 
+/** Number of unseen price drops (peek only — does not mark them as seen). */
+export async function getPriceDropCount(): Promise<number> {
+  const token = await getAccessToken();
+  if (!token) return 0;
+
+  const res = await fetch(`${API_URL}/wishlist/drops`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    drops?: unknown;
+  };
+  if (!res.ok || !Array.isArray(json.drops)) return 0;
+  return json.drops.length;
+}
+
 /** Uploads an image to the backend, returning the public Cloudinary URL. */
 export async function uploadFile(file: File): Promise<string> {
   const token = await getAccessToken();

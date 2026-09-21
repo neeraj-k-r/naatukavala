@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
+import { getPriceDropCount } from "@/lib/client-api";
 import { signOut } from "@/lib/actions";
 import { useCart } from "@/components/CartContext";
 import type { AuthUser } from "@/lib/auth";
@@ -26,6 +28,8 @@ export default function Navbar({
 }) {
   const [user, setUser] = useState<AuthUser | null>(initialUser);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropCount, setDropCount] = useState(0);
+  const pathname = usePathname();
   const { count } = useCart();
 
   // The layout re-renders with a new `initialUser` after login/logout/signup
@@ -41,6 +45,14 @@ export default function Navbar({
   if (incomingUserId !== syncedUserId) {
     setSyncedUserId(incomingUserId);
     setUser(initialUser);
+  }
+
+  // Clear a previous account's alert count the moment the account changes.
+  const activeUserId = user?.id ?? null;
+  const [countUserId, setCountUserId] = useState<string | null>(activeUserId);
+  if (countUserId !== activeUserId) {
+    setCountUserId(activeUserId);
+    setDropCount(0);
   }
 
   async function handleSignOut() {
@@ -92,6 +104,21 @@ export default function Navbar({
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Unseen price-drop alerts (peek only — viewing the wishlist marks them
+  // as seen). Refreshed on navigation so the badge clears after a visit.
+  useEffect(() => {
+    if (!activeUserId) return;
+    let cancelled = false;
+    getPriceDropCount()
+      .then((unseen) => {
+        if (!cancelled) setDropCount(unseen);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [activeUserId, pathname]);
 
   const role = user?.role;
 
@@ -164,10 +191,15 @@ export default function Navbar({
         <div className="flex items-center gap-2">
           <Link
             href={siteUrl("/wishlist")}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
+            className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
             aria-label="Wishlist"
           >
             Wishlist
+            {dropCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white">
+                {dropCount}
+              </span>
+            )}
           </Link>
           <Link
             href={siteUrl("/cart")}

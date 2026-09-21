@@ -2,15 +2,29 @@ import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import ProductGrid from "@/components/ProductGrid";
 import ReviewsSection from "@/components/ReviewsSection";
+import ShopFilterBar from "@/components/ShopFilterBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { getShopBySlug, getShopReviews, getWishlistIds } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { getShopSlugFromHost } from "@/lib/subdomain";
 
-export default async function Storefront({ slug }: { slug: string }) {
+export interface ShopFilters {
+  q: string;
+  category: string;
+  sort: string;
+}
+
+export default async function Storefront({
+  slug,
+  filters,
+}: {
+  slug: string;
+  filters?: ShopFilters;
+}) {
   const result = await getShopBySlug(slug);
   if (!result) notFound();
 
@@ -25,6 +39,39 @@ export default async function Storefront({ slug }: { slug: string }) {
   // to — the back link only makes sense on the main domain / path fallback.
   const onShopDomain =
     getShopSlugFromHost((await headers()).get("host")) !== null;
+
+  const query = (filters?.q ?? "").trim().toLowerCase();
+  const activeCategory = filters?.category ?? "";
+  const sort = filters?.sort ?? "featured";
+
+  const categories = [
+    ...new Set(
+      products
+        .map((product) => product.category?.trim())
+        .filter((category): category is string => Boolean(category)),
+    ),
+  ].sort();
+
+  const visible = products.filter((product) => {
+    if (activeCategory && product.category !== activeCategory) return false;
+    if (!query) return true;
+    return (
+      product.name.toLowerCase().includes(query) ||
+      (product.description?.toLowerCase().includes(query) ?? false)
+    );
+  });
+
+  const sorted = [...visible].sort((a, b) => {
+    if (sort === "price-asc") return Number(a.price) - Number(b.price);
+    if (sort === "price-desc") return Number(b.price) - Number(a.price);
+    if (sort === "newest")
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    return 0;
+  });
+
+  const isFiltered = query !== "" || activeCategory !== "";
 
   return (
     <div>
@@ -104,12 +151,22 @@ export default async function Storefront({ slug }: { slug: string }) {
             Products from {shop.name}
           </h2>
           <p className="text-sm text-slate-500">
-            {products.length} item{products.length === 1 ? "" : "s"}
+            {isFiltered
+              ? `${sorted.length} of ${products.length} items`
+              : `${products.length} item${products.length === 1 ? "" : "s"}`}
           </p>
         </div>
 
+        <Suspense
+          fallback={
+            <div className="mb-6 h-11 rounded-xl bg-slate-100 animate-pulse" />
+          }
+        >
+          <ShopFilterBar categories={categories} shopName={shop.name} />
+        </Suspense>
+
         <ProductGrid
-          products={products.map((product) => ({
+          products={sorted.map((product) => ({
             ...product,
             shop: {
               name: shop.name,

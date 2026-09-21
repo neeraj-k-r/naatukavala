@@ -1,18 +1,30 @@
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import ProductGrid from "@/components/ProductGrid";
 import ReviewsSection from "@/components/ReviewsSection";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { getShopBySlug, getShopReviews } from "@/lib/api";
+import { getShopBySlug, getShopReviews, getWishlistIds } from "@/lib/api";
+import { getUser } from "@/lib/auth";
+import { getShopSlugFromHost } from "@/lib/subdomain";
 
 export default async function Storefront({ slug }: { slug: string }) {
   const result = await getShopBySlug(slug);
   if (!result) notFound();
 
   const { shop, products } = result;
-  const reviews = await getShopReviews(slug);
+  const user = await getUser();
+  const [reviews, wishlistIds] = await Promise.all([
+    getShopReviews(slug),
+    user ? getWishlistIds() : Promise.resolve(new Set<string>()),
+  ]);
+
+  // On the shop's own subdomain there is no wider marketplace to go back
+  // to — the back link only makes sense on the main domain / path fallback.
+  const onShopDomain =
+    getShopSlugFromHost((await headers()).get("host")) !== null;
 
   return (
     <div>
@@ -107,16 +119,20 @@ export default async function Storefront({ slug }: { slug: string }) {
               verification_status: shop.verification_status,
             },
           }))}
+          wishlistIds={wishlistIds}
+          signedIn={Boolean(user)}
         />
 
-        <div className="mt-10 text-center">
-          <Link
-            href="/"
-            className="text-sm font-medium text-emerald-700 hover:underline"
-          >
-            ← Back to the full Naatukavala marketplace
-          </Link>
-        </div>
+        {!onShopDomain && (
+          <div className="mt-10 text-center">
+            <Link
+              href="/"
+              className="text-sm font-medium text-emerald-700 hover:underline"
+            >
+              ← Back to the full Naatukavala marketplace
+            </Link>
+          </div>
+        )}
 
         <ReviewsSection
           summary={reviews}

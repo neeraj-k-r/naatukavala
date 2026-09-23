@@ -95,6 +95,51 @@ export async function getActiveShops(): Promise<Shop[]> {
   return shops ?? [];
 }
 
+export interface MarketplaceBundle {
+  products: ProductWithShop[];
+  shops: Shop[];
+  spotlight: Spotlight;
+  categories: string[];
+  wishlistIds: string[];
+}
+
+/**
+ * The whole homepage in one backend call (products, shops, spotlight,
+ * categories, plus wishlist ids when signed in). Fails closed so the
+ * marketplace still renders when the backend is unreachable.
+ */
+export async function getMarketplace(
+  filters: MarketplaceFilters = {},
+): Promise<MarketplaceBundle> {
+  const empty: MarketplaceBundle = {
+    products: [],
+    shops: [],
+    spotlight: { products: [], shops: [] },
+    categories: [],
+    wishlistIds: [],
+  };
+  try {
+    const qs = new URLSearchParams();
+    if (filters.search?.trim()) qs.set("search", filters.search.trim());
+    if (filters.category) qs.set("category", filters.category);
+    const data = await fetchApi<MarketplaceBundle>(
+      `/marketplace/bootstrap${qs.size > 0 ? `?${qs}` : ""}`,
+    );
+    return {
+      products: data.products ?? [],
+      shops: data.shops ?? [],
+      spotlight: {
+        products: data.spotlight?.products ?? [],
+        shops: data.spotlight?.shops ?? [],
+      },
+      categories: data.categories ?? [],
+      wishlistIds: data.wishlistIds ?? [],
+    };
+  } catch {
+    return empty;
+  }
+}
+
 export type MarketplaceFilters = {
   search?: string;
   category?: string;

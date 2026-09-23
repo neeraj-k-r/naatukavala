@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import SearchBar from "@/components/SearchBar";
 import CategoryPills from "@/components/CategoryPills";
 import ProductGrid from "@/components/ProductGrid";
-import { getActiveShops, getMarketplaceProducts, getSpotlight, getWishlistIds } from "@/lib/api";
+import { getMarketplace } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { shopUrl } from "@/lib/subdomain";
 
@@ -22,26 +22,9 @@ export default async function MarketplacePage({
   const search = typeof params.q === "string" ? params.q : "";
   const category = typeof params.category === "string" ? params.category : "";
 
-  const [products, shops, spotlight, user, wishlistIds] = await Promise.all([
-    getMarketplaceProducts({ search, category }),
-    getActiveShops(),
-    getSpotlight(),
-    getUser(),
-    // Chained inside the batch so it runs in parallel — getUser is
-    // request-cached and getWishlistIds fails closed, never rejecting.
-    getUser().then((u) => (u ? getWishlistIds() : new Set<string>())),
-  ]);
-  const signedIn = Boolean(user);
-
-  const promotedProductIds = new Set([
-    ...spotlight.products.map((product) => product.id),
-  ]);
-  const hasSpotlight =
-    spotlight.products.length > 0 || spotlight.shops.length > 0;
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      {/* Hero */}
+      {/* Hero paints instantly — the catalog streams in below */}
       <section className="mb-10 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 px-6 py-12 text-white sm:px-10">
         <div className="max-w-2xl">
           <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl">
@@ -59,12 +42,43 @@ export default async function MarketplacePage({
         </div>
       </section>
 
-      {/* Category filters */}
-      <Suspense fallback={null}>
-        <div className="mb-8">
-          <CategoryPills />
-        </div>
+      <Suspense
+        key={`${search}|${category}`}
+        fallback={<CatalogSkeleton />}
+      >
+        <MarketplaceCatalog search={search} category={category} />
       </Suspense>
+    </div>
+  );
+}
+
+/** Whole catalog from a single backend call, streamed after the hero. */
+async function MarketplaceCatalog({
+  search,
+  category,
+}: {
+  search: string;
+  category: string;
+}) {
+  const [bundle, user] = await Promise.all([
+    getMarketplace({ search, category }),
+    getUser(),
+  ]);
+  const { products, shops, spotlight, categories } = bundle;
+  const signedIn = Boolean(user);
+  const wishlistIds = user ? new Set(bundle.wishlistIds) : new Set<string>();
+
+  const promotedProductIds = new Set([
+    ...spotlight.products.map((product) => product.id),
+  ]);
+  const hasSpotlight =
+    spotlight.products.length > 0 || spotlight.shops.length > 0;
+
+  return (
+    <>
+      <div className="mb-8">
+        <CategoryPills categories={categories} active={category} />
+      </div>
 
       <div className="mb-5 flex items-baseline justify-between gap-3">
         <h2 className="text-xl font-bold text-slate-900">
@@ -126,6 +140,36 @@ export default async function MarketplacePage({
           </div>
         </section>
       )}
+    </>
+  );
+}
+
+/** Shimmer placeholder while the catalog streams in. */
+function CatalogSkeleton() {
+  return (
+    <div aria-hidden>
+      <div className="mb-8 flex flex-wrap gap-2">
+        {["w-16", "w-24", "w-20", "w-28"].map((width) => (
+          <div
+            key={width}
+            className={`h-8 animate-pulse rounded-full bg-slate-200 ${width}`}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div
+            key={index}
+            className="overflow-hidden rounded-2xl border border-slate-100 bg-white"
+          >
+            <div className="aspect-square animate-pulse bg-slate-200" />
+            <div className="space-y-2 p-4">
+              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-200" />
+              <div className="h-4 w-1/3 animate-pulse rounded bg-slate-200" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

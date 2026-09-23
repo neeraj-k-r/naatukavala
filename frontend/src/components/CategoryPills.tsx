@@ -1,29 +1,52 @@
 import Link from "next/link";
 
-import { getCategories } from "@/lib/api";
-
-export default async function CategoryPills() {
-  const categories = await getCategories();
-
+export default function CategoryPills({
+  categories,
+  active,
+}: {
+  categories: string[];
+  active: string;
+}) {
   if (categories.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Link
-        href="/"
-        className="rounded-full border border-emerald-600 bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white"
-      >
+      <Pill href="/" active={active === ""}>
         All
-      </Link>
+      </Pill>
       {categories.map((category) => (
-        <Link
+        <Pill
           key={category}
           href={`/?category=${encodeURIComponent(category)}`}
-          className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:border-emerald-400 hover:text-emerald-700"
+          active={active === category}
         >
           {category}
-        </Link>
+        </Pill>
       ))}
     </div>
+  );
+}
+
+function Pill({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-pressed={active}
+      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+        active
+          ? "border-emerald-600 bg-emerald-600 text-white"
+          : "border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:text-emerald-700"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }

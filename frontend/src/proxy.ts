@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (url && anonKey) {
+  if (url && anonKey && hasAuthCookies(request)) {
     const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll() {
@@ -54,6 +54,17 @@ export async function proxy(request: NextRequest) {
   }
 
   return response;
+}
+
+/**
+ * Supabase SSR stores the session in `sb-<project-ref>-auth-token*`
+ * cookies. With none present there is no session to validate or refresh,
+ * so the network roundtrip is skipped entirely (logged-out page loads).
+ */
+function hasAuthCookies(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
 }
 
 export const config = {

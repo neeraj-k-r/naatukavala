@@ -22,14 +22,15 @@ export default async function MarketplacePage({
   const search = typeof params.q === "string" ? params.q : "";
   const category = typeof params.category === "string" ? params.category : "";
 
-  const [products, shops, spotlight, user] = await Promise.all([
+  const [products, shops, spotlight, user, wishlistIds] = await Promise.all([
     getMarketplaceProducts({ search, category }),
     getActiveShops(),
     getSpotlight(),
     getUser(),
+    // Chained inside the batch so it runs in parallel — getUser is
+    // request-cached and getWishlistIds fails closed, never rejecting.
+    getUser().then((u) => (u ? getWishlistIds() : new Set<string>())),
   ]);
-
-  const wishlistIds = user ? await getWishlistIds() : new Set<string>();
   const signedIn = Boolean(user);
 
   const promotedProductIds = new Set([

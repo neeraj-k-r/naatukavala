@@ -25,11 +25,10 @@ export default async function Storefront({
   slug: string;
   filters?: ShopFilters;
 }) {
-  const result = await getShopBySlug(slug);
+  const [result, user] = await Promise.all([getShopBySlug(slug), getUser()]);
   if (!result) notFound();
 
   const { shop, products } = result;
-  const user = await getUser();
   const [reviews, wishlistIds] = await Promise.all([
     getShopReviews(slug),
     user ? getWishlistIds() : Promise.resolve(new Set<string>()),

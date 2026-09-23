@@ -15,11 +15,12 @@ export default async function ProductPage({
   params,
 }: PageProps<"/product/[id]">) {
   const { id } = await params;
-  const product = await getProductById(id);
+  const [product, user, wishlistIds] = await Promise.all([
+    getProductById(id),
+    getUser(),
+    getUser().then((u) => (u ? getWishlistIds() : new Set<string>())),
+  ]);
   if (!product) notFound();
-
-  const user = await getUser();
-  const wishlistIds = user ? await getWishlistIds() : new Set<string>();
 
   const [image, reviews] = [product.images?.[0], await getProductReviews(id)];
 

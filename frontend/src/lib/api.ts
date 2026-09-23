@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { createClient } from "@/lib/supabase/server";
 
 import type { Database } from "@/lib/database";
@@ -29,7 +31,11 @@ export class ApiError extends Error {
   }
 }
 
-async function getAccessToken(): Promise<string | null> {
+/**
+ * Memoized per request: every fetchApi call on a page shares one user
+ * validation roundtrip instead of each paying for its own.
+ */
+const getAccessToken = cache(async (): Promise<string | null> => {
   const supabase = await createClient();
   // Validate the user server-side first: getSession() alone trusts whatever
   // is in the cookie without checking expiry/revocation.
@@ -41,7 +47,7 @@ async function getAccessToken(): Promise<string | null> {
     data: { session },
   } = await supabase.auth.getSession();
   return session?.access_token ?? null;
-}
+});
 
 /** Calls the backend API with the signed-in user's Supabase JWT attached. */
 export async function fetchApi<T>(

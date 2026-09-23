@@ -147,20 +147,18 @@ router.post("/", requireAuth, requireRole(ALLOWED_ROLES), async (req, res) => {
   }
 
   const supabase = getSupabaseAdmin();
-  const { data: product } = await supabase
-    .from("products")
-    .select("id, price")
-    .eq("id", productId)
-    .maybeSingle();
+  // Independent lookups — run together to save a ~400ms roundtrip.
+  const [{ data: product }, { data: existing }] = await Promise.all([
+    supabase.from("products").select("id, price").eq("id", productId).maybeSingle(),
+    supabase
+      .from("wishlists")
+      .select("product_id")
+      .eq("buyer_id", req.user.id)
+      .eq("product_id", productId)
+      .maybeSingle(),
+  ]);
 
   if (!product) return res.status(404).json({ error: "Product not found." });
-
-  const { data: existing } = await supabase
-    .from("wishlists")
-    .select("product_id")
-    .eq("buyer_id", req.user.id)
-    .eq("product_id", productId)
-    .maybeSingle();
 
   if (existing) {
     const { error } = await supabase

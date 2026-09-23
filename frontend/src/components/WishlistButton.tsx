@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { toggleWishlist } from "@/lib/actions";
 
@@ -34,6 +34,7 @@ export default function WishlistButton({
   const [wished, setWished] = useState(initialWished);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const pathname = usePathname();
 
   function onClick(event: React.MouseEvent) {
     // Product cards are links — don't navigate when tapping the heart.
@@ -53,7 +54,9 @@ export default function WishlistButton({
         setWished(!next);
       } else {
         setWished(result?.wished ?? next);
-        router.refresh();
+        // The wishlist page list must refetch; everywhere else the
+        // optimistic heart is enough — skip a full page reload cycle.
+        if (pathname === "/wishlist") router.refresh();
       }
     });
   }

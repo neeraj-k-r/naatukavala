@@ -8,18 +8,45 @@ const router: Router = express.Router();
 
 const ALLOWED_ROLES = ["buyer", "seller", "admin", "superadmin"];
 
+/**
+ * True when PostgREST complains about the price-alert columns — i.e. the
+ * 20260921 migration hasn't been run yet. Callers fall back to the plain
+ * wishlist behavior instead of failing.
+ */
+function isMissingPriceColumn(err: unknown): boolean {
+  const code = (err as { code?: unknown })?.code;
+  const message = (err as { message?: unknown })?.message;
+  return (
+    code === "PGRST204" ||
+    (typeof message === "string" &&
+      /price_at_save|notified_price/.test(message))
+  );
+}
+
 /** List the signed-in user's saved products, newest first. */
 router.get("/", requireAuth, requireRole(ALLOWED_ROLES), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
+  const fullSelect =
+    "product_id, created_at, price_at_save, notified_price, product:products(*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status))";
+  const legacySelect =
+    "product_id, created_at, product:products(*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status))";
+
+  let query = supabase
     .from("wishlists")
-    .select(
-      "product_id, created_at, price_at_save, notified_price, product:products(*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status))",
-    )
+    .select(fullSelect)
     .eq("buyer_id", req.user.id)
     .order("created_at", { ascending: false });
+  let { data, error } = await query;
+
+  if (error && isMissingPriceColumn(error)) {
+    ({ data, error } = await supabase
+      .from("wishlists")
+      .select(legacySelect)
+      .eq("buyer_id", req.user.id)
+      .order("created_at", { ascending: false }));
+  }
 
   if (error) return res.status(500).json({ error: error.message });
 
@@ -48,7 +75,11 @@ router.get("/drops", requireAuth, requireRole(ALLOWED_ROLES), async (req, res) =
     .eq("product.is_active", true)
     .eq("product.shop.status", "approved");
 
-  if (error) return res.status(500).json({ error: error.message });
+  // No baseline columns yet — no drops to report, not an error.
+  if (error) {
+    if (isMissingPriceColumn(error)) return res.json({ drops: [] });
+    return res.status(500).json({ error: error.message });
+  }
 
   type DropRow = {
     product_id: string;
@@ -142,11 +173,19 @@ router.post("/", requireAuth, requireRole(ALLOWED_ROLES), async (req, res) => {
     return res.json({ ok: true, wished: false });
   }
 
-  const { error } = await supabase.from("wishlists").insert({
+  let { error } = await supabase.from("wishlists").insert({
     buyer_id: req.user.id,
     product_id: productId,
     price_at_save: Number((product as { price: number }).price),
   });
+
+  // Price-alert columns not migrated yet — save without the baseline.
+  if (error && isMissingPriceColumn(error)) {
+    ({ error } = await supabase.from("wishlists").insert({
+      buyer_id: req.user.id,
+      product_id: productId,
+    }));
+  }
 
   // A concurrent toggle may have inserted the row first — still wished.
   if (error && error.code !== "23505") {

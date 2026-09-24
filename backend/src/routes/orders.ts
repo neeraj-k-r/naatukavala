@@ -480,15 +480,19 @@ router.get("/:id/tracking", requireAuth, async (req, res) => {
 router.patch("/:id/feedback", requireAuth, requireRole(["buyer", "seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
-  const { rating, feedback } = req.body ?? {};
+  const { rating, feedback, images } = req.body ?? {};
   const ratingNum = rating === undefined || rating === null ? null : Math.round(Number(rating));
   const feedbackText = typeof feedback === "string" ? feedback.trim() : "";
+  const imageUrls = (Array.isArray(images) ? images : [])
+    .map((url) => String(url ?? "").trim())
+    .filter((url) => /^https?:\/\/.{1,500}$/.test(url))
+    .slice(0, 4);
 
   if (ratingNum !== null && (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5)) {
     return res.status(400).json({ error: "Rating must be a whole number between 1 and 5." });
   }
-  if (!ratingNum && !feedbackText) {
-    return res.status(400).json({ error: "Add a rating, a comment, or both." });
+  if (!ratingNum && !feedbackText && imageUrls.length === 0) {
+    return res.status(400).json({ error: "Add a rating, a comment, photos, or a mix." });
   }
 
   const supabase = getSupabaseAdmin();
@@ -507,14 +511,30 @@ router.patch("/:id/feedback", requireAuth, requireRole(["buyer", "seller", "admi
     return res.status(400).json({ error: "You can leave feedback only after the order is delivered." });
   }
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from("orders")
     .update({
       rating: ratingNum,
       feedback: feedbackText || null,
+      feedback_images: imageUrls,
       feedback_at: new Date().toISOString(),
     })
     .eq("id", order.id);
+
+  // Photo column not migrated yet — save the text feedback without it.
+  if (
+    error &&
+    (error.code === "PGRST204" || /feedback_images/.test(error.message))
+  ) {
+    ({ error } = await supabase
+      .from("orders")
+      .update({
+        rating: ratingNum,
+        feedback: feedbackText || null,
+        feedback_at: new Date().toISOString(),
+      })
+      .eq("id", order.id));
+  }
 
   if (error) return res.status(500).json({ error: error.message });
   clearCache();

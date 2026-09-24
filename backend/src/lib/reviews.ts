@@ -53,6 +53,7 @@ export async function summarize(rows: ReviewRow[]): Promise<ReviewSummary> {
 
   const names = await buyerNames(rows.map((row) => row.buyer_id));
   const images = await reviewImages(rows.map((row) => row.order_id));
+  const helpful = await helpfulCounts(rows.map((row) => row.order_id));
   const total = rows.reduce(
     (sum, row) => sum + (row.rating ?? 0),
     0,
@@ -75,12 +76,34 @@ export async function summarize(rows: ReviewRow[]): Promise<ReviewSummary> {
       rating: row.rating ?? 0,
       feedback: row.feedback,
       images: images.get(row.order_id) ?? [],
-      helpful_count: 0,
+      helpful_count: helpful.get(row.order_id) ?? 0,
       created_at: row.feedback_at ?? "",
       buyer_name: names.get(row.buyer_id) ?? null,
     }));
 
   return { average, count: rows.length, distribution, reviews };
+}
+
+/**
+ * Helpful vote counts per order. Fails closed to zero when the votes
+ * table hasn't been migrated yet.
+ */
+async function helpfulCounts(orderIds: string[]): Promise<Map<string, number>> {
+  const uniq = [...new Set(orderIds)].filter(Boolean);
+  if (uniq.length === 0) return new Map();
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("review_votes")
+    .select("order_id")
+    .in("order_id", uniq);
+
+  if (error) return new Map();
+  const counts = new Map<string, number>();
+  for (const row of ((data ?? []) as { order_id: string }[])) {
+    counts.set(row.order_id, (counts.get(row.order_id) ?? 0) + 1);
+  }
+  return counts;
 }
 
 /**

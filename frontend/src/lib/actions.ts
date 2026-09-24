@@ -240,6 +240,29 @@ export async function decidePromotion(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+/** Toggles the signed-in user's helpful vote on a review. */
+export async function toggleHelpful(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+
+  const orderId = String(formData.get("order_id") ?? "");
+  if (!orderId) return { error: "Review is required." };
+
+  try {
+    const data = await fetchApi<{ helpful: boolean; count: number }>(
+      `/reviews/${orderId}/helpful`,
+      { method: "POST", body: JSON.stringify({}) },
+    );
+    return {
+      success: true,
+      helpful: data.helpful ?? false,
+      count: data.count ?? 0,
+    };
+  } catch (err) {
+    return { error: messageOf(err, "Could not save your vote.") };
+  }
+}
+
 // ---------------------------------------------------------------- Wishlist
 
 /** Toggles a product in the signed-in user's wishlist. */

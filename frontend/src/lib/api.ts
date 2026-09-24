@@ -368,6 +368,22 @@ export async function getPriceDrops(notify = false): Promise<PriceDrop[]> {
   }
 }
 
+/** Order ids the signed-in user marked helpful (fails closed). */
+export async function getVotedHelpful(orderIds: string[]): Promise<Set<string>> {
+  if (orderIds.length === 0) return new Set<string>();
+  try {
+    const qs = new URLSearchParams({
+      order_ids: orderIds.slice(0, 50).join(","),
+    });
+    const { voted } = await fetchApi<{ voted: string[] }>(
+      `/reviews/voted?${qs}`,
+    );
+    return new Set(voted ?? []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
 // ---------------------------------------------------------------- Admin
 
 export async function getAllShops() {

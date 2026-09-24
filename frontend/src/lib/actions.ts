@@ -502,6 +502,11 @@ export async function submitFeedback(state: unknown, formData: FormData) {
   const orderId = String(formData.get("order_id") ?? "");
   const ratingRaw = String(formData.get("rating") ?? "").trim();
   const feedback = String(formData.get("feedback") ?? "").trim();
+  const images = formData
+    .getAll("images")
+    .map((image) => String(image).trim())
+    .filter((url) => /^https?:\/\/.{1,500}$/.test(url))
+    .slice(0, 4);
 
   if (!orderId) return { error: "Missing order." };
 
@@ -509,7 +514,9 @@ export async function submitFeedback(state: unknown, formData: FormData) {
   if (rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 5)) {
     return { error: "Rating must be between 1 and 5 stars." };
   }
-  if (!rating && !feedback) return { error: "Add a rating, a comment, or both." };
+  if (!rating && !feedback && images.length === 0) {
+    return { error: "Add a rating, a comment, photos, or a mix." };
+  }
 
   try {
     await fetchApi(`/orders/${orderId}/feedback`, {
@@ -517,6 +524,7 @@ export async function submitFeedback(state: unknown, formData: FormData) {
       body: JSON.stringify({
         rating,
         feedback: feedback || null,
+        images,
       }),
     });
   } catch (err) {

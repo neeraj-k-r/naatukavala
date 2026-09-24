@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import HelpfulButton from "@/components/HelpfulButton";
 import { formatDate } from "@/lib/utils";
 
 import type { RatingSummary } from "@/lib/types";
@@ -13,10 +14,14 @@ export default function ReviewsSection({
   summary,
   title,
   emptyMessage,
+  votedIds,
+  signedIn = false,
 }: {
   summary: RatingSummary;
   title: string;
   emptyMessage: string;
+  votedIds?: ReadonlySet<string>;
+  signedIn?: boolean;
 }) {
   if (summary.count === 0) {
     return (
@@ -103,6 +108,12 @@ export default function ReviewsSection({
             <p className="mt-2 text-xs font-medium text-slate-500">
               {review.buyer_name || "Verified buyer"}
             </p>
+            <HelpfulButton
+              orderId={review.order_id}
+              initialVoted={votedIds?.has(review.order_id) ?? false}
+              initialCount={review.helpful_count}
+              signedIn={signedIn}
+            />
           </li>
         ))}
       </ul>

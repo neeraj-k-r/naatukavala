@@ -28,14 +28,28 @@ router.get("/reviews/:slug", async (req, res) => {
 
     const { data, error } = await supabase
       .from("orders")
-      .select("rating, feedback, feedback_at, buyer_id")
+      .select("id, rating, feedback, feedback_at, buyer_id")
       .eq("shop_id", shop.id)
       .eq("status", "delivered")
       .gt("rating", 0);
 
     if (error) throw error;
 
-    return summarize((data ?? []) as ReviewRow[]);
+    return summarize(
+      ((data ?? []) as {
+        id: string;
+        rating: number | null;
+        feedback: string | null;
+        feedback_at: string | null;
+        buyer_id: string;
+      }[]).map((row) => ({
+        order_id: row.id,
+        rating: row.rating,
+        feedback: row.feedback,
+        feedback_at: row.feedback_at,
+        buyer_id: row.buyer_id,
+      })),
+    );
     });
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load reviews." });

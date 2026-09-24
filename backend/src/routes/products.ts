@@ -47,6 +47,7 @@ router.get("/reviews/:productId", async (req, res) => {
     const rows: ReviewRow[] = raw.map((item) => {
       const order = Array.isArray(item.orders) ? item.orders[0] : item.orders;
       return {
+        order_id: String(item.order_id ?? ""),
         rating: Number(order?.rating ?? 0),
         feedback: order?.feedback ?? null,
         feedback_at: order?.feedback_at ?? null,

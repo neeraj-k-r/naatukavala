@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from "./supabase.js";
 
 export interface ReviewRow {
+  order_id: string;
   rating: number | null;
   feedback: string | null;
   feedback_at: string | null;
@@ -8,8 +9,11 @@ export interface ReviewRow {
 }
 
 export interface PublicReview {
+  order_id: string;
   rating: number;
   feedback: string | null;
+  images: string[];
+  helpful_count: number;
   created_at: string;
   buyer_name: string | null;
 }
@@ -48,6 +52,7 @@ export async function summarize(rows: ReviewRow[]): Promise<ReviewSummary> {
   }
 
   const names = await buyerNames(rows.map((row) => row.buyer_id));
+  const images = await reviewImages(rows.map((row) => row.order_id));
   const total = rows.reduce(
     (sum, row) => sum + (row.rating ?? 0),
     0,
@@ -66,11 +71,36 @@ export async function summarize(rows: ReviewRow[]): Promise<ReviewSummary> {
     )
     .slice(0, 20)
     .map((row) => ({
+      order_id: row.order_id,
       rating: row.rating ?? 0,
       feedback: row.feedback,
+      images: images.get(row.order_id) ?? [],
+      helpful_count: 0,
       created_at: row.feedback_at ?? "",
       buyer_name: names.get(row.buyer_id) ?? null,
     }));
 
   return { average, count: rows.length, distribution, reviews };
+}
+
+/**
+ * Photos attached to each order's feedback. Fails closed to empty when the
+ * photo column hasn't been migrated yet.
+ */
+async function reviewImages(orderIds: string[]): Promise<Map<string, string[]>> {
+  const uniq = [...new Set(orderIds)].filter(Boolean);
+  if (uniq.length === 0) return new Map();
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, feedback_images")
+    .in("id", uniq);
+
+  if (error) return new Map();
+  return new Map(
+    ((data ?? []) as { id: string; feedback_images: string[] | null }[]).map(
+      (row) => [row.id, row.feedback_images ?? []],
+    ),
+  );
 }

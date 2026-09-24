@@ -11,6 +11,7 @@ import uploadRoutes from "./routes/upload.js";
 import promotionRoutes from "./routes/promotions.js";
 import wishlistRoutes from "./routes/wishlist.js";
 import marketplaceRoutes from "./routes/marketplace.js";
+import reviewsRoutes from "./routes/reviews.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -51,6 +52,7 @@ app.use("/upload", uploadRoutes);
 app.use("/promotions", promotionRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/marketplace", marketplaceRoutes);
+app.use("/reviews", reviewsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);

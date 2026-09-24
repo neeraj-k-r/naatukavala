@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { formatDate } from "@/lib/utils";
 
 import type { RatingSummary } from "@/lib/types";
@@ -79,6 +81,24 @@ export default function ReviewsSection({
               <p className="mt-2 text-sm leading-relaxed text-slate-700">
                 {review.feedback}
               </p>
+            )}
+            {review.images.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {review.images.map((src) => (
+                  <div
+                    key={src}
+                    className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-100 bg-slate-50"
+                  >
+                    <Image
+                      src={src}
+                      alt="Customer review photo"
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
             )}
             <p className="mt-2 text-xs font-medium text-slate-500">
               {review.buyer_name || "Verified buyer"}

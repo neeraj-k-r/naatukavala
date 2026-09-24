@@ -6,7 +6,7 @@ import AddToCartButton from "@/components/AddToCartButton";
 import ReviewsSection from "@/components/ReviewsSection";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import WishlistButton from "@/components/WishlistButton";
-import { getProductById, getProductReviews, getWishlistIds } from "@/lib/api";
+import { getProductById, getProductReviews, getVotedHelpful, getWishlistIds } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
@@ -23,6 +23,9 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const [image, reviews] = [product.images?.[0], await getProductReviews(id)];
+  const votedIds = user
+    ? await getVotedHelpful(reviews.reviews.map((review) => review.order_id))
+    : new Set<string>();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -171,6 +174,8 @@ export default async function ProductPage({
         summary={reviews}
         title="Customer reviews"
         emptyMessage="No reviews yet for this product. Buy it and be the first to review!"
+        votedIds={votedIds}
+        signedIn={Boolean(user)}
       />
     </div>
   );

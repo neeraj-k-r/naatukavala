@@ -8,7 +8,7 @@ import ProductGrid from "@/components/ProductGrid";
 import ReviewsSection from "@/components/ReviewsSection";
 import ShopFilterBar from "@/components/ShopFilterBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { getShopBySlug, getShopReviews, getWishlistIds } from "@/lib/api";
+import { getShopBySlug, getShopReviews, getVotedHelpful, getWishlistIds } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { getShopSlugFromHost } from "@/lib/subdomain";
 
@@ -33,6 +33,9 @@ export default async function Storefront({
     getShopReviews(slug),
     user ? getWishlistIds() : Promise.resolve(new Set<string>()),
   ]);
+  const votedIds = user
+    ? await getVotedHelpful(reviews.reviews.map((review) => review.order_id))
+    : new Set<string>();
 
   // On the shop's own subdomain there is no wider marketplace to go back
   // to — the back link only makes sense on the main domain / path fallback.
@@ -194,6 +197,8 @@ export default async function Storefront({
           summary={reviews}
           title={`${shop.name} ratings & reviews`}
           emptyMessage="No reviews yet for this shop. Orders rated after delivery appear here."
+          votedIds={votedIds}
+          signedIn={Boolean(user)}
         />
       </div>
     </div>

@@ -72,6 +72,7 @@ export interface Order {
   rating: number | null;
   feedback: string | null;
   feedback_at: string | null;
+  feedback_images?: string[] | null;
   created_at: string;
   shop?: Pick<Shop, "name" | "slug" | "return_policy"> | null;
 }

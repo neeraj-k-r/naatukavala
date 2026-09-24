@@ -171,6 +171,7 @@ export default async function AccountPage({
                     orderId={order.id}
                     initialRating={order.rating}
                     initialFeedback={order.feedback}
+                    initialImages={order.feedback_images ?? []}
                   />
                 )}
 

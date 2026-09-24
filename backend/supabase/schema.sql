@@ -545,3 +545,23 @@ alter table public.wishlists
 alter table public.orders
   add column if not exists feedback_images text[] not null default '{}';
 
+-- Helpful votes: one vote per (review order, voter).
+create table if not exists public.review_votes (
+  order_id uuid not null references public.orders (id) on delete cascade,
+  voter_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (order_id, voter_id)
+);
+
+create index if not exists review_votes_order_idx on public.review_votes (order_id);
+create index if not exists review_votes_voter_idx on public.review_votes (voter_id);
+
+alter table public.review_votes enable row level security;
+
+create policy review_votes_select_own on public.review_votes
+  for select using (voter_id = auth.uid());
+create policy review_votes_insert_own on public.review_votes
+  for insert with check (voter_id = auth.uid());
+create policy review_votes_delete_own on public.review_votes
+  for delete using (voter_id = auth.uid());
+

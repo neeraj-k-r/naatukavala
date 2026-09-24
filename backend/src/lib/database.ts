@@ -123,6 +123,11 @@ interface Row {
     price_at_save: number | null;
     notified_price: number | null;
   };
+  review_votes: {
+    order_id: string;
+    voter_id: string;
+    created_at: string;
+  };
 }
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
@@ -185,6 +190,12 @@ export type Database = {
         Row: Row["wishlists"];
         Insert: InsertOf<"wishlists">;
         Update: UpdateOf<"wishlists">;
+        Relationships: [];
+      };
+      review_votes: {
+        Row: Row["review_votes"];
+        Insert: InsertOf<"review_votes">;
+        Update: UpdateOf<"review_votes">;
         Relationships: [];
       };
     };

@@ -72,6 +72,7 @@ interface Row {
     rating: number | null;
     feedback: string | null;
     feedback_at: string | null;
+    feedback_images: string[];
     created_at: string;
   };
   order_items: {

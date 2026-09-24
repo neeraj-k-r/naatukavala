@@ -541,3 +541,7 @@ alter table public.wishlists
 alter table public.wishlists
   add column if not exists notified_price numeric(12, 2);
 
+-- Review photos: buyers attach photos to delivered-order feedback.
+alter table public.orders
+  add column if not exists feedback_images text[] not null default '{}';
+

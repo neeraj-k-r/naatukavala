@@ -147,8 +147,11 @@ export interface OrderStatusEvent {
 }
 
 export interface Review {
+  order_id: string;
   rating: number;
   feedback: string | null;
+  images: string[];
+  helpful_count: number;
   created_at: string;
   buyer_name: string | null;
 }

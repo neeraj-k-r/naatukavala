@@ -12,9 +12,12 @@ import promotionRoutes from "./routes/promotions.js";
 import wishlistRoutes from "./routes/wishlist.js";
 import marketplaceRoutes from "./routes/marketplace.js";
 import reviewsRoutes from "./routes/reviews.js";
+import { securityHeaders } from "./middleware/security.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
+
+app.use(securityHeaders);
 
 // Reflecting any origin together with credentials lets arbitrary sites make
 // authenticated requests. Restrict to the known frontend origin(s) instead.

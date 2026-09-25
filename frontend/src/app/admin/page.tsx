@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth";
-import { getAdminSalesReport, getAllPromotions, getAllShops } from "@/lib/api";
+import { getAdminNotifications, getAdminSalesReport, getAllPromotions, getAllShops } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export const metadata = {
@@ -20,16 +20,20 @@ export default async function AdminOverviewPage() {
   const user = await requireAdmin();
   // Promotions (and the sales report) degrade gracefully when their backend
   // pieces aren't ready yet — the rest of the overview must still render.
-  const [shops, promoResult, report] = await Promise.all([
+  const [shops, promoResult, report, notifications] = await Promise.all([
     getAllShops(),
     loadPromotions(),
     getAdminSalesReport().catch(() => null),
+    getAdminNotifications(),
   ]);
   const promotions = promoResult.list;
   const promotionsAvailable = promoResult.available;
   const pending = shops.filter((shop) => shop.status === "pending");
   const pendingPromotions = promotions.filter(
     (promotion) => promotion.status === "requested",
+  );
+  const unreadAlerts = notifications.filter(
+    (notification) => !notification.is_read,
   );
 
   return (
@@ -73,6 +77,35 @@ export default async function AdminOverviewPage() {
           </div>
         </div>
       </div>
+
+      {unreadAlerts.length > 0 && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-red-900">
+                {unreadAlerts.length} shop{unreadAlerts.length === 1 ? "" : "s"} not
+                accepting orders
+              </p>
+              <p className="text-xs text-red-700">
+                {unreadAlerts
+                  .slice(0, 3)
+                  .map(
+                    (alert) =>
+                      `${alert.shop_name ?? "A shop"} (${alert.order_count} unaccepted)`,
+                  )
+                  .join(" · ")}
+                {unreadAlerts.length > 3 && " · …"}
+              </p>
+            </div>
+            <Link
+              href="/admin/notifications"
+              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            >
+              View alerts
+            </Link>
+          </div>
+        </div>
+      )}
 
       {!promotionsAvailable && (
         <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-500">

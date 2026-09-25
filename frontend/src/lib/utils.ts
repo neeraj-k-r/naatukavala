@@ -18,6 +18,14 @@ export function formatDate(value: string): string {
   });
 }
 
+/**
+ * When a pending order auto-cancels (24h after placement). Matches the
+ * backend expiry sweep in `backend/src/lib/orderExpiry.ts`.
+ */
+export function autoCancelAt(createdAt: string): Date {
+  return new Date(new Date(createdAt).getTime() + 24 * 60 * 60 * 1000);
+}
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()

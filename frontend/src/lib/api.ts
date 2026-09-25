@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import type { Database } from "@/lib/database";
 import type {
+  AdminNotification,
   Order,
   OrderReturn,
   OrderStatusEvent,
@@ -333,6 +334,18 @@ export async function getAllPromotions(): Promise<Promotion[]> {
     "/promotions/requests",
   );
   return promotions ?? [];
+}
+
+/** Admin inbox: shops not accepting orders (fails closed). */
+export async function getAdminNotifications(): Promise<AdminNotification[]> {
+  try {
+    const { notifications } = await fetchApi<{
+      notifications: AdminNotification[];
+    }>("/admin/notifications");
+    return notifications ?? [];
+  } catch {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------- Wishlist

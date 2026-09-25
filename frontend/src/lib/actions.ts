@@ -241,6 +241,31 @@ export async function decidePromotion(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+/** Admins mark an inbox notification as read. */
+export async function markNotificationRead(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || !["superadmin", "admin"].includes(user.profile.role)) {
+    redirect("/");
+  }
+
+  const notificationId = String(formData.get("notification_id") ?? "");
+  if (!notificationId) return { error: "Missing notification." };
+
+  try {
+    await fetchApi(`/admin/notifications/${notificationId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_read: true }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not update the notification.") };
+  }
+
+  revalidatePath("/admin/notifications");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
 /** Toggles the signed-in user's helpful vote on a review. */
 export async function toggleHelpful(state: unknown, formData: FormData) {
   const user = await getUser();

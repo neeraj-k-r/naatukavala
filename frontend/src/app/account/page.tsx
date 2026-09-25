@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import ClearCartOnMount from "@/components/ClearCartOnMount";
+import DeleteAccountForm from "@/components/DeleteAccountForm";
 import FeedbackForm from "@/components/FeedbackForm";
 import ReturnRequestForm from "@/components/ReturnRequestForm";
 import { requireBuyer } from "@/lib/auth";
@@ -194,6 +195,13 @@ export default async function AccountPage({
           })}
         </div>
       )}
+
+      <section className="mt-12">
+        <h2 className="text-sm font-bold text-slate-900">Danger zone</h2>
+        <div className="mt-3">
+          <DeleteAccountForm />
+        </div>
+      </section>
     </div>
   );
 }

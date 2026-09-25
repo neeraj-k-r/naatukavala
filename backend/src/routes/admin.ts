@@ -558,6 +558,9 @@ router.delete("/users/:id", async (req, res) => {
   const supabase = getSupabaseAdmin();
   const { error } = await supabase.auth.admin.deleteUser(req.params.id);
   if (error) return res.status(500).json({ error: error.message });
+  // The deleted seller's shops and products cascade away in the database —
+  // drop the cached catalog too so they vanish from the marketplace at once.
+  clearCache();
   return res.json({ ok: true });
 });
 

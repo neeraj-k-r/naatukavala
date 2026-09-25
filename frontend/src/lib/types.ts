@@ -119,6 +119,19 @@ export interface PriceDrop {
   product: ProductWithShop;
 }
 
+export interface AdminNotification {
+  id: string;
+  kind: string;
+  shop_id: string | null;
+  order_count: number;
+  message: string | null;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+  shop_name?: string | null;
+  shop_slug?: string | null;
+}
+
 export interface OrderReturn {
   id: string;
   order_id: string;

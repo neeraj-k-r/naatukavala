@@ -129,6 +129,16 @@ interface Row {
     voter_id: string;
     created_at: string;
   };
+  admin_notifications: {
+    id: string;
+    kind: string;
+    shop_id: string | null;
+    order_count: number;
+    message: string | null;
+    is_read: boolean;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
@@ -197,6 +207,12 @@ export type Database = {
         Row: Row["review_votes"];
         Insert: InsertOf<"review_votes">;
         Update: UpdateOf<"review_votes">;
+        Relationships: [];
+      };
+      admin_notifications: {
+        Row: Row["admin_notifications"];
+        Insert: InsertOf<"admin_notifications">;
+        Update: UpdateOf<"admin_notifications">;
         Relationships: [];
       };
     };

@@ -618,4 +618,52 @@ router.delete("/users/:id", async (req, res) => {
   return res.json({ ok: true });
 });
 
+router.get("/notifications", async (_req, res) => {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("admin_notifications")
+    .select("*")
+    .order("is_read", { ascending: true })
+    .order("updated_at", { ascending: false });
+
+  // Table not migrated yet — empty inbox, not a crash.
+  if (error) return res.json({ notifications: [] });
+
+  const rows = data ?? [];
+  const shopIds = [
+    ...new Set(rows.map((row) => row.shop_id).filter((id): id is string => Boolean(id))),
+  ];
+  const shopInfo = new Map<string, { name: string; slug: string }>();
+  if (shopIds.length > 0) {
+    const { data: shops } = await supabase
+      .from("shops")
+      .select("id, name, slug")
+      .in("id", shopIds);
+    for (const shop of shops ?? []) {
+      shopInfo.set(shop.id, { name: shop.name, slug: shop.slug });
+    }
+  }
+
+  return res.json({
+    notifications: rows.map((row) => ({
+      ...row,
+      shop_name: row.shop_id ? (shopInfo.get(row.shop_id)?.name ?? null) : null,
+      shop_slug: row.shop_id ? (shopInfo.get(row.shop_id)?.slug ?? null) : null,
+    })),
+  });
+});
+
+router.patch("/notifications/:id", async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("admin_notifications")
+    .update({ is_read: Boolean(req.body?.is_read) })
+    .eq("id", String(req.params.id));
+
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ ok: true });
+});
+
 export default router;

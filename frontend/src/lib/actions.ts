@@ -176,6 +176,29 @@ export async function signOut() {
   redirect("/");
 }
 
+/** Deletes the signed-in user's own account after password confirmation. */
+export async function deleteAccount(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+
+  const password = String(formData.get("password") ?? "");
+  if (!password) return { error: "Please enter your password." };
+
+  try {
+    await fetchApi("/auth/me", {
+      method: "DELETE",
+      body: JSON.stringify({ password }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not delete your account.") };
+  }
+
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+  redirect("/");
+}
+
 // ---------------------------------------------------------------- Promotions
 
 /** Sellers request a sponsored spot for their shop or one product. */

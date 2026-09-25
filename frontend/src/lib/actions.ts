@@ -101,6 +101,7 @@ export async function signUp(state: unknown, formData: FormData) {
   await supabase.from("profiles").upsert(
     {
       id: user.id,
+      email,
       full_name: fullName,
       role,
     },

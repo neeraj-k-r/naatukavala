@@ -15,6 +15,7 @@ create type public.order_status as enum ('pending', 'confirmed', 'shipped', 'del
 -- ------------------------------------------------------------
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
+  email text,
   full_name text not null default '',
   role public.user_role not null default 'buyer',
   phone text,

@@ -122,4 +122,54 @@ router.get("/me", requireAuth, async (req, res) => {
   return res.json({ user: req.user });
 });
 
+/**
+ * Self-deletion: removes the signed-in user's own account after verifying
+ * their password. Sellers whose shops have order history are stopped with
+ * guidance (orders reference shops with ON DELETE RESTRICT); everything
+ * else cascades away in the database.
+ */
+router.delete("/me", requireAuth, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+  if (authRateLimited(req.ip ?? "unknown")) {
+    return res.status(429).json({ error: "Too many attempts. Please try again later." });
+  }
+
+  const password = String(req.body?.password ?? "");
+  if (!password) {
+    return res.status(400).json({ error: "Please enter your password." });
+  }
+
+  const supabase = getSupabaseAdmin();
+
+  const { error: passwordError } = await supabase.auth.signInWithPassword({
+    email: req.user.email,
+    password,
+  });
+  if (passwordError) {
+    return res.status(401).json({ error: "Incorrect password." });
+  }
+
+  const { data: ownedShops } = await supabase
+    .from("shops")
+    .select("id")
+    .eq("owner_id", req.user.id);
+  const ownedShopIds = (ownedShops ?? []).map((shop) => shop.id);
+  if (ownedShopIds.length > 0) {
+    const { count: orderCount } = await supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .in("shop_id", ownedShopIds);
+    if ((orderCount ?? 0) > 0) {
+      return res.status(409).json({
+        error:
+          "Your shop has order history, so your account cannot be deleted. Contact support to close your shop instead.",
+      });
+    }
+  }
+
+  const { error } = await supabase.auth.admin.deleteUser(req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ ok: true });
+});
+
 export default router;

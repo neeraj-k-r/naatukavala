@@ -555,6 +555,11 @@ router.patch("/users/:id/role", async (req, res) => {
 router.delete("/users/:id", async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
+  // The button hides this case, but direct API calls must be stopped too.
+  if (String(req.params.id) === req.user.id) {
+    return res.status(400).json({ error: "You cannot delete yourself." });
+  }
+
   const supabase = getSupabaseAdmin();
   const { error } = await supabase.auth.admin.deleteUser(req.params.id);
   if (error) return res.status(500).json({ error: error.message });

@@ -578,6 +578,20 @@ router.delete("/users/:id", async (req, res) => {
   // seller with order history would fail halfway. Stop early with guidance
   // instead of a raw foreign-key error.
   const supabase = getSupabaseAdmin();
+
+  // Deleting an admin/superadmin is superadmin-only, mirroring role changes.
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", String(req.params.id))
+    .maybeSingle();
+  if (
+    (target?.role === "admin" || target?.role === "superadmin") &&
+    req.user.profile?.role !== "superadmin"
+  ) {
+    return res.status(403).json({ error: "Only a superadmin can delete an admin account." });
+  }
+
   const { data: ownedShops } = await supabase
     .from("shops")
     .select("id")

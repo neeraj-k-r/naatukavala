@@ -543,6 +543,20 @@ router.patch("/users/:id/role", async (req, res) => {
     }
   }
 
+  // And only superadmin may touch an existing admin/superadmin account —
+  // otherwise an admin could demote the superadmin above them.
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", req.params.id)
+    .maybeSingle();
+  if (
+    (target?.role === "admin" || target?.role === "superadmin") &&
+    req.user.profile?.role !== "superadmin"
+  ) {
+    return res.status(403).json({ error: "Only a superadmin can change an admin account." });
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({ role })

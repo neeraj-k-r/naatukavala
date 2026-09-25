@@ -3,6 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { clearCache } from "../lib/cache.js";
+import { expireStalePendingOrders } from "../lib/orderExpiry.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import type { OrderStatus } from "../lib/types.js";
 
@@ -139,6 +140,9 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
 router.get("/buyer", requireAuth, requireRole(["buyer", "seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
+  // Expire 1-day-old unconfirmed orders first so the list never shows stale ones.
+  await expireStalePendingOrders();
+
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("orders")
@@ -152,6 +156,8 @@ router.get("/buyer", requireAuth, requireRole(["buyer", "seller", "admin", "supe
 
 router.get("/seller", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  await expireStalePendingOrders();
 
   const supabase = getSupabaseAdmin();
   const { data: shop } = await supabase

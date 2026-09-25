@@ -6,7 +6,7 @@ import FeedbackForm from "@/components/FeedbackForm";
 import ReturnRequestForm from "@/components/ReturnRequestForm";
 import { requireBuyer } from "@/lib/auth";
 import { getBuyerOrders, getOrderItems, getOrderReturns } from "@/lib/api";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, autoCancelAt } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
 import type { OrderReturn } from "@/lib/types";
 
@@ -91,6 +91,12 @@ export default async function AccountPage({
                     <p className="text-xs text-slate-400">
                       Placed on {formatDate(order.created_at)}
                     </p>
+                    {order.status === "pending" && (
+                      <p className="mt-0.5 text-xs font-medium text-amber-600">
+                        Auto-cancels if the shop doesn&apos;t confirm by{" "}
+                        {formatDate(autoCancelAt(order.created_at).toISOString())}
+                      </p>
+                    )}
                   </div>
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[order.status]}`}

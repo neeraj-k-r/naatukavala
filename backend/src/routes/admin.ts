@@ -560,7 +560,28 @@ router.delete("/users/:id", async (req, res) => {
     return res.status(400).json({ error: "You cannot delete yourself." });
   }
 
+  // Orders reference shops/products with ON DELETE RESTRICT, so removing a
+  // seller with order history would fail halfway. Stop early with guidance
+  // instead of a raw foreign-key error.
   const supabase = getSupabaseAdmin();
+  const { data: ownedShops } = await supabase
+    .from("shops")
+    .select("id")
+    .eq("owner_id", String(req.params.id));
+  const ownedShopIds = (ownedShops ?? []).map((shop) => shop.id);
+  if (ownedShopIds.length > 0) {
+    const { count: orderCount } = await supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .in("shop_id", ownedShopIds);
+    if ((orderCount ?? 0) > 0) {
+      return res.status(409).json({
+        error:
+          "This seller has order history, so the account cannot be deleted. Suspend their shop instead to hide their products.",
+      });
+    }
+  }
+
   const { error } = await supabase.auth.admin.deleteUser(req.params.id);
   if (error) return res.status(500).json({ error: error.message });
   // The deleted seller's shops and products cascade away in the database —

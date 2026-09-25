@@ -5,7 +5,7 @@ import ReturnDecision from "@/components/ReturnDecision";
 import SellerTrackingForm from "@/components/SellerTrackingForm";
 import { requireSeller } from "@/lib/auth";
 import { getOrderItems, getOrderReturns, getSellerOrders } from "@/lib/api";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, autoCancelAt } from "@/lib/utils";
 import type { OrderReturn } from "@/lib/types";
 
 export const metadata = {
@@ -56,6 +56,12 @@ export default async function SellerOrdersPage() {
                   <p className="text-xs text-slate-400">
                     {formatDate(order.created_at)}
                   </p>
+                  {order.status === "pending" && (
+                    <p className="mt-0.5 text-xs font-medium text-amber-600">
+                      Confirm soon — auto-cancels{" "}
+                      {formatDate(autoCancelAt(order.created_at).toISOString())}
+                    </p>
+                  )}
                 </div>
                 <OrderStatusSelect
                   orderId={order.id}

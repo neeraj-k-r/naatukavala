@@ -60,7 +60,11 @@ export default function UserActions({
             type="submit"
             disabled={deleting}
             onClick={(event) => {
-              if (!confirm("Delete this user and all their data?")) {
+              if (
+                !confirm(
+                  "Delete this user? Their shop and products vanish from the marketplace at once. Sellers with order history cannot be deleted — suspend their shop instead.",
+                )
+              ) {
                 event.preventDefault();
               }
             }}

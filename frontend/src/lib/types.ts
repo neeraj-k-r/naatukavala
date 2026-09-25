@@ -13,6 +13,7 @@ export type OrderStatus =
 
 export interface Profile {
   id: string;
+  email: string | null;
   full_name: string;
   role: UserRole;
   phone: string | null;

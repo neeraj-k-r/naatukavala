@@ -19,6 +19,7 @@ export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
 interface Row {
   profiles: {
     id: string;
+    email: string | null;
     full_name: string;
     role: UserRole;
     phone: string | null;

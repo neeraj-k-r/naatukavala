@@ -51,8 +51,8 @@ export default function HelpfulButton({
       aria-pressed={voted}
       className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-60 ${
         voted
-          ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 text-slate-500 hover:border-emerald-400 hover:text-emerald-700"
+          ? "border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-950 dark:text-emerald-300"
+          : "border-slate-200 text-slate-500 hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:text-slate-400 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
       }`}
     >
       {voted ? "✓ " : ""}Helpful{count > 0 ? ` (${count})` : ""}

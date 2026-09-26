@@ -95,7 +95,7 @@ export default async function Storefront({
       <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6">
         <div className="-mt-10 mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-end gap-4">
-            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-white text-3xl shadow">
+            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-white text-3xl shadow dark:border-slate-800 dark:bg-slate-900">
               {shop.logo_url ? (
                 <Image
                   src={shop.logo_url}
@@ -110,7 +110,7 @@ export default async function Storefront({
             </div>
             <div className="pb-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold text-slate-900">
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
                   {shop.name}
                 </h1>
                 {shop.verification_status === "verified" && (
@@ -118,41 +118,41 @@ export default async function Storefront({
                 )}
               </div>
               {shop.tagline && (
-                <p className="mt-1 text-sm text-slate-500">{shop.tagline}</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{shop.tagline}</p>
               )}
             </div>
           </div>
 
-          <p className="text-xs font-medium text-slate-400">
+          <p className="text-xs font-medium text-slate-400 dark:text-slate-500">
             {shop.slug}.{process.env.NEXT_PUBLIC_APP_DOMAIN || "shop"}
           </p>
         </div>
 
         {shop.description && (
-          <p className="mb-8 max-w-2xl text-sm text-slate-600">
+          <p className="mb-8 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
             {shop.description}
           </p>
         )}
 
         <div className="mb-8 flex flex-wrap gap-3 text-xs">
-          <span className="rounded-full bg-slate-50 px-3 py-1.5 font-medium text-slate-600">
+          <span className="rounded-full bg-slate-50 px-3 py-1.5 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
             Delivery:{" "}
             {shop.delivery_charge > 0
               ? `₹${shop.delivery_charge} per order`
               : "Free"}
           </span>
           {shop.return_policy && (
-            <span className="rounded-full bg-emerald-50 px-3 py-1.5 font-medium text-emerald-700">
+            <span className="rounded-full bg-emerald-50 px-3 py-1.5 font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
               Returns: {shop.return_policy}
             </span>
           )}
         </div>
 
         <div className="mb-5 flex items-baseline justify-between gap-3">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
             Products from {shop.name}
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {isFiltered
               ? `${sorted.length} of ${products.length} items`
               : `${products.length} item${products.length === 1 ? "" : "s"}`}
@@ -161,7 +161,7 @@ export default async function Storefront({
 
         <Suspense
           fallback={
-            <div className="mb-6 h-11 rounded-xl bg-slate-100 animate-pulse" />
+            <div className="mb-6 h-11 rounded-xl bg-slate-100 animate-pulse dark:bg-slate-800" />
           }
         >
           <ShopFilterBar categories={categories} shopName={shop.name} />
@@ -186,7 +186,7 @@ export default async function Storefront({
           <div className="mt-10 text-center">
             <Link
               href="/"
-              className="text-sm font-medium text-emerald-700 hover:underline"
+              className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
             >
               ← Back to the full Naatukavala marketplace
             </Link>

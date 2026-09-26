@@ -3,6 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached } from "../lib/cache.js";
+import { hasApprovalColumn } from "../lib/productApproval.js";
 import { verifyToken } from "../middleware/auth.js";
 
 const router: Router = express.Router();
@@ -32,6 +33,7 @@ router.get("/bootstrap", async (req, res) => {
             .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
             .eq("is_active", true)
             .eq("shop.status", "approved");
+          if (await hasApprovalColumn()) query = query.eq("approval_status", "approved");
           if (category) query = query.eq("category", category);
           if (search && search.trim()) query = query.ilike("name", `%${search.trim()}%`);
           query = query.order("created_at", { ascending: false });
@@ -70,12 +72,16 @@ router.get("/bootstrap", async (req, res) => {
           let products: unknown[] = [];
           let shops: unknown[] = [];
           if (promoProductIds.length > 0) {
-            const { data } = await supabase
+            let productQuery = supabase
               .from("products")
               .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
               .in("id", promoProductIds)
               .eq("is_active", true)
               .eq("shop.status", "approved");
+            if (await hasApprovalColumn()) {
+              productQuery = productQuery.eq("approval_status", "approved");
+            }
+            const { data } = await productQuery;
             const rank = new Map(promoProductIds.map((id, i) => [id, i]));
             products = ((data ?? []) as { id: string }[])
               .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
@@ -95,12 +101,16 @@ router.get("/bootstrap", async (req, res) => {
           return { products, shops };
         })(),
         (async () => {
-          const { data, error } = await supabase
+          let categoryQuery = supabase
             .from("products")
             .select("category, shop:shops!inner(status)")
             .eq("is_active", true)
             .eq("shop.status", "approved")
             .not("category", "is", null);
+          if (await hasApprovalColumn()) {
+            categoryQuery = categoryQuery.eq("approval_status", "approved");
+          }
+          const { data, error } = await categoryQuery;
           if (error) throw error;
           return [...new Set(
             ((data ?? []) as { category: string | null }[])

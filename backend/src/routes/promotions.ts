@@ -3,6 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
+import { hasApprovalColumn } from "../lib/productApproval.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
@@ -39,12 +40,16 @@ router.get("/spotlight", async (_req, res) => {
       let shops: unknown[] = [];
 
       if (promoProductIds.length > 0) {
-        const { data, error: productError } = await supabase
+        let productQuery = supabase
           .from("products")
           .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
           .in("id", promoProductIds)
           .eq("is_active", true)
           .eq("shop.status", "approved");
+        if (await hasApprovalColumn()) {
+          productQuery = productQuery.eq("approval_status", "approved");
+        }
+        const { data, error: productError } = await productQuery;
         if (productError) throw productError;
         const rank = new Map(promoProductIds.map((id, i) => [id, i]));
         products = ((data ?? []) as { id: string }[])

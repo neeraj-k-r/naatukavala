@@ -3,6 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
+import { hasApprovalColumn } from "../lib/productApproval.js";
 import { summarize, type ReviewRow } from "../lib/reviews.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
@@ -112,6 +113,7 @@ router.get("/marketplace", async (req, res) => {
       .eq("is_active", true)
       .eq("shop.status", "approved");
 
+    if (await hasApprovalColumn()) query = query.eq("approval_status", "approved");
     if (category) query = query.eq("category", category);
     if (shopSlug) query = query.eq("shop.slug", shopSlug);
     if (search && search.trim()) query = query.ilike("name", `%${search.trim()}%`);
@@ -133,12 +135,16 @@ router.get("/categories", async (_req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     const categories = await cached("categories", async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("products")
         .select("category, shop:shops!inner(status)")
         .eq("is_active", true)
         .eq("shop.status", "approved")
         .not("category", "is", null);
+
+      if (await hasApprovalColumn()) query = query.eq("approval_status", "approved");
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -184,12 +190,15 @@ router.get("/:id", async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     const product = await cached(`product:${id}`, async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("products")
         .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
         .eq("id", id)
-        .eq("shop.status", "approved")
-        .maybeSingle();
+        .eq("shop.status", "approved");
+
+      if (await hasApprovalColumn()) query = query.eq("approval_status", "approved");
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
       return data ?? null;

@@ -3,6 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
+import { hasApprovalColumn } from "../lib/productApproval.js";
 import { summarize, type ReviewRow } from "../lib/reviews.js";
 import { slugify } from "../lib/utils.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
@@ -97,12 +98,18 @@ router.get("/:slug", async (req, res) => {
       if (error) throw error;
       if (!shop) return null;
 
-      const { data: products } = await supabase
+      let productsQuery = supabase
         .from("products")
         .select("*")
         .eq("shop_id", shop.id)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
+
+      if (await hasApprovalColumn()) {
+        productsQuery = productsQuery.eq("approval_status", "approved");
+      }
+
+      const { data: products } = await productsQuery;
 
       return { shop, products: products ?? [] };
     });

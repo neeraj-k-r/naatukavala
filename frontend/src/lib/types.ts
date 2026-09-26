@@ -52,6 +52,7 @@ export interface Product {
   stock: number;
   images: string[];
   is_active: boolean;
+  approval_status?: ProductApproval | null;
   created_at: string;
   shop?: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy" | "verification_status"> | null;
 }
@@ -81,6 +82,8 @@ export interface Order {
 export type ReturnStatus = "requested" | "approved" | "rejected";
 
 export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
+
+export type ProductApproval = "approved" | "pending" | "rejected";
 
 export interface Promotion {
   id: string;

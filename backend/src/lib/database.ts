@@ -15,6 +15,7 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
+export type ProductApproval = "approved" | "pending" | "rejected";
 
 interface Row {
   profiles: {
@@ -57,6 +58,7 @@ interface Row {
     stock: number;
     images: string[];
     is_active: boolean;
+    approval_status: ProductApproval;
     created_at: string;
     updated_at: string;
   };

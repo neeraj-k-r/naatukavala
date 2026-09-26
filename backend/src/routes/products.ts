@@ -8,6 +8,30 @@ import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
 
+/** Verified shops (and admins) skip review; everyone else queues every time. */
+function needsProductReview(
+  req: { user?: { profile?: { role?: string } | null } | undefined },
+  shop: { verification_status?: string | null },
+): boolean {
+  if (
+    req.user?.profile?.role === "admin" ||
+    req.user?.profile?.role === "superadmin"
+  ) {
+    return false;
+  }
+  return shop.verification_status !== "verified";
+}
+
+/** True when the approval column hasn't been migrated yet. */
+function isMissingApprovalColumn(err: unknown): boolean {
+  const code = (err as { code?: unknown })?.code;
+  const message = (err as { message?: unknown })?.message;
+  return (
+    code === "PGRST204" ||
+    (typeof message === "string" && /approval_status/.test(message))
+  );
+}
+
 router.get("/reviews/:productId", async (req, res) => {
   const id = String(req.params.productId);
 
@@ -193,7 +217,7 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
   const supabase = getSupabaseAdmin();
   const { data: shop } = await supabase
     .from("shops")
-    .select("id")
+    .select("id, verification_status")
     .eq("owner_id", req.user.id)
     .maybeSingle();
 
@@ -201,7 +225,11 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
     return res.status(400).json({ error: "Please create your shop before adding products." });
   }
 
-  const { error } = await supabase.from("products").insert({
+  // Verified sellers go live instantly; everyone else queues for review —
+  // every single new product needs admin approval.
+  const approval_status = needsProductReview(req, shop) ? "pending" : "approved";
+
+  let { error } = await supabase.from("products").insert({
     shop_id: shop.id,
     name,
     price: parsedPrice,
@@ -210,11 +238,26 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
     description: description || null,
     images: Array.isArray(images) ? images : [],
     is_active: true,
+    approval_status,
   });
+
+  // Approval column not migrated yet — save without it.
+  if (error && isMissingApprovalColumn(error)) {
+    ({ error } = await supabase.from("products").insert({
+      shop_id: shop.id,
+      name,
+      price: parsedPrice,
+      stock: parsedStock,
+      category: category || null,
+      description: description || null,
+      images: Array.isArray(images) ? images : [],
+      is_active: true,
+    }));
+  }
 
   if (error) return res.status(500).json({ error: error.message });
   clearCache();
-  return res.status(201).json({ ok: true });
+  return res.status(201).json({ ok: true, approval_status });
 });
 
 router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
@@ -231,13 +274,16 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
   const supabase = getSupabaseAdmin();
   const { data: shop } = await supabase
     .from("shops")
-    .select("id")
+    .select("id, verification_status")
     .eq("owner_id", req.user.id)
     .maybeSingle();
 
   if (!shop) return res.status(400).json({ error: "Please create your shop before adding products." });
 
-  const { error } = await supabase
+  // Edits from unverified sellers go back to the review queue as well.
+  const approval_status = needsProductReview(req, shop) ? "pending" : "approved";
+
+  let { error } = await supabase
     .from("products")
     .update({
       name,
@@ -247,13 +293,30 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
       description: description || null,
       is_active: is_active === undefined ? true : Boolean(is_active),
       images: Array.isArray(images) ? images : [],
+      approval_status,
     })
     .eq("id", String(req.params.id))
     .eq("shop_id", shop.id);
 
+  if (error && isMissingApprovalColumn(error)) {
+    ({ error } = await supabase
+      .from("products")
+      .update({
+        name,
+        price: parsedPrice,
+        stock: Number(stock ?? 0),
+        category: category || null,
+        description: description || null,
+        is_active: is_active === undefined ? true : Boolean(is_active),
+        images: Array.isArray(images) ? images : [],
+      })
+      .eq("id", String(req.params.id))
+      .eq("shop_id", shop.id));
+  }
+
   if (error) return res.status(500).json({ error: error.message });
   clearCache();
-  return res.json({ ok: true });
+  return res.json({ ok: true, approval_status });
 });
 
 router.delete("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {

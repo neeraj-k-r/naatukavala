@@ -26,7 +26,7 @@ export default function CheckoutForm() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-bold text-slate-900">Checkout</h1>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Checkout</h1>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
         <form action={action} className="space-y-5">
@@ -35,18 +35,18 @@ export default function CheckoutForm() {
           )} />
 
           {state?.error && (
-            <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
               {state.error}
             </div>
           )}
 
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Delivery details</h2>
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Delivery details</h2>
 
             <div className="mt-4">
               <label
                 htmlFor="shipping_address"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
+                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 Shipping address
               </label>
@@ -56,30 +56,30 @@ export default function CheckoutForm() {
                 required
                 rows={3}
                 placeholder="House / street, area, city, PIN code"
-                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />
             </div>
 
             <div className="mt-4">
               <label
                 htmlFor="buyer_note"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
+                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
-                Note to seller <span className="text-slate-400">(optional)</span>
+                Note to seller <span className="text-slate-400 dark:text-slate-500">(optional)</span>
               </label>
               <input
                 id="buyer_note"
                 name="buyer_note"
                 type="text"
                 placeholder="e.g. Call before delivering"
-                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Payment</h2>
-            <p className="mt-2 text-sm text-slate-500">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Payment</h2>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               No online payment yet — pay the shop on delivery, or agree a payment
               method with the seller after your order is confirmed.
             </p>
@@ -93,24 +93,24 @@ export default function CheckoutForm() {
           </SubmitButton>
         </form>
 
-        <aside className="h-fit rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h3 className="font-bold text-slate-900">Order summary</h3>
+        <aside className="h-fit rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">Order summary</h3>
           <div className="mt-4 space-y-4">
             {groups.map((group) => (
               <div key={group.shop_slug}>
                 <Link
                   href={shopUrl(group.shop_slug)}
-                  className="text-sm font-semibold text-emerald-700 hover:underline"
+                  className="text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
                 >
                   {group.shop_name}
                 </Link>
-                <div className="mt-1 text-sm text-slate-500">
+                <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   <span>
                     {group.items.reduce((sum, item) => sum + item.quantity, 0)} item(s) ·{" "}
                     {formatCurrency(group.total, group.items[0].currency)}
                   </span>
                   {group.delivery_charge > 0 && (
-                    <span className="block text-xs text-slate-400">
+                    <span className="block text-xs text-slate-400 dark:text-slate-500">
                       + delivery {formatCurrency(group.delivery_charge, group.items[0].currency)}
                     </span>
                   )}
@@ -118,7 +118,7 @@ export default function CheckoutForm() {
               </div>
             ))}
           </div>
-          <div className="mt-5 space-y-1 border-t border-slate-100 pt-4 text-sm font-bold text-slate-900">
+          <div className="mt-5 space-y-1 border-t border-slate-100 pt-4 text-sm font-bold text-slate-900 dark:border-slate-800 dark:text-slate-100">
             <div className="flex justify-between">
               <span>Items total</span>
               <span>{formatCurrency(subtotal)}</span>
@@ -129,7 +129,7 @@ export default function CheckoutForm() {
                 <span>{formatCurrency(deliveryTotal)}</span>
               </div>
             )}
-            <div className="flex justify-between border-t border-slate-100 pt-2 text-base">
+            <div className="flex justify-between border-t border-slate-100 pt-2 text-base dark:border-slate-800">
               <span>Total</span>
               <span>{formatCurrency(subtotal + deliveryTotal)}</span>
             </div>

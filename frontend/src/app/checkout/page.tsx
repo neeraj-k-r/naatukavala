@@ -15,8 +15,8 @@ export default async function CheckoutPage() {
   if (!user) {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col justify-center px-4 text-center">
-        <h1 className="text-2xl font-bold text-slate-900">Log in to check out</h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Log in to check out</h1>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           You need an account to place an order.
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
@@ -28,7 +28,7 @@ export default async function CheckoutPage() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             Sign up
           </Link>

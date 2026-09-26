@@ -57,35 +57,35 @@ export default async function TrackingPage({
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
       <Link
         href="/account"
-        className="text-sm font-medium text-emerald-700 hover:underline"
+        className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
       >
         ← Back to my orders
       </Link>
 
-      <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               {cancelled ? "Order cancelled" : `Order ${tracking.status}`}
             </h1>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
               Order ID: {tracking.id.slice(0, 8).toUpperCase()}
             </p>
             {tracking.shop && (
               <Link
                 href={shopUrl(tracking.shop.slug)}
-                className="mt-2 inline-block text-sm font-semibold text-emerald-700 hover:underline"
+                className="mt-2 inline-block text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
               >
                 {tracking.shop.name}
               </Link>
             )}
           </div>
           {tracking.tracking_number && (
-            <div className="rounded-lg bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Tracking number
               </p>
-              <p className="mt-0.5 font-mono text-sm font-bold text-slate-800">
+              <p className="mt-0.5 font-mono text-sm font-bold text-slate-800 dark:text-slate-200">
                 {tracking.tracking_number}
               </p>
             </div>
@@ -93,7 +93,7 @@ export default async function TrackingPage({
         </div>
 
         {cancelled ? (
-          <div className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
             This order was cancelled. Contact the shop if you have questions.
           </div>
         ) : (
@@ -108,7 +108,7 @@ export default async function TrackingPage({
                       className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[11px] font-bold ${
                         done
                           ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-slate-200 bg-white text-transparent"
+                          : "border-slate-200 bg-white text-transparent dark:border-slate-700 dark:bg-slate-900"
                       }`}
                     >
                       ✓
@@ -116,7 +116,7 @@ export default async function TrackingPage({
                     {index < order.length - 1 && (
                       <div
                         className={`w-0.5 flex-1 ${
-                          index < currentIndex! ? "bg-emerald-500" : "bg-slate-200"
+                          index < currentIndex! ? "bg-emerald-500" : "bg-slate-200 dark:bg-slate-700"
                         }`}
                       />
                     )}
@@ -124,18 +124,18 @@ export default async function TrackingPage({
                   <div className="pb-8">
                     <p
                       className={`text-sm font-semibold ${
-                        done ? "text-slate-900" : "text-slate-400"
+                        done ? "text-slate-900 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       {labels[status]}
                       {isCurrent && (
-                        <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+                        <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                           Current
                         </span>
                       )}
                     </p>
                     {isCurrent && (
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         Your package is {status === "shipped" ? "on its way." : `marked ${status}.`}
                       </p>
                     )}
@@ -147,20 +147,20 @@ export default async function TrackingPage({
         )}
 
         {events.length > 1 && (
-          <div className="mt-2 border-t border-slate-100 pt-5">
-            <h2 className="text-sm font-bold text-slate-900">Update history</h2>
+          <div className="mt-2 border-t border-slate-100 pt-5 dark:border-slate-800">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Update history</h2>
             <div className="mt-3 space-y-3">
               {events.map((event, index) => (
                 <div key={index} className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                   <div>
-                    <p className="font-semibold text-slate-800">
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">
                       {labels[event.status]}
                     </p>
                     {event.note && (
-                      <p className="text-xs text-slate-500">{event.note}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{event.note}</p>
                     )}
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
                       {formatDate(event.created_at)}
                     </p>
                   </div>

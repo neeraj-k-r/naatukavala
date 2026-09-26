@@ -18,11 +18,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 const statusStyles: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  shipped: "bg-indigo-100 text-indigo-800",
-  delivered: "bg-emerald-100 text-emerald-800",
-  cancelled: "bg-red-100 text-red-700",
+  pending: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  confirmed: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  shipped: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+  delivered: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  cancelled: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
 };
 
 export default async function AccountPage({
@@ -54,7 +54,7 @@ export default async function AccountPage({
       {placed && (
         <>
           <ClearCartOnMount />
-          <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800">
+          <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
             <p className="font-semibold">Order placed!</p>
             <p className="text-sm">
               The shops will review and confirm your orders soon.
@@ -63,11 +63,11 @@ export default async function AccountPage({
         </>
       )}
 
-      <h1 className="text-2xl font-bold text-slate-900">My orders</h1>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">My orders</h1>
 
       {orders.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
-          <p className="text-slate-500">You haven&apos;t placed any orders yet.</p>
+        <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-slate-500 dark:text-slate-400">You haven&apos;t placed any orders yet.</p>
           <Link
             href="/"
             className="mt-4 inline-block rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
@@ -82,18 +82,18 @@ export default async function AccountPage({
             return (
               <div
                 key={order.id}
-                className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+                className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-bold text-slate-900">
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
                       {order.id.slice(0, 8).toUpperCase()}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
                       Placed on {formatDate(order.created_at)}
                     </p>
                     {order.status === "pending" && (
-                      <p className="mt-0.5 text-xs font-medium text-amber-600">
+                      <p className="mt-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
                         Auto-cancels if the shop doesn&apos;t confirm by{" "}
                         {formatDate(autoCancelAt(order.created_at).toISOString())}
                       </p>
@@ -109,7 +109,7 @@ export default async function AccountPage({
                 {order.shop && (
                   <Link
                     href={shopUrl(order.shop.slug)}
-                    className="mt-3 inline-block text-sm font-semibold text-emerald-700 hover:underline"
+                    className="mt-3 inline-block text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
                   >
                     {order.shop.name}
                   </Link>
@@ -119,26 +119,26 @@ export default async function AccountPage({
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
                     <Link
                       href={`/account/orders/${order.id}`}
-                      className="inline-flex items-center gap-1 text-sm font-semibold text-slate-800 hover:text-emerald-700"
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-slate-800 hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-400"
                     >
                       Track package
                       <span aria-hidden>→</span>
                     </Link>
                     {order.tracking_number && (
-                      <span className="rounded-lg bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-600">
+                      <span className="rounded-lg bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                         {order.tracking_number}
                       </span>
                     )}
                   </div>
                 )}
 
-                <div className="mt-4 divide-y divide-slate-100">
+                <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
                   {lineItems.map((item) => (
                     <div
                       key={item.id}
                       className="flex items-center gap-4 py-3"
                     >
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
                         {item.image_url ? (
                           <Image
                             src={item.image_url}
@@ -154,21 +154,21 @@ export default async function AccountPage({
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-800">
+                        <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
                           {item.product_name}
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-400 dark:text-slate-500">
                           × {item.quantity}
                         </p>
                       </div>
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {formatCurrency(item.unit_price * item.quantity, item.currency)}
                       </p>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-2 flex justify-between border-t border-slate-100 pt-3 text-sm font-bold text-slate-900">
+                <div className="mt-2 flex justify-between border-t border-slate-100 pt-3 text-sm font-bold text-slate-900 dark:border-slate-800 dark:text-slate-100">
                   <span>Total</span>
                   <span>{formatCurrency(order.total, order.currency)}</span>
                 </div>
@@ -197,7 +197,7 @@ export default async function AccountPage({
       )}
 
       <section className="mt-12">
-        <h2 className="text-sm font-bold text-slate-900">Danger zone</h2>
+        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Danger zone</h2>
         <div className="mt-3">
           <DeleteAccountForm />
         </div>

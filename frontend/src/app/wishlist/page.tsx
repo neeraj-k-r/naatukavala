@@ -27,30 +27,30 @@ export default async function WishlistPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-slate-900">My wishlist</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">My wishlist</h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         {products.length} saved item{products.length === 1 ? "" : "s"}.
       </p>
 
       {drops.length > 0 && (
-        <section className="mt-6 rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-orange-50 p-5 sm:p-6">
+        <section className="mt-6 rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-orange-50 p-5 dark:border-rose-900 dark:from-rose-950 dark:to-slate-900 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
             <span className="rounded-full bg-rose-600 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white">
               Price drop
             </span>
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {drops.length} saved item{drops.length === 1 ? " is" : "s are"}{" "}
               cheaper now
             </h2>
           </div>
-          <ul className="mb-4 space-y-1 text-sm text-slate-600">
+          <ul className="mb-4 space-y-1 text-sm text-slate-600 dark:text-slate-400">
             {drops.slice(0, 5).map((drop) => (
               <li key={drop.product_id}>
-                <span className="font-medium text-slate-800">
+                <span className="font-medium text-slate-800 dark:text-slate-200">
                   {drop.product.name}
                 </span>{" "}
                 {formatCurrency(drop.old_price, drop.product.currency)} →{" "}
-                <span className="font-bold text-rose-700">
+                <span className="font-bold text-rose-700 dark:text-rose-400">
                   {formatCurrency(drop.new_price, drop.product.currency)}
                 </span>
               </li>
@@ -66,11 +66,11 @@ export default async function WishlistPage() {
       )}
 
       {products.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
-          <p className="text-lg font-semibold text-slate-700">
+        <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">
             Nothing saved yet
           </p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Tap the heart on any product to save it here.
           </p>
           <Link

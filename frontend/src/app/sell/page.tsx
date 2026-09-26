@@ -31,10 +31,10 @@ export default function SellPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
       <div className="text-center">
-        <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 sm:text-4xl">
           Open your shop on Naatukavala
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-slate-600">
+        <p className="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-400">
           If you run a local shop or sell things online, you get a storefront
           on your own subdomain — and every one of your products is listed in
           the Naatukavala marketplace.
@@ -48,7 +48,7 @@ export default function SellPage() {
           </Link>
           <Link
             href="/login"
-            className="rounded-xl border border-slate-300 bg-white px-7 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="rounded-xl border border-slate-300 bg-white px-7 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             Log in
           </Link>
@@ -59,13 +59,13 @@ export default function SellPage() {
         {features.map((feature) => (
           <div
             key={feature.title}
-            className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+            className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="text-3xl">{feature.icon}</div>
-            <h2 className="mt-3 text-lg font-bold text-slate-900">
+            <h2 className="mt-3 text-lg font-bold text-slate-900 dark:text-slate-100">
               {feature.title}
             </h2>
-            <p className="mt-1 text-sm text-slate-600">{feature.text}</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{feature.text}</p>
           </div>
         ))}
       </div>

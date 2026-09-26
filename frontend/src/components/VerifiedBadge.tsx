@@ -5,7 +5,7 @@ export default function VerifiedBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full bg-sky-50 font-semibold text-sky-700 ${
+      className={`inline-flex items-center gap-1 rounded-full bg-sky-50 font-semibold text-sky-700 dark:bg-sky-950 dark:text-sky-300 ${
         size === "lg" ? "px-2.5 py-1 text-xs" : "px-1.5 py-0.5 text-[10px]"
       }`}
       title="Shop identity verified"

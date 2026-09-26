@@ -62,7 +62,7 @@ export default async function ProductPage({
                   alt={product.name}
                   width={80}
                   height={80}
-                  className="h-20 w-20 rounded-xl border border-slate-100 object-cover"
+                  className="h-20 w-20 rounded-xl border border-slate-100 object-cover dark:border-slate-700"
                 />
               ))}
             </div>
@@ -101,7 +101,7 @@ export default async function ProductPage({
 
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Delivery charge:{" "}
-            <span className="font-medium text-slate-700">
+            <span className="font-medium text-slate-700 dark:text-slate-300">
               {formatCurrency(product.shop.delivery_charge, product.currency)}
             </span>
           </p>

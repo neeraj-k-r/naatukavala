@@ -50,7 +50,7 @@ export default async function SellerOrdersPage() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-slate-900">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     #{order.id.slice(0, 8).toUpperCase()}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">

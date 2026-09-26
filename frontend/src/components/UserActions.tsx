@@ -32,7 +32,7 @@ export default function UserActions({
           defaultValue={currentRole}
           disabled={isSelf}
           onChange={(event) => event.currentTarget.form?.requestSubmit()}
-          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium capitalize text-slate-700 outline-none focus:border-emerald-500 disabled:opacity-50"
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium capitalize text-slate-700 outline-none focus:border-emerald-500 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
         >
           {options.map((option) => (
             <option key={option} value={option}>
@@ -43,12 +43,12 @@ export default function UserActions({
       </form>
 
       {roleState && "error" in roleState && (
-        <span className="text-xs text-red-600">
+        <span className="text-xs text-red-600 dark:text-red-400">
           {String((roleState as { error: string }).error)}
         </span>
       )}
       {deleteState && "error" in deleteState && (
-        <span className="text-xs text-red-600">
+        <span className="text-xs text-red-600 dark:text-red-400">
           {String((deleteState as { error: string }).error)}
         </span>
       )}
@@ -68,7 +68,7 @@ export default function UserActions({
                 event.preventDefault();
               }
             }}
-            className="rounded-lg border border-red-100 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+            className="rounded-lg border border-red-100 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-950"
           >
             Delete
           </button>

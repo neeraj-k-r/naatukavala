@@ -13,41 +13,41 @@ export default async function AdminLayout({
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-      <h1 className="mb-6 text-2xl font-bold text-slate-900">
+      <h1 className="mb-6 text-2xl font-bold text-slate-900 dark:text-slate-100">
         Admin panel ·{" "}
-        <span className="text-base font-medium text-slate-500 capitalize">
+        <span className="text-base font-medium text-slate-500 capitalize dark:text-slate-400">
           {user.profile?.role ?? user.role}
         </span>
       </h1>
 
       <div className="grid gap-8 lg:grid-cols-[200px_1fr]">
-        <aside className="rounded-2xl border border-slate-100 bg-white p-4 text-sm font-medium text-slate-600 shadow-sm">
+        <aside className="rounded-2xl border border-slate-100 bg-white p-4 text-sm font-medium text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
           <nav className="flex flex-col gap-1">
-            <Link href="/admin" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               Overview
             </Link>
-            <Link href="/admin/reports" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin/reports" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               📊 Sales report
             </Link>
-            <Link href="/admin/bookings" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin/bookings" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               📦 Bookings & dispatch
             </Link>
-            <Link href="/admin/shops" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin/shops" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               Shops & sellers
             </Link>
-            <Link href="/admin/products" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin/products" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               Products
             </Link>
-            <Link href="/admin/promotions" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin/promotions" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               Promotions
             </Link>
-            <Link href="/admin/notifications" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin/notifications" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               Alerts
             </Link>
-            <Link href="/admin/users" className="rounded-lg px-3 py-2 hover:bg-slate-50">
+            <Link href="/admin/users" className="rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800">
               Users & roles
             </Link>
-            <Link href="/" className="mt-4 rounded-lg px-3 py-2 text-slate-400 hover:text-emerald-700">
+            <Link href="/" className="mt-4 rounded-lg px-3 py-2 text-slate-400 hover:text-emerald-700 dark:text-slate-500 dark:hover:text-emerald-400">
               Marketplace
             </Link>
           </nav>

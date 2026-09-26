@@ -30,11 +30,11 @@ const GROUP_HINT: Record<string, string> = {
 };
 
 const statusPill: Record<string, string> = {
-  pending: "bg-amber-50 text-amber-700",
-  confirmed: "bg-sky-50 text-sky-700",
-  shipped: "bg-violet-50 text-violet-700",
-  delivered: "bg-emerald-50 text-emerald-700",
-  cancelled: "bg-slate-100 text-slate-500",
+  pending: "bg-amber-50 text-amber-700 dark:bg-amber-900 dark:text-amber-200",
+  confirmed: "bg-sky-50 text-sky-700 dark:bg-sky-900 dark:text-sky-200",
+  shipped: "bg-violet-50 text-violet-700 dark:bg-violet-900 dark:text-violet-200",
+  delivered: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200",
+  cancelled: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
 };
 
 export default async function AdminBookingsPage({
@@ -57,8 +57,8 @@ export default async function AdminBookingsPage({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-slate-900">Bookings & dispatch</h2>
-        <p className="mt-1 text-sm text-slate-500">{GROUP_HINT[group]}</p>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Bookings & dispatch</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{GROUP_HINT[group]}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -68,8 +68,8 @@ export default async function AdminBookingsPage({
             href={`/admin/bookings?group=${tab.id}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
             className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ${
               group === tab.id
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:ring-slate-600"
             }`}
           >
             {tab.label}
@@ -83,7 +83,7 @@ export default async function AdminBookingsPage({
           name="search"
           defaultValue={search}
           placeholder="Search order id, tracking #, shop, address…"
-          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-emerald-500"
+          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         />
         <button
           type="submit"
@@ -94,46 +94,46 @@ export default async function AdminBookingsPage({
         {search && (
           <Link
             href={`/admin/bookings?group=${group}`}
-            className="shrink-0 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-200"
+            className="shrink-0 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Clear
           </Link>
         )}
       </form>
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-slate-400 dark:text-slate-500">
         Showing {orders.length} of {total} bookings{search ? ` matching “${search}”` : ""}.
       </p>
 
       {orders.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
-          <p className="text-slate-500">No bookings in this view.</p>
-          <Link href="/admin/reports" className="mt-2 inline-block text-sm font-semibold text-emerald-700 hover:underline">
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-slate-500 dark:text-slate-400">No bookings in this view.</p>
+          <Link href="/admin/reports" className="mt-2 inline-block text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-400">
             ← Back to sales report
           </Link>
         </div>
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (
-            <div key={order.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+            <div key={order.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-mono text-sm font-extrabold text-slate-900">
+                  <p className="font-mono text-sm font-extrabold text-slate-900 dark:text-slate-100">
                     #{order.id.slice(0, 8).toUpperCase()}
                   </p>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${statusPill[order.status] ?? "bg-slate-100 text-slate-600"}`}>
+                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${statusPill[order.status] ?? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"}`}>
                     {order.status}
                   </span>
-                  <span className="text-xs text-slate-400">{formatDate(order.created_at)}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(order.created_at)}</span>
                 </div>
-                <p className="text-base font-extrabold text-slate-900">
+                <p className="text-base font-extrabold text-slate-900 dark:text-slate-100">
                   {formatCurrency(order.total, order.currency)}
                 </p>
               </div>
 
-              <div className="mt-2 grid gap-1 text-xs text-slate-500 sm:grid-cols-2">
+              <div className="mt-2 grid gap-1 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-2">
                 <p>
-                  🏪 <span className="font-semibold text-slate-700">{order.shop?.name ?? "Unknown shop"}</span>
+                  🏪 <span className="font-semibold text-slate-700 dark:text-slate-300">{order.shop?.name ?? "Unknown shop"}</span>
                   {order.buyer_name ? (
                     <> · 🧑 {order.buyer_name}</>
                   ) : null}
@@ -141,11 +141,11 @@ export default async function AdminBookingsPage({
                 {order.shipping_address && <p>📍 {order.shipping_address}</p>}
                 {order.buyer_note && <p className="italic">💬 “{order.buyer_note}”</p>}
                 {order.tracking_number && (
-                  <p className="font-mono font-semibold text-slate-700">📦 {order.tracking_number}</p>
+                  <p className="font-mono font-semibold text-slate-700 dark:text-slate-300">📦 {order.tracking_number}</p>
                 )}
               </div>
 
-              <div className="mt-3 border-t border-slate-100 pt-3">
+              <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
                 <AdminBookingActions orderId={order.id} status={order.status} tracking={order.tracking_number} />
               </div>
             </div>

@@ -36,7 +36,7 @@ export default function ShopDecisionButtons({
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+            className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-950"
           >
             Reject
           </button>
@@ -50,7 +50,7 @@ export default function ShopDecisionButtons({
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             Suspend
           </button>
@@ -60,10 +60,10 @@ export default function ShopDecisionButtons({
       <span
         className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
           status === "approved"
-            ? "bg-emerald-100 text-emerald-800"
+            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
             : status === "pending"
-              ? "bg-amber-100 text-amber-800"
-              : "bg-red-100 text-red-700"
+              ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+              : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
         }`}
       >
         {status}

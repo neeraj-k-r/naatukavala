@@ -16,7 +16,7 @@ export function RevenueAreaChart({
   currency: string;
 }) {
   if (daily.length === 0 || daily.every((d) => d.revenue === 0 && d.orders === 0)) {
-    return <p className="mt-2 text-sm text-slate-500">No sales in this period yet.</p>;
+    return <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">No sales in this period yet.</p>;
   }
   const W = 720;
   const H = 220;
@@ -63,7 +63,7 @@ export function RevenueAreaChart({
           </g>
         ))}
       </svg>
-      <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+      <div className="mt-2 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
         <span>Peak day: {formatCurrency(maxRevenue, currency)}</span>
         <span>{daily.reduce((sum, d) => sum + d.orders, 0)} orders in period</span>
       </div>
@@ -86,17 +86,17 @@ export function MonthlyBarChart({
         const height = Math.max((m.revenue / max) * 100, m.revenue > 0 ? 6 : 2);
         return (
           <div key={m.month} className="flex flex-1 flex-col items-center gap-2" title={`${m.orders} orders · ${formatCurrency(m.revenue, currency)}`}>
-            <span className="text-[11px] font-bold text-slate-700">
+            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
               {m.revenue > 0 ? formatCurrency(m.revenue, currency) : ""}
             </span>
-            <div className="flex w-full flex-1 items-end rounded-lg bg-slate-100">
+            <div className="flex w-full flex-1 items-end rounded-lg bg-slate-100 dark:bg-slate-800">
               <div
                 className="w-full rounded-lg bg-gradient-to-t from-emerald-600 to-emerald-400"
                 style={{ height: `${height}%` }}
               />
             </div>
-            <span className="text-[11px] font-semibold text-slate-500">{monthLabel(m.month)}</span>
-            <span className="text-[10px] text-slate-400">{m.orders} orders</span>
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{monthLabel(m.month)}</span>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500">{m.orders} orders</span>
           </div>
         );
       })}
@@ -114,10 +114,10 @@ export function StatusBars({ byStatus }: { byStatus: { status: string; orders: n
     delivered: "bg-emerald-500",
     cancelled: "bg-slate-300",
   };
-  if (total === 0) return <p className="mt-2 text-sm text-slate-500">No bookings yet.</p>;
+  if (total === 0) return <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">No bookings yet.</p>;
   return (
     <div className="mt-4 space-y-3">
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         {byStatus.map((s) => (
           <div
             key={s.status}
@@ -130,14 +130,14 @@ export function StatusBars({ byStatus }: { byStatus: { status: string; orders: n
       {byStatus.map((s) => (
         <div key={s.status} className="flex items-center gap-3 text-sm">
           <span className={`h-2.5 w-2.5 rounded-full ${colors[s.status] ?? "bg-slate-400"}`} />
-          <span className="w-24 capitalize font-semibold text-slate-700">{s.status}</span>
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+          <span className="w-24 capitalize font-semibold text-slate-700 dark:text-slate-300">{s.status}</span>
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
             <div
               className={`h-full rounded-full ${colors[s.status] ?? "bg-slate-400"}`}
               style={{ width: `${Math.max((s.orders / total) * 100, 2)}%` }}
             />
           </div>
-          <span className="w-16 text-right text-xs text-slate-500">{s.orders} orders</span>
+          <span className="w-16 text-right text-xs text-slate-500 dark:text-slate-400">{s.orders} orders</span>
         </div>
       ))}
     </div>

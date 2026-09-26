@@ -40,16 +40,16 @@ export default async function AdminOverviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-slate-900">Overview</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Overview</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Signed in as {user.profile?.role ?? user.role} · {user.email}
         </p>
       </div>
 
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-900 dark:bg-amber-950">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-amber-900">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
               {pending.length} shop{pending.length === 1 ? "" : "s"} awaiting
               approval
               {pendingPromotions.length > 0 && (
@@ -59,7 +59,7 @@ export default async function AdminOverviewPage() {
                 <> · {pendingProducts.length} product{pendingProducts.length === 1 ? "" : "s"} in review</>
               )}
             </p>
-            <p className="text-xs text-amber-700">
+            <p className="text-xs text-amber-700 dark:text-amber-300">
               Review new sellers so their stores go live.
             </p>
           </div>
@@ -91,14 +91,14 @@ export default async function AdminOverviewPage() {
       </div>
 
       {unreadAlerts.length > 0 && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 dark:border-red-900 dark:bg-red-950">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-red-900">
+              <p className="text-sm font-semibold text-red-900 dark:text-red-100">
                 {unreadAlerts.length} shop{unreadAlerts.length === 1 ? "" : "s"} not
                 accepting orders
               </p>
-              <p className="text-xs text-red-700">
+              <p className="text-xs text-red-700 dark:text-red-300">
                 {unreadAlerts
                   .slice(0, 3)
                   .map(
@@ -120,9 +120,9 @@ export default async function AdminOverviewPage() {
       )}
 
       {!promotionsAvailable && (
-        <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-500">
+        <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
           Promotions are unavailable — run{" "}
-          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-800">
             backend/supabase/migrations/20260919_promotions.sql
           </code>{" "}
           in the Supabase SQL editor to enable them.
@@ -130,17 +130,17 @@ export default async function AdminOverviewPage() {
       )}
 
       {report && (
-        <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-4">
+        <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-4 dark:border-emerald-900 dark:from-emerald-950 dark:to-slate-900">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-emerald-900">
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
                 {formatCurrency(report.summary.totalRevenue, report.currency)} lifetime revenue ·{" "}
                 {report.summary.upcoming} upcoming · {report.summary.inTransit} in transit
                 {report.summary.needsTracking > 0 && (
                   <> · {report.summary.needsTracking} need tracking ⚠️</>
                 )}
               </p>
-              <p className="text-xs text-emerald-700">
+              <p className="text-xs text-emerald-700 dark:text-emerald-300">
                 Today {formatCurrency(report.summary.todayRevenue, report.currency)} · last 7d{" "}
                 {formatCurrency(report.summary.last7Revenue, report.currency)} · delivered{" "}
                 {report.summary.delivered}
@@ -155,7 +155,7 @@ export default async function AdminOverviewPage() {
               </Link>
               <Link
                 href="/admin/bookings?group=dispatch"
-                className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"
+                className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50 dark:bg-slate-900 dark:text-emerald-400 dark:ring-emerald-800 dark:hover:bg-slate-800"
               >
                 Dispatch queue
               </Link>
@@ -167,80 +167,80 @@ export default async function AdminOverviewPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Link
           href="/admin/reports"
-          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
         >
-          <p className="text-sm text-slate-500">📊 Sales (30d)</p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="text-sm text-slate-500 dark:text-slate-400">📊 Sales (30d)</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             {report ? formatCurrency(report.summary.last30Revenue, report.currency) : "—"}
           </p>
-          <p className="mt-1 text-xs text-emerald-600">
+          <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
             {report ? `${report.summary.netOrders} net orders` : "View sales report"} →
           </p>
         </Link>
         <Link
           href="/admin/bookings?group=upcoming"
-          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
         >
-          <p className="text-sm text-slate-500">📅 Upcoming bookings</p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="text-sm text-slate-500 dark:text-slate-400">📅 Upcoming bookings</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             {report ? report.summary.upcoming : "—"}
           </p>
-          <p className="mt-1 text-xs text-amber-600">
+          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
             Pending + confirmed →
           </p>
         </Link>
         <Link
           href="/admin/shops"
-          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
         >
-          <p className="text-sm text-slate-500">Shops</p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="text-sm text-slate-500 dark:text-slate-400">Shops</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             {shops.length}
           </p>
-          <p className="mt-1 text-xs text-amber-600">
+          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
             {pending.length} pending approval
           </p>
         </Link>
         <Link
           href="/admin/users"
-          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
         >
-          <p className="text-sm text-slate-500">Pending reviews</p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="text-sm text-slate-500 dark:text-slate-400">Pending reviews</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             {pending.length}
           </p>
-          <p className="mt-1 text-xs text-slate-400">Go to shops approval</p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Go to shops approval</p>
         </Link>
         <Link
           href="/admin/users"
-          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
         >
-          <p className="text-sm text-slate-500">Users</p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="text-sm text-slate-500 dark:text-slate-400">Users</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             Manage
           </p>
-          <p className="mt-1 text-xs text-slate-400">Roles & accounts</p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Roles & accounts</p>
         </Link>
       </div>
 
       {pending.length > 0 && (
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <h3 className="font-bold text-slate-900">Pending shops</h3>
-          <ul className="mt-3 divide-y divide-slate-100">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">Pending shops</h3>
+          <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
             {pending.map((shop) => (
               <li key={shop.id} className="flex items-center justify-between py-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                     {shop.name}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
                     {shop.slug} · joined {formatDate(shop.created_at)} ·{" "}
                     {shop.owner_name ?? "unknown owner"}
                   </p>
                 </div>
                 <Link
                   href="/admin/shops"
-                  className="text-sm font-medium text-emerald-700 hover:underline"
+                  className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
                 >
                   Review →
                 </Link>

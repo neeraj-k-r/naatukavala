@@ -18,15 +18,15 @@ export default async function AdminProductsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-slate-900">Product reviews</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Product reviews</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Products from unverified sellers wait here. Verified sellers go
           live instantly and never appear in this queue.
         </p>
       </div>
 
       {products.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500">
+        <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
           No products waiting for review.
         </p>
       ) : (
@@ -34,9 +34,9 @@ export default async function AdminProductsPage() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
+              className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
             >
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
                 {product.images?.[0] ? (
                   <Image
                     src={product.images[0]}
@@ -52,15 +52,15 @@ export default async function AdminProductsPage() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-800">
+                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {product.name}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 dark:text-slate-500">
                   {product.shop?.name ?? "Unknown shop"} ·{" "}
                   {product.category || "Uncategorized"} ·{" "}
                   {formatDate(product.created_at)}
                 </p>
-                <p className="text-sm font-bold text-slate-900">
+                <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
                   {formatCurrency(product.price, product.currency)}
                 </p>
               </div>

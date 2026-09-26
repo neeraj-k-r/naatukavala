@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useActionState, useState } from "react";
 
 import { signUp } from "@/lib/actions";
-import ShopImageUpload from "@/components/ShopImageUpload";
 import SubmitButton from "@/components/SubmitButton";
 import { slugify } from "@/lib/utils";
 
@@ -137,29 +136,12 @@ function SignupForm() {
                 />
               </div>
 
-              <details className="group rounded-xl border border-slate-100 bg-white px-4 py-3">
-                <summary className="cursor-pointer text-sm font-medium text-slate-700 marker:content-none">
-                  Add shop images{" "}
-                  <span className="text-slate-400">(optional)</span>
-                  <span className="ml-1 text-slate-400 transition-transform group-open:rotate-90">
-                    ›
-                  </span>
-                </summary>
-                <div className="mt-4 space-y-4">
-                  <ShopImageUpload
-                    name="logo_url"
-                    label="Shop logo"
-                    hint="Square image. Shows next to your shop name."
-                    aspectClass="aspect-square"
-                  />
-                  <ShopImageUpload
-                    name="banner_url"
-                    label="Shop banner"
-                    hint="Wide image. Shows at the top of your storefront."
-                    aspectClass="aspect-video"
-                  />
-                </div>
-              </details>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                <p className="text-sm text-slate-600">
+                  You can add your shop logo and banner after signing up,
+                  from your dashboard shop profile.
+                </p>
+              </div>
             </>
           )}
 

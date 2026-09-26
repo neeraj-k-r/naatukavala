@@ -65,12 +65,15 @@ create table if not exists public.products (
   stock integer not null default 0 check (stock >= 0),
   images text[] not null default '{}',
   is_active boolean not null default true,
+  approval_status text not null default 'approved'
+    check (approval_status in ('approved', 'pending', 'rejected')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create index if not exists products_shop_idx on public.products (shop_id);
 create index if not exists products_category_idx on public.products (category);
+create index if not exists products_approval_idx on public.products (approval_status);
 
 -- ------------------------------------------------------------
 -- Orders + order items
@@ -255,10 +258,11 @@ create policy shops_delete_owner on public.shops
   for delete using (owner_id = auth.uid());
 
 -- products
--- Buyers see active products from approved shops; owners see everything of theirs.
+-- Buyers see active, approved products from approved shops; owners see everything of theirs.
 create policy products_select_public on public.products
   for select using (
     is_active = true
+    and approval_status = 'approved'
     and exists (
       select 1 from public.shops s
       where s.id = shop_id and s.status = 'approved'::public.shop_status

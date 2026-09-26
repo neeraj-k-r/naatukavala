@@ -52,7 +52,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-slate-50 font-sans">
+      <body className="flex min-h-full flex-col bg-slate-50 font-sans dark:bg-slate-950 dark:text-slate-200">
+        {/* Applies the saved/system theme before first paint (no flash). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("naatukavala-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})()`,
+          }}
+        />
         <CartProvider>
           <Navbar user={user} siteShop={siteShop} />
           <main className="flex-1">{children}</main>

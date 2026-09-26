@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { getPriceDropCount } from "@/lib/client-api";
 import { signOut } from "@/lib/actions";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useCart } from "@/components/CartContext";
 import type { AuthUser } from "@/lib/auth";
 import type { Profile, Shop } from "@/lib/types";
@@ -189,6 +190,7 @@ export default function Navbar({
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             href={siteUrl("/wishlist")}
             className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"

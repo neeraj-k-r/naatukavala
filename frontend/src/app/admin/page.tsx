@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth";
-import { getAdminNotifications, getAdminSalesReport, getAllPromotions, getAllShops } from "@/lib/api";
+import { getAdminNotifications, getAdminSalesReport, getAllPromotions, getAllShops, getPendingProducts } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export const metadata = {
@@ -20,11 +20,12 @@ export default async function AdminOverviewPage() {
   const user = await requireAdmin();
   // Promotions (and the sales report) degrade gracefully when their backend
   // pieces aren't ready yet — the rest of the overview must still render.
-  const [shops, promoResult, report, notifications] = await Promise.all([
+  const [shops, promoResult, report, notifications, pendingProducts] = await Promise.all([
     getAllShops(),
     loadPromotions(),
     getAdminSalesReport().catch(() => null),
     getAdminNotifications(),
+    getPendingProducts(),
   ]);
   const promotions = promoResult.list;
   const promotionsAvailable = promoResult.available;
@@ -54,12 +55,23 @@ export default async function AdminOverviewPage() {
               {pendingPromotions.length > 0 && (
                 <> · {pendingPromotions.length} promotion request{pendingPromotions.length === 1 ? "" : "s"}</>
               )}
+              {pendingProducts.length > 0 && (
+                <> · {pendingProducts.length} product{pendingProducts.length === 1 ? "" : "s"} in review</>
+              )}
             </p>
             <p className="text-xs text-amber-700">
               Review new sellers so their stores go live.
             </p>
           </div>
           <div className="flex gap-2">
+            {pendingProducts.length > 0 && (
+              <Link
+                href="/admin/products"
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Review products
+              </Link>
+            )}
             {pendingPromotions.length > 0 && (
               <Link
                 href="/admin/promotions"

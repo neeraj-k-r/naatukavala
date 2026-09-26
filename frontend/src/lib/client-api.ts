@@ -31,6 +31,9 @@ export async function getPriceDropCount(): Promise<number> {
 /** Uploads an image to the backend, returning the public Cloudinary URL. */
 export async function uploadFile(file: File): Promise<string> {
   const token = await getAccessToken();
+  if (!token) {
+    throw new Error("Please log in before uploading images.");
+  }
 
   const formData = new FormData();
   formData.append("file", file);
@@ -39,7 +42,7 @@ export async function uploadFile(file: File): Promise<string> {
   const res = await fetch(`${API_URL}/upload`, {
     method: "POST",
     body: formData,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: { Authorization: `Bearer ${token}` },
   });
 
   const json = (await res.json().catch(() => ({}))) as {

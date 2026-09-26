@@ -81,22 +81,22 @@ async function MarketplaceCatalog({
       </div>
 
       <div className="mb-5 flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-bold text-slate-900">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
           {search ? `Results for "${search}"` : "All products"}
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           {products.length} item{products.length === 1 ? "" : "s"}
         </p>
       </div>
 
       {/* Sponsored spotlight — admin-approved promotions get top placement */}
       {hasSpotlight && (
-        <section className="mb-10 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:p-6">
+        <section className="mb-10 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 dark:border-amber-900 dark:from-amber-950 dark:to-slate-900 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
             <span className="rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-950">
               Sponsored
             </span>
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               Featured picks from our sellers
             </h2>
           </div>
@@ -130,7 +130,7 @@ async function MarketplaceCatalog({
 
       {shops.length > 0 && (
         <section className="mt-16">
-          <h2 className="mb-4 text-xl font-bold text-slate-900">
+          <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-slate-100">
             Featured shops
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -152,7 +152,7 @@ function CatalogSkeleton() {
         {["w-16", "w-24", "w-20", "w-28"].map((width) => (
           <div
             key={width}
-            className={`h-8 animate-pulse rounded-full bg-slate-200 ${width}`}
+            className={`h-8 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700 ${width}`}
           />
         ))}
       </div>
@@ -160,12 +160,12 @@ function CatalogSkeleton() {
         {Array.from({ length: 8 }).map((_, index) => (
           <div
             key={index}
-            className="overflow-hidden rounded-2xl border border-slate-100 bg-white"
+            className="overflow-hidden rounded-2xl border border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900"
           >
-            <div className="aspect-square animate-pulse bg-slate-200" />
+            <div className="aspect-square animate-pulse bg-slate-200 dark:bg-slate-700" />
             <div className="space-y-2 p-4">
-              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-200" />
-              <div className="h-4 w-1/3 animate-pulse rounded bg-slate-200" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-1/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
             </div>
           </div>
         ))}
@@ -178,7 +178,7 @@ function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }
   return (
     <Link
       href={shopUrl(shop.slug)}
-      className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
     >
       {promoted && (
         <span className="absolute right-2 top-2 z-10 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-amber-950">
@@ -198,7 +198,7 @@ function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }
       )}
       <div className="p-5">
         <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-base font-bold text-emerald-700">
+          <div className="flex h-10 w-10 flex-none items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-base font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
             {shop.logo_url ? (
               <Image
                 src={shop.logo_url}
@@ -211,14 +211,14 @@ function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }
               <span>{shop.name.slice(0, 1).toUpperCase()}</span>
             )}
           </div>
-          <p className="text-lg font-bold text-emerald-700 group-hover:underline">
+          <p className="text-lg font-bold text-emerald-700 group-hover:underline dark:text-emerald-400">
             {shop.name}
           </p>
         </div>
         {shop.tagline && (
-          <p className="mt-1 text-sm text-slate-500">{shop.tagline}</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{shop.tagline}</p>
         )}
-        <p className="mt-3 text-xs font-medium text-slate-400">
+        <p className="mt-3 text-xs font-medium text-slate-400 dark:text-slate-500">
           {shop.slug}.{process.env.NEXT_PUBLIC_APP_DOMAIN || "shop"}
         </p>
       </div>

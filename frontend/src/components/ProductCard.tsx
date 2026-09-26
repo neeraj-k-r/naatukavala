@@ -27,9 +27,9 @@ export default function ProductCard({
   return (
     <Link
       href={`/product/${product.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
     >
-      <div className="relative aspect-square bg-slate-100">
+      <div className="relative aspect-square bg-slate-100 dark:bg-slate-800">
         {image ? (
           <Image
             src={image}
@@ -66,15 +66,15 @@ export default function ProductCard({
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <p className="flex items-center gap-1.5">
-          <span className="text-xs font-medium text-emerald-700">
+          <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
             {product.shop?.name}
           </span>
           {verified && <VerifiedBadge />}
         </p>
-        <h3 className="line-clamp-2 text-sm font-semibold text-slate-800 group-hover:text-emerald-700">
+        <h3 className="line-clamp-2 text-sm font-semibold text-slate-800 group-hover:text-emerald-700 dark:text-slate-200 dark:group-hover:text-emerald-400">
           {product.name}
         </h3>
-        <p className="mt-auto pt-1 text-base font-bold text-slate-900">
+        <p className="mt-auto pt-1 text-base font-bold text-slate-900 dark:text-slate-100">
           {formatCurrency(product.price, product.currency)}
         </p>
       </div>
@@ -84,7 +84,7 @@ export default function ProductCard({
 
 export function ShopLink({ slug, name }: { slug: string; name: string }) {
   return (
-    <Link href={shopUrl(slug)} className="font-medium text-emerald-700 hover:underline">
+      <Link href={shopUrl(slug)} className="font-medium text-emerald-700 hover:underline dark:text-emerald-400">
       {name}
     </Link>
   );

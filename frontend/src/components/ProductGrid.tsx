@@ -17,9 +17,9 @@ export default function ProductGrid({
 }) {
   if (products.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
-        <p className="text-lg font-semibold text-slate-700">No products found</p>
-        <p className="mt-1 text-sm text-slate-500">
+      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
+        <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">No products found</p>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Try a different search or category.
         </p>
       </div>

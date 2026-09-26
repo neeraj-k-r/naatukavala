@@ -25,7 +25,7 @@ export default function SearchBar() {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Search products across all shops…"
-        className="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
       />
       <button
         type="submit"

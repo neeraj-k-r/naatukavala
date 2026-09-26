@@ -43,7 +43,7 @@ function Pill({
       className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
         active
           ? "border-emerald-600 bg-emerald-600 text-white"
-          : "border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:text-emerald-700"
+          : "border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
       }`}
     >
       {children}

@@ -70,8 +70,8 @@ export default function WishlistButton({
       aria-pressed={wished}
       className={
         size === "card"
-          ? "absolute bottom-2 right-2 rounded-full bg-white/90 p-2 shadow-sm ring-1 ring-slate-200 transition hover:scale-105 disabled:opacity-60"
-          : "inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          ? "absolute bottom-2 right-2 rounded-full bg-white/90 p-2 shadow-sm ring-1 ring-slate-200 transition hover:scale-105 disabled:opacity-60 dark:bg-slate-800/90 dark:ring-slate-700"
+          : "inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
       }
     >
       <HeartIcon filled={wished} />

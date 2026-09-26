@@ -62,7 +62,7 @@ export default function ShopFilterBar({
             onChange={(event) => setQuery(event.target.value)}
             placeholder={`Search in ${shopName}…`}
             aria-label="Search products in this shop"
-            className="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           />
           <button
             type="submit"
@@ -82,7 +82,7 @@ export default function ShopFilterBar({
             )
           }
           aria-label="Sort products"
-          className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-emerald-500"
+          className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
         >
           {(Object.keys(sortLabels) as ShopSort[]).map((sort) => (
             <option key={sort} value={sort}>
@@ -132,7 +132,7 @@ function FilterPill({
       className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
         active
           ? "border-emerald-600 bg-emerald-600 text-white"
-          : "border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:text-emerald-700"
+          : "border-slate-200 bg-white text-slate-700 hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
       }`}
     >
       {children}

@@ -302,6 +302,20 @@ export async function getShopReviews(slug: string): Promise<RatingSummary> {
   return fetchApi(`/shops/reviews/${encodeURIComponent(slug)}`);
 }
 
+/** Products waiting for admin approval, newest first (fails closed). */
+export async function getPendingProducts(): Promise<
+  (Product & { shop?: { name: string; slug: string } | null })[]
+> {
+  try {
+    const { products } = await fetchApi<{
+      products: (Product & { shop?: { name: string; slug: string } | null })[];
+    }>("/admin/products?status=pending");
+    return products ?? [];
+  } catch {
+    return [];
+  }
+}
+
 // ---------------------------------------------------------------- Promotions
 
 /**

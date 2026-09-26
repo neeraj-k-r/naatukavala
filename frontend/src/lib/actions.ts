@@ -289,6 +289,34 @@ export async function markNotificationRead(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+/** Admins approve or reject a product waiting in the review queue. */
+export async function decideProductApproval(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || !["superadmin", "admin"].includes(user.profile.role)) {
+    redirect("/");
+  }
+
+  const productId = String(formData.get("product_id") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (!productId || !["approve", "reject"].includes(decision)) {
+    return { error: "Invalid decision." };
+  }
+
+  try {
+    await fetchApi(`/admin/products/${productId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ decision }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not update the product.") };
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+  return { success: true };
+}
+
 /** Toggles the signed-in user's helpful vote on a review. */
 export async function toggleHelpful(state: unknown, formData: FormData) {
   const user = await getUser();
@@ -432,8 +460,9 @@ export async function createProduct(state: unknown, formData: FormData) {
     return { error: "Please enter a valid price." };
   }
 
+  let createdPending = false;
   try {
-    await fetchApi("/products", {
+    const data = await fetchApi<{ approval_status?: string }>("/products", {
       method: "POST",
       body: JSON.stringify({
         name,
@@ -444,13 +473,14 @@ export async function createProduct(state: unknown, formData: FormData) {
         images,
       }),
     });
+    createdPending = data.approval_status === "pending";
   } catch (err) {
     return { error: messageOf(err, "Could not create the product.") };
   }
 
   revalidatePath("/dashboard/products");
   revalidatePath("/");
-  return { success: true };
+  return { success: true, pendingReview: createdPending };
 }
 
 export async function updateProduct(state: unknown, formData: FormData) {
@@ -473,8 +503,9 @@ export async function updateProduct(state: unknown, formData: FormData) {
     return { error: "Please enter a valid price." };
   }
 
+  let updatedPending = false;
   try {
-    await fetchApi(`/products/${id}`, {
+    const data = await fetchApi<{ approval_status?: string }>(`/products/${id}`, {
       method: "PUT",
       body: JSON.stringify({
         name,
@@ -486,13 +517,14 @@ export async function updateProduct(state: unknown, formData: FormData) {
         images,
       }),
     });
+    updatedPending = data.approval_status === "pending";
   } catch (err) {
     return { error: messageOf(err, "Could not update the product.") };
   }
 
   revalidatePath("/dashboard/products");
   revalidatePath("/");
-  return { success: true };
+  return { success: true, pendingReview: updatedPending };
 }
 
 export async function deleteProduct(state: unknown, formData: FormData) {

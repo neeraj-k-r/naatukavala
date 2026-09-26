@@ -130,7 +130,7 @@ export default function Navbar({
   const siteUrl = (path: string) => (shopMode ? path : authUrl(path));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         {siteShop ? (
           <Link href="/" className="flex min-w-0 items-center gap-2">
@@ -147,7 +147,7 @@ export default function Navbar({
                 siteShop.name.slice(0, 1).toUpperCase()
               )}
             </span>
-            <span className="truncate text-xl font-extrabold tracking-tight text-emerald-900">
+            <span className="truncate text-xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-200">
               {siteShop.name}
             </span>
           </Link>
@@ -156,32 +156,32 @@ export default function Navbar({
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-lg font-bold text-white">
               N
             </span>
-            <span className="text-xl font-extrabold tracking-tight text-emerald-900">
+            <span className="text-xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-200">
               Naatukavala
             </span>
           </Link>
         )}
 
-        <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
+        <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex dark:text-slate-300">
           {shopMode ? (
-            <Link href="/" className="hover:text-emerald-700">
+            <Link href="/" className="hover:text-emerald-700 dark:hover:text-emerald-400">
               Home
             </Link>
           ) : (
             <>
-              <Link href={authUrl("/")} className="hover:text-emerald-700">
+              <Link href={authUrl("/")} className="hover:text-emerald-700 dark:hover:text-emerald-400">
                 Marketplace
               </Link>
-              <Link href={authUrl("/sell")} className="hover:text-emerald-700">
+              <Link href={authUrl("/sell")} className="hover:text-emerald-700 dark:hover:text-emerald-400">
                 Sell with us
               </Link>
               {role === "seller" && (
-                <Link href="/dashboard" className="hover:text-emerald-700">
+                <Link href="/dashboard" className="hover:text-emerald-700 dark:hover:text-emerald-400">
                   Dashboard
                 </Link>
               )}
               {(role === "superadmin" || role === "admin") && (
-                <Link href="/admin" className="hover:text-emerald-700">
+                <Link href="/admin" className="hover:text-emerald-700 dark:hover:text-emerald-400">
                   Admin
                 </Link>
               )}
@@ -193,7 +193,7 @@ export default function Navbar({
           <ThemeToggle />
           <Link
             href={siteUrl("/wishlist")}
-            className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
+            className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-800"
             aria-label="Wishlist"
           >
             Wishlist
@@ -205,7 +205,7 @@ export default function Navbar({
           </Link>
           <Link
             href={siteUrl("/cart")}
-            className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50"
+            className="relative rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-800"
             aria-label="Cart"
           >
             Cart
@@ -220,7 +220,7 @@ export default function Navbar({
             <div className="flex items-center gap-2">
               <Link
                 href={siteUrl("/login")}
-                className="rounded-lg px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800"
               >
                 Log in
               </Link>
@@ -235,7 +235,7 @@ export default function Navbar({
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((open) => !open)}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-emerald-50"
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-emerald-50 dark:hover:bg-slate-800"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
                   {user.profile?.full_name
@@ -245,7 +245,7 @@ export default function Navbar({
                     .slice(0, 2)
                     .toUpperCase() || "U"}
                 </span>
-                <span className="hidden max-w-28 truncate text-sm font-medium text-slate-700 sm:block">
+                <span className="hidden max-w-28 truncate text-sm font-medium text-slate-700 dark:text-slate-300 sm:block">
                   {user.profile?.full_name || user.email}
                 </span>
               </button>
@@ -256,18 +256,18 @@ export default function Navbar({
                     className="fixed inset-0 z-10"
                     onClick={() => setMenuOpen(false)}
                   />
-                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-xl border border-slate-100 bg-white p-1.5 shadow-lg">
+                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-xl border border-slate-100 bg-white p-1.5 shadow-lg dark:border-slate-800 dark:bg-slate-900">
                     <Link
                       href="/account"
                       onClick={() => setMenuOpen(false)}
-                      className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                      className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                     >
                       My orders
                     </Link>
                     <Link
                       href="/wishlist"
                       onClick={() => setMenuOpen(false)}
-                      className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                      className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                     >
                       My wishlist
                     </Link>
@@ -275,7 +275,7 @@ export default function Navbar({
                       <Link
                         href="/dashboard"
                         onClick={() => setMenuOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                       >
                         Seller dashboard
                       </Link>
@@ -284,7 +284,7 @@ export default function Navbar({
                       <Link
                         href="/admin"
                         onClick={() => setMenuOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                       >
                         Admin panel
                       </Link>
@@ -292,7 +292,7 @@ export default function Navbar({
                     <form action={handleSignOut}>
                       <button
                         type="submit"
-                        className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                        className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
                       >
                         Log out
                       </button>

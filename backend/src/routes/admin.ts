@@ -3,7 +3,8 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { clearCache } from "../lib/cache.js";
-import type { Database } from "../lib/database.js";
+import type { Database, ProductApproval } from "../lib/database.js";
+import { hasApprovalColumn } from "../lib/productApproval.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
@@ -523,6 +524,58 @@ router.patch("/shops/:id/verification", async (req, res) => {
     .eq("id", req.params.id);
 
   if (error) return res.status(500).json({ error: error.message });
+  clearCache();
+  return res.json({ ok: true });
+});
+
+router.get("/products", async (req, res) => {
+  const status = String(req.query.status ?? "pending");
+  if (!["pending", "approved", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  let query = supabase
+    .from("products")
+    .select("*, shop:shops!inner(name, slug)")
+    .order("created_at", { ascending: false });
+
+  // Without the approval column nothing can be pending — only "approved"
+  // lists everything, other filters come back empty.
+  if (await hasApprovalColumn()) {
+    query = query.eq("approval_status", status as ProductApproval);
+  } else if (status !== "approved") {
+    return res.json({ products: [] });
+  }
+
+  const { data, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ products: data ?? [] });
+});
+
+router.patch("/products/:id", async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const { decision } = req.body ?? {};
+  if (!["approve", "reject"].includes(decision)) {
+    return res.status(400).json({ error: "Invalid decision." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  const patch: { approval_status: ProductApproval } = {
+    approval_status: decision === "approve" ? "approved" : "rejected",
+  };
+  let { error } = await supabase
+    .from("products")
+    .update(patch)
+    .eq("id", String(req.params.id));
+
+  // Approval column not migrated yet — nothing to decide on.
+  if (error && error.code !== "PGRST204") {
+    return res.status(500).json({ error: error.message });
+  }
+  if (error) return res.json({ ok: true, legacy: true });
+
   clearCache();
   return res.json({ ok: true });
 });

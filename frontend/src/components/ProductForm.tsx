@@ -35,6 +35,24 @@ export default function ProductForm({
           </div>
         )}
 
+      {state !== null &&
+        typeof state === "object" &&
+        "success" in state &&
+        (state as { pendingReview?: boolean }).pendingReview === true && (
+          <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Saved — sent for admin review. It goes live once approved.
+          </div>
+        )}
+
+      {state !== null &&
+        typeof state === "object" &&
+        "success" in state &&
+        (state as { pendingReview?: boolean }).pendingReview !== true && (
+          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            Saved and live.
+          </div>
+        )}
+
       <div>
         <label
           htmlFor="product_name"

@@ -71,6 +71,16 @@ export default async function ProductsPage() {
                   {product.category || "Uncategorized"} · {formatDate(product.created_at)}
                   {!product.is_active && " · hidden"}
                 </p>
+                {product.approval_status === "pending" && (
+                  <p className="mt-0.5 text-xs font-semibold text-amber-600">
+                    In review — goes live once approved
+                  </p>
+                )}
+                {product.approval_status === "rejected" && (
+                  <p className="mt-0.5 text-xs font-semibold text-red-600">
+                    Not approved — edit and resubmit for review
+                  </p>
+                )}
                 <p className="text-sm font-bold text-slate-900">
                   {formatCurrency(product.price, product.currency)}{" "}
                   <span className="font-normal text-slate-400">· {product.stock} in stock</span>

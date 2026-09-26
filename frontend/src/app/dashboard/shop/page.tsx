@@ -18,10 +18,10 @@ export default async function ShopProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-slate-900">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
           {shop ? "Shop profile" : "Create your shop"}
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {shop
             ? "Update the details buyers see on your storefront."
             : "Pick a name and URL for your storefront. We'll review it and approve it soon."}
@@ -31,7 +31,7 @@ export default async function ShopProfilePage() {
       {shop && (
         <Link
           href={shopUrl(shop.slug)}
-          className="inline-block rounded-lg bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+          className="inline-block rounded-lg bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900"
         >
           View {shop.name}→
         </Link>

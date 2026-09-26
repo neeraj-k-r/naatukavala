@@ -21,9 +21,9 @@ export default async function DashboardOverviewPage() {
   return (
     <div className="space-y-6">
       {!shop && (
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">Set up your shop</h2>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Set up your shop</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Get your storefront ready so buyers can find you.
           </p>
           <Link
@@ -41,9 +41,9 @@ export default async function DashboardOverviewPage() {
         <StatCard label="Status" value={shop ? shop.status : "no shop"} />
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Recent products</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Recent products</h2>
           <Link
             href="/dashboard/products/new"
             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
@@ -53,21 +53,21 @@ export default async function DashboardOverviewPage() {
         </div>
 
         {products.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
             No products yet.{" "}
-            <Link href="/dashboard/products/new" className="font-medium text-emerald-700 hover:underline">
+            <Link href="/dashboard/products/new" className="font-medium text-emerald-700 hover:underline dark:text-emerald-400">
               Add your first product
             </Link>
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-slate-100">
+          <ul className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
             {products.slice(0, 5).map((product) => (
               <li
                 key={product.id}
                 className="flex items-center justify-between py-3 text-sm"
               >
-                <span className="font-medium text-slate-800">{product.name}</span>
-                <span className="text-slate-400">
+                <span className="font-medium text-slate-800 dark:text-slate-200">{product.name}</span>
+                <span className="text-slate-400 dark:text-slate-500">
                   ₹{Number(product.price)}
                   {!product.is_active && " · hidden"}
                 </span>
@@ -82,9 +82,9 @@ export default async function DashboardOverviewPage() {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold capitalize text-slate-900">
+    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-2xl font-extrabold capitalize text-slate-900 dark:text-slate-100">
         {value}
       </p>
     </div>

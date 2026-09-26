@@ -32,7 +32,7 @@ export default function AddToCartButton({
 
   if (stock === 0) {
     return (
-      <span className="inline-flex items-center justify-center rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-500">
+      <span className="inline-flex items-center justify-center rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
         Out of stock
       </span>
     );

@@ -19,9 +19,9 @@ export default function ShopShareCard({ url }: { url: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
-      <h3 className="font-bold text-emerald-900">Your website</h3>
-      <p className="mt-1 text-sm text-emerald-800">
+    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-900 dark:bg-emerald-950">
+      <h3 className="font-bold text-emerald-900 dark:text-emerald-100">Your website</h3>
+      <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-200">
         Share this link with customers — visitors see only your shop and your
         products, with your branding, like your own private website.
       </p>
@@ -31,7 +31,7 @@ export default function ShopShareCard({ url }: { url: string }) {
           readOnly
           value={url}
           onFocus={(event) => event.target.select()}
-          className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 outline-none"
+          className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 outline-none dark:border-emerald-800 dark:bg-slate-900 dark:text-slate-100"
         />
         <button
           type="button"

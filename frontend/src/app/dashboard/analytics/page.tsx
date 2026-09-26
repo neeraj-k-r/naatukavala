@@ -25,42 +25,42 @@ export default async function SellerAnalyticsPage() {
   const currency = products[0]?.currency ?? "INR";
 
   const chips: { label: string; value: number; style: string }[] = [
-    { label: "Delivered", value: summary.delivered, style: "bg-emerald-50 text-emerald-700" },
-    { label: "In progress", value: summary.pending + summary.confirmed + summary.shipped, style: "bg-blue-50 text-blue-700" },
-    { label: "Cancelled", value: summary.cancelled, style: "bg-red-50 text-red-600" },
+    { label: "Delivered", value: summary.delivered, style: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" },
+    { label: "In progress", value: summary.pending + summary.confirmed + summary.shipped, style: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" },
+    { label: "Cancelled", value: summary.cancelled, style: "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400" },
   ];
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-lg font-bold text-slate-900">Sales analytics</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Sales analytics</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Revenue and order performance for your shop.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             Total revenue
           </p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             {formatCurrency(summary.revenue, currency)}
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             Orders
           </p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             {summary.orders}
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             Avg order value
           </p>
-          <p className="mt-1 text-2xl font-extrabold text-slate-900">
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
             {formatCurrency(summary.avgOrderValue, currency)}
           </p>
         </div>
@@ -77,22 +77,22 @@ export default async function SellerAnalyticsPage() {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-900">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
           Revenue — last 6 months
         </h3>
         {monthly.every((entry) => entry.orders === 0) ? (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             No sales yet. Orders will appear here once your shop gets them.
           </p>
         ) : (
           <div className="mt-5 space-y-4">
             {monthly.map((entry) => (
               <div key={entry.month} className="flex items-center gap-3">
-                <span className="w-14 shrink-0 text-xs font-semibold text-slate-500">
+                <span className="w-14 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">
                   {monthLabel(entry.month)}
                 </span>
-                <div className="h-7 flex-1 overflow-hidden rounded-lg bg-slate-100">
+                <div className="h-7 flex-1 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
                   <div
                     className="flex h-full items-center justify-end rounded-lg bg-emerald-500 px-2"
                     style={{
@@ -106,7 +106,7 @@ export default async function SellerAnalyticsPage() {
                     )}
                   </div>
                 </div>
-                <span className="w-8 shrink-0 text-right text-xs text-slate-400">
+                <span className="w-8 shrink-0 text-right text-xs text-slate-400 dark:text-slate-500">
                   {entry.orders}
                 </span>
               </div>
@@ -115,19 +115,19 @@ export default async function SellerAnalyticsPage() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-900">Top products</h3>
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Top products</h3>
         {products.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             No products sold yet.
           </p>
         ) : (
-          <div className="mt-4 divide-y divide-slate-100">
+          <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
             {products.map((product) => (
               <div key={product.product_id} className="flex items-center gap-4 py-3">
                 <Link
                   href={`/product/${product.product_id}`}
-                  className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100"
+                  className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800"
                 >
                   {product.image_url ? (
                     <Image
@@ -145,15 +145,15 @@ export default async function SellerAnalyticsPage() {
                 </Link>
                 <Link
                   href={`/product/${product.product_id}`}
-                  className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 hover:text-emerald-700"
+                  className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-400"
                 >
                   {product.product_name}
                 </Link>
-                <p className="hidden w-14 text-right text-xs text-slate-500 sm:block">
+                <p className="hidden w-14 text-right text-xs text-slate-500 dark:text-slate-400 sm:block">
                   {product.units} sold
                 </p>
                 <div className="hidden w-40 sm:block">
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                     <div
                       className="h-full rounded-full bg-emerald-400"
                       style={{
@@ -162,7 +162,7 @@ export default async function SellerAnalyticsPage() {
                     />
                   </div>
                 </div>
-                <p className="w-28 text-right text-sm font-bold text-slate-900">
+                <p className="w-28 text-right text-sm font-bold text-slate-900 dark:text-slate-100">
                   {formatCurrency(product.revenue, product.currency)}
                 </p>
               </div>

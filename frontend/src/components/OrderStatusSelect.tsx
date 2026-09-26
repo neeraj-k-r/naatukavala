@@ -31,7 +31,7 @@ export default function OrderStatusSelect({
         defaultValue={status}
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
         disabled={pending}
-        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium capitalize text-slate-700 outline-none focus:border-emerald-500 disabled:opacity-60"
+        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium capitalize text-slate-700 outline-none focus:border-emerald-500 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
       >
         {statuses.map((option) => (
           <option key={option} value={option}>

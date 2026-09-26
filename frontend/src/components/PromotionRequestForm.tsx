@@ -19,21 +19,21 @@ export default function PromotionRequestForm({
   return (
     <form
       action={action}
-      className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+      className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
     >
-      <h3 className="font-bold text-slate-900">Request a sponsored spot</h3>
-      <p className="mt-1 text-sm text-slate-500">
+      <h3 className="font-bold text-slate-900 dark:text-slate-100">Request a sponsored spot</h3>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Approved promotions appear in the marketplace spotlight with a
         Sponsored badge, like Flipkart and Amazon ads.
       </p>
 
       {state?.error && (
-        <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
           {state.error}
         </div>
       )}
       {state?.success && (
-        <div className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
           Request sent! Our team will review it soon.
         </div>
       )}
@@ -41,14 +41,14 @@ export default function PromotionRequestForm({
       <div className="mt-4">
         <label
           htmlFor="target"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           What should we promote?
         </label>
         <select
           id="target"
           name="target"
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         >
           <option value="shop">My whole shop — {shopName}</option>
           {products
@@ -64,10 +64,10 @@ export default function PromotionRequestForm({
       <div className="mt-4">
         <label
           htmlFor="note"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Note for the review team{" "}
-          <span className="text-slate-400">(optional)</span>
+          <span className="text-slate-400 dark:text-slate-500">(optional)</span>
         </label>
         <textarea
           id="note"

@@ -9,10 +9,10 @@ import { uploadFile } from "@/lib/client-api";
 import type { Shop } from "@/lib/types";
 
 const statusLabels: Record<Shop["verification_status"], { label: string; className: string }> = {
-  none: { label: "Not verified", className: "bg-slate-100 text-slate-600" },
-  pending: { label: "Under review", className: "bg-amber-100 text-amber-800" },
-  verified: { label: "Verified", className: "bg-sky-100 text-sky-800" },
-  rejected: { label: "Rejected — resubmit", className: "bg-red-100 text-red-700" },
+  none: { label: "Not verified", className: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
+  pending: { label: "Under review", className: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" },
+  verified: { label: "Verified", className: "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200" },
+  rejected: { label: "Rejected — resubmit", className: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300" },
 };
 
 export default function VerificationUpload({ shop }: { shop: Shop }) {
@@ -40,13 +40,13 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
   }
 
   return (
-    <form action={action} className="max-w-xl rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+    <form action={action} className="max-w-xl rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">Identity verification</h3>
-          <p className="mt-1 text-xs text-slate-500">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Identity verification</h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Upload a government photo ID (Aadhaar/PAN) to earn the{" "}
-            <span className="font-semibold text-sky-700">Verified seller</span> badge on
+            <span className="font-semibold text-sky-700 dark:text-sky-400">Verified seller</span> badge on
             your storefront.
           </p>
         </div>
@@ -56,7 +56,7 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
       </div>
 
       {verified && shop.verified_at && (
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
           Verified on {new Date(shop.verified_at).toLocaleDateString()}
         </p>
       )}
@@ -66,11 +66,11 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
           <input type="hidden" name="shop_id" value={shop.id} />
           <input type="hidden" name="doc_url" value={docUrl} />
 
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Identity document
           </label>
 
-          <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+          <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
             {docUrl ? (
               <>
                 <Image src={docUrl} alt="Identity document" fill sizes="384px" className="object-cover" />
@@ -88,7 +88,7 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
                 type="button"
                 onClick={() => inputRef.current?.click()}
                 disabled={uploading}
-                className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50"
+                className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-emerald-400"
               >
                 {uploading ? (
                   <span className="text-sm">Uploading…</span>
@@ -118,13 +118,13 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
             <p className="mt-2 text-sm text-red-600">{String(state.error)}</p>
           )}
           {state && "success" in state && (
-            <p className="mt-2 text-sm text-emerald-700">
+            <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-400">
               Submitted for review. We&apos;ll approve it shortly.
             </p>
           )}
 
           {shop.verification_status === "rejected" && (
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
               Your last submission was rejected. Upload a clearer image and resubmit.
             </p>
           )}

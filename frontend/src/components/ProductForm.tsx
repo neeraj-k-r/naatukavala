@@ -30,7 +30,7 @@ export default function ProductForm({
       {state !== null &&
         typeof state === "object" &&
         "error" in state && (
-          <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
             {String((state as { error: string }).error)}
           </div>
         )}
@@ -48,7 +48,7 @@ export default function ProductForm({
         typeof state === "object" &&
         "success" in state &&
         (state as { pendingReview?: boolean }).pendingReview !== true && (
-          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
             Saved and live.
           </div>
         )}
@@ -56,7 +56,7 @@ export default function ProductForm({
       <div>
         <label
           htmlFor="product_name"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Product name
         </label>
@@ -66,7 +66,7 @@ export default function ProductForm({
           type="text"
           required
           defaultValue={product?.name ?? ""}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         />
       </div>
 
@@ -74,7 +74,7 @@ export default function ProductForm({
         <div>
           <label
             htmlFor="price"
-            className="mb-1.5 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Price (₹)
           </label>
@@ -86,13 +86,13 @@ export default function ProductForm({
             min="0"
             required
             defaultValue={product?.price ?? ""}
-            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           />
         </div>
         <div>
           <label
             htmlFor="stock"
-            className="mb-1.5 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Stock quantity
           </label>
@@ -103,7 +103,7 @@ export default function ProductForm({
             min="0"
             required
             defaultValue={product?.stock ?? 0}
-            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           />
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function ProductForm({
       <div>
         <label
           htmlFor="category"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Category
         </label>
@@ -121,14 +121,14 @@ export default function ProductForm({
           type="text"
           placeholder="e.g. Stationery, Grocery, Craft"
           defaultValue={product?.category ?? ""}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         />
       </div>
 
       <div>
         <label
           htmlFor="description"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Description
         </label>
@@ -137,7 +137,7 @@ export default function ProductForm({
           name="description"
           rows={4}
           defaultValue={product?.description ?? ""}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         />
       </div>
 

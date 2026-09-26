@@ -35,7 +35,7 @@ export default function ProductImageUpload({
 
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-700">
+      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
         Product images
       </label>
 
@@ -47,7 +47,7 @@ export default function ProductImageUpload({
         {images.map((url) => (
           <div
             key={url}
-            className="relative h-24 w-24 overflow-hidden rounded-xl border border-slate-200"
+            className="relative h-24 w-24 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
           >
             <Image src={url} alt="Upload preview" fill sizes="96px" className="object-cover" />
             <button
@@ -65,7 +65,7 @@ export default function ProductImageUpload({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50"
+            className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:border-slate-600 dark:text-slate-500 dark:hover:text-emerald-400"
         >
           {uploading ? (
             <span className="text-xs">Uploading…</span>
@@ -87,7 +87,7 @@ export default function ProductImageUpload({
       </div>
 
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      <p className="mt-2 text-xs text-slate-400">
+      <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
         Upload to Cloudinary · JPEG, PNG, WEBP or GIF, up to 5MB each.
       </p>
     </div>

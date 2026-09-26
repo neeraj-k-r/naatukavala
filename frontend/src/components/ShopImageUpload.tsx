@@ -39,14 +39,14 @@ export default function ShopImageUpload({
 
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-700">
+      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
         {label}
       </label>
 
       <input type="hidden" name={name} value={url} />
 
       <div
-        className={`relative w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-slate-50 ${aspectClass}`}
+        className={`relative w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 ${aspectClass}`}
       >
         {url ? (
           <>
@@ -71,7 +71,7 @@ export default function ShopImageUpload({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50"
+            className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-emerald-400"
           >
             {uploading ? (
               <span className="text-sm">Uploading…</span>
@@ -97,7 +97,7 @@ export default function ShopImageUpload({
       />
 
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{hint}</p>}
     </div>
   );
 }

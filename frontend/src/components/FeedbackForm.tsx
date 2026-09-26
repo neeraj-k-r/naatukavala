@@ -63,9 +63,9 @@ export default function FeedbackForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4"
+      className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800"
     >
-      <p className="text-sm font-semibold text-slate-800">
+      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
         {hasFeedback ? "Your feedback" : "Leave feedback for this order"}
       </p>
 
@@ -78,14 +78,14 @@ export default function FeedbackForm({
             onClick={() => setRating(value)}
             aria-label={`${value} star${value === 1 ? "" : "s"}`}
             className={`text-2xl leading-none transition-colors disabled:opacity-60 ${
-              value <= rating ? "text-amber-400" : "text-slate-300"
+              value <= rating ? "text-amber-400" : "text-slate-300 dark:text-slate-600"
             }`}
           >
             ★
           </button>
         ))}
         {rating > 0 && (
-          <span className="ml-2 text-xs font-medium text-slate-500">
+          <span className="ml-2 text-xs font-medium text-slate-500 dark:text-slate-400">
             {rating}/5
           </span>
         )}
@@ -98,7 +98,7 @@ export default function FeedbackForm({
         defaultValue={initialFeedback ?? ""}
         disabled={pending}
         placeholder="How was your order? Share what you liked or how it could be better…"
-        className="mt-3 w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-emerald-500 disabled:opacity-60"
+        className="mt-3 w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-emerald-500 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
       />
 
       {images.map((url) => (
@@ -106,14 +106,14 @@ export default function FeedbackForm({
       ))}
 
       <div className="mt-3">
-        <p className="mb-1.5 text-xs font-medium text-slate-500">
-          Photos <span className="text-slate-400">(optional, up to 4)</span>
-        </p>
+          <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+            Photos <span className="text-slate-400 dark:text-slate-500">(optional, up to 4)</span>
+          </p>
         <div className="flex flex-wrap gap-2">
           {images.map((url) => (
             <div
               key={url}
-              className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200"
+              className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
             >
               <Image
                 src={url}
@@ -139,7 +139,7 @@ export default function FeedbackForm({
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading || pending}
-              className="flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50"
+              className="flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:border-slate-600 dark:text-slate-500 dark:hover:text-emerald-400"
             >
               {uploading ? (
                 <span className="text-[10px]">Uploading…</span>
@@ -162,7 +162,7 @@ export default function FeedbackForm({
         </div>
       </div>
 
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <div className="mt-3 flex justify-end">
         <button

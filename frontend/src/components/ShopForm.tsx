@@ -21,17 +21,17 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
   return (
     <form
       action={formAction}
-      className="max-w-xl space-y-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+      className="max-w-xl space-y-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
     >
       {shop && <input type="hidden" name="shop_id" value={shop.id} />}
 
       {state && "error" in state && (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
           {String((state as { error: string }).error)}
         </div>
       )}
       {state && "success" in state && (
-        <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
           Saved.
         </div>
       )}
@@ -39,7 +39,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
       <div>
         <label
           htmlFor="shop_name"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Shop name
         </label>
@@ -51,7 +51,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
           value={name}
           onChange={(event) => setName(event.target.value)}
           disabled={Boolean(shop)}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-50"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 disabled:bg-slate-50 dark:disabled:bg-slate-800"
         />
       </div>
 
@@ -59,11 +59,11 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
         <div>
           <label
             htmlFor="shop_slug"
-            className="mb-1.5 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Shop URL
           </label>
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-700 dark:bg-slate-800">
             <input
               id="shop_slug"
               name="slug"
@@ -71,9 +71,9 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
               required
               value={slug}
               onChange={(event) => setSlugDraft(event.target.value)}
-              className="flex-1 bg-transparent text-sm font-medium text-slate-900 outline-none"
+              className="flex-1 bg-transparent text-sm font-medium text-slate-900 outline-none dark:text-slate-100"
             />
-            <span className="text-sm text-slate-400">.{appDomain}</span>
+            <span className="text-sm text-slate-400 dark:text-slate-500">.{appDomain}</span>
           </div>
         </div>
       )}
@@ -81,7 +81,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
       <div>
         <label
           htmlFor="shop_tagline"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Tagline
         </label>
@@ -91,7 +91,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
           type="text"
           defaultValue={shop?.tagline ?? ""}
           placeholder="e.g. School & office stationery specialists"
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         />
       </div>
 
@@ -99,7 +99,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
         <div>
           <label
             htmlFor="shop_description"
-            className="mb-1.5 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             About the shop
           </label>
@@ -108,7 +108,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
             name="description"
             rows={4}
             defaultValue={shop.description ?? ""}
-            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           />
         </div>
       )}
@@ -116,12 +116,12 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
       <div>
         <label
           htmlFor="shop_delivery_charge"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Delivery charge
         </label>
-        <div className="flex items-center rounded-xl border border-slate-200 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100">
-          <span className="pl-4 text-sm text-slate-400">₹</span>
+        <div className="flex items-center rounded-xl border border-slate-200 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900">
+          <span className="pl-4 text-sm text-slate-400 dark:text-slate-500">₹</span>
           <input
             id="shop_delivery_charge"
             name="delivery_charge"
@@ -133,7 +133,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
             className="w-full rounded-xl bg-transparent px-3 py-2.5 text-sm outline-none"
           />
         </div>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
           Added once per order from your shop. Set 0 for free delivery.
         </p>
       </div>
@@ -141,7 +141,7 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
       <div>
         <label
           htmlFor="shop_return_policy"
-          className="mb-1.5 block text-sm font-medium text-slate-700"
+          className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
         >
           Return policy
         </label>
@@ -151,9 +151,9 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
           type="text"
           defaultValue={shop?.return_policy ?? ""}
           placeholder="e.g. 7 days replacement on damaged or defective items"
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         />
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
           Buyers can request a return for delivered orders. Leave empty for no
           returns.
         </p>

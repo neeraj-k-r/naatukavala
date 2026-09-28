@@ -289,6 +289,66 @@ export async function markNotificationRead(state: unknown, formData: FormData) {
   return { success: true };
 }
 
+/** Admins create a coupon code buyers can apply at checkout. */
+export async function createCoupon(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || !["superadmin", "admin"].includes(user.profile.role)) {
+    redirect("/");
+  }
+
+  const payload = {
+    code: String(formData.get("code") ?? ""),
+    kind: String(formData.get("kind") ?? ""),
+    value: Number(formData.get("value") ?? ""),
+    min_order_value: Number(formData.get("min_order_value") ?? 0),
+    max_discount: String(formData.get("max_discount") ?? "") || null,
+    max_uses: String(formData.get("max_uses") ?? "") || null,
+    per_user_limit: Number(formData.get("per_user_limit") ?? 1),
+    starts_at: String(formData.get("starts_at") ?? "") || null,
+    ends_at: String(formData.get("ends_at") ?? "") || null,
+  };
+  if (!payload.code.trim()) return { error: "Coupon code is required." };
+
+  try {
+    await fetchApi("/coupons", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not create the coupon.") };
+  }
+
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
+/** Admins pause or reactivate a coupon code. */
+export async function toggleCoupon(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || !["superadmin", "admin"].includes(user.profile.role)) {
+    redirect("/");
+  }
+
+  const couponId = String(formData.get("coupon_id") ?? "");
+  if (!couponId) return { error: "Missing coupon." };
+
+  try {
+    await fetchApi(`/coupons/${couponId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        is_active: String(formData.get("is_active") ?? "") !== "true",
+      }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not update the coupon.") };
+  }
+
+  revalidatePath("/admin/coupons");
+  return { success: true };
+}
+
 /** Admins approve or reject a product waiting in the review queue. */
 export async function decideProductApproval(state: unknown, formData: FormData) {
   const user = await getUser();

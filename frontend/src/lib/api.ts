@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database";
 import type {
   AdminNotification,
+  Coupon,
   Order,
   OrderReturn,
   OrderStatusEvent,
@@ -357,6 +358,16 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
       notifications: AdminNotification[];
     }>("/admin/notifications");
     return notifications ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** Every coupon code, newest first (fails closed). */
+export async function getCoupons(): Promise<Coupon[]> {
+  try {
+    const { coupons } = await fetchApi<{ coupons: Coupon[] }>("/coupons");
+    return coupons ?? [];
   } catch {
     return [];
   }

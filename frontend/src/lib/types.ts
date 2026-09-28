@@ -77,6 +77,7 @@ export interface Order {
   feedback_images?: string[] | null;
   coupon_code?: string | null;
   discount?: number | null;
+  buyer_phone?: string | null;
   created_at: string;
   shop?: Pick<Shop, "name" | "slug" | "return_policy"> | null;
 }

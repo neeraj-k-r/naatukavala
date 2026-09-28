@@ -78,6 +78,7 @@ interface Row {
     feedback_images: string[];
     coupon_code: string | null;
     discount: number;
+    buyer_phone: string | null;
     created_at: string;
   };
   order_items: {

@@ -164,14 +164,14 @@ export default function ShopForm({ shop }: { shop: Shop | null }) {
           name="logo_url"
           label="Shop logo"
           initialUrl={shop?.logo_url ?? ""}
-          hint="Square image. Shows next to your shop name."
+          hint="Square image, at least 512 px. Shows next to your shop name."
           aspectClass="aspect-square"
         />
         <ShopImageUpload
           name="banner_url"
           label="Shop banner"
           initialUrl={shop?.banner_url ?? ""}
-          hint="Wide image. Shows at the top of your storefront."
+          hint="Wide image, at least 1600 px wide. Shows at the top of your storefront."
           aspectClass="aspect-video"
         />
       </div>

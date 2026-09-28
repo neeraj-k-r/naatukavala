@@ -160,3 +160,20 @@ export async function consumeCouponUse(
   if (error) return false;
   return (data ?? []).length > 0;
 }
+
+let orderCouponColumns: boolean | null = null;
+
+/** Whether orders.coupon_code exists (checked once per backend lifetime). */
+export async function hasOrderCouponColumns(): Promise<boolean> {
+  if (orderCouponColumns !== null) return orderCouponColumns;
+  try {
+    const { error } = await getSupabaseAdmin()
+      .from("orders")
+      .select("coupon_code")
+      .limit(1);
+    orderCouponColumns = !error;
+  } catch {
+    orderCouponColumns = false;
+  }
+  return orderCouponColumns;
+}

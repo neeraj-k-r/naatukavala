@@ -3,6 +3,8 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { clearCache } from "../lib/cache.js";
+import { consumeCouponUse, evaluateCoupon, hasOrderCouponColumns } from "../lib/coupons.js";
+import type { CouponRow } from "../lib/coupons.js";
 import { expireStalePendingOrders } from "../lib/orderExpiry.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import type { OrderStatus } from "../lib/types.js";
@@ -12,7 +14,7 @@ const router: Router = express.Router();
 router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
-  const { shipping_address, buyer_note, cart } = req.body ?? {};
+  const { shipping_address, buyer_note, cart, coupon_code } = req.body ?? {};
 
   if (!Array.isArray(cart) || cart.length === 0) {
     return res.status(400).json({ error: "Your cart is empty." });
@@ -84,11 +86,44 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
 
   const { data: shopRows } = await supabase
     .from("shops")
-    .select("id, delivery_charge")
+    .select("id, name, delivery_charge")
     .in("id", shopIds);
   const chargeById = new Map(
     (shopRows ?? []).map((shop) => [shop.id, Number(shop.delivery_charge ?? 0)]),
   );
+  const nameById = new Map(
+    (shopRows ?? []).map((shop) => [shop.id, shop.name]),
+  );
+
+  // One coupon per checkout, validated authoritatively here (never trust client math).
+  let coupon: CouponRow | null = null;
+  let discountByShop = new Map<string, number>();
+  if (typeof coupon_code === "string" && coupon_code.trim()) {
+    if (!(await hasOrderCouponColumns())) {
+      await revertStocks();
+      return res.status(400).json({ error: "Coupons are not available right now." });
+    }
+    const priced = [...byShop.entries()].map(([shop_id, lines]) => ({
+      shop_id,
+      shop_name: nameById.get(shop_id) ?? "Shop",
+      subtotal:
+        Math.round(
+          lines.reduce((sum, { product, quantity }) => sum + Number(product.price) * quantity, 0) * 100,
+        ) / 100,
+    }));
+    const decision = await evaluateCoupon(req.user.id, coupon_code, priced);
+    if (!decision.ok || !decision.coupon) {
+      await revertStocks();
+      return res.status(400).json({ error: decision.message });
+    }
+    const consumed = await consumeCouponUse(decision.coupon.id, decision.coupon.used_count);
+    if (!consumed) {
+      await revertStocks();
+      return res.status(409).json({ error: "This code just ran out. Please remove it and try again." });
+    }
+    coupon = decision.coupon;
+    discountByShop = new Map(decision.lines.map((line) => [line.shop_id, line.discount]));
+  }
 
   for (const [shopId, lines] of byShop) {
     const productsTotal = lines.reduce(
@@ -96,7 +131,8 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
       0,
     );
     const deliveryCharge = chargeById.get(shopId) ?? 0;
-    const total = productsTotal + Number(deliveryCharge);
+    const discount = discountByShop.get(shopId) ?? 0;
+    const total = productsTotal + Number(deliveryCharge) - discount;
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -106,6 +142,8 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
         total,
         shipping_address: shipping_address || null,
         buyer_note: buyer_note || null,
+        coupon_code: coupon?.code ?? null,
+        discount,
       })
       .select()
       .single();
@@ -130,6 +168,21 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
     if (itemsError) {
       await revertStocks();
       return res.status(500).json({ error: "Could not save your order items. Please try again." });
+    }
+
+    if (coupon) {
+      const { error: redemptionError } = await supabase
+        .from("coupon_redemptions")
+        .insert({
+          coupon_id: coupon.id,
+          order_id: order.id,
+          buyer_id: req.user.id,
+          discount,
+        });
+      if (redemptionError) {
+        await revertStocks();
+        return res.status(500).json({ error: "Could not record the coupon. Please try again." });
+      }
     }
   }
 

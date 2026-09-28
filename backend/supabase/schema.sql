@@ -637,6 +637,8 @@ alter table public.orders
   add column if not exists coupon_code text;
 alter table public.orders
   add column if not exists discount numeric(12, 2) not null default 0;
+alter table public.orders
+  add column if not exists buyer_phone text;
 
 alter table public.coupons enable row level security;
 alter table public.coupon_redemptions enable row level security;

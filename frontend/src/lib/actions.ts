@@ -760,6 +760,7 @@ export async function placeOrder(state: unknown, formData: FormData) {
 
   const shippingAddress = String(formData.get("shipping_address") ?? "").trim();
   const buyerNote = String(formData.get("buyer_note") ?? "").trim();
+  const buyerPhone = String(formData.get("buyer_phone") ?? "").trim();
   const cartRaw = String(formData.get("cart") ?? "[]");
   const couponCode = String(formData.get("coupon_code") ?? "").trim();
 
@@ -779,6 +780,7 @@ export async function placeOrder(state: unknown, formData: FormData) {
         cart,
         shipping_address: shippingAddress || null,
         buyer_note: buyerNote || null,
+        buyer_phone: buyerPhone || null,
         coupon_code: couponCode || null,
       }),
     });

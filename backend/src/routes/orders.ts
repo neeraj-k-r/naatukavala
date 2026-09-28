@@ -14,10 +14,15 @@ const router: Router = express.Router();
 router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
-  const { shipping_address, buyer_note, cart, coupon_code } = req.body ?? {};
+  const { shipping_address, buyer_note, cart, coupon_code, buyer_phone } = req.body ?? {};
 
   if (!Array.isArray(cart) || cart.length === 0) {
     return res.status(400).json({ error: "Your cart is empty." });
+  }
+
+  const phone = String(buyer_phone ?? "").trim();
+  if (phone && !/^\+?[0-9\s-]{7,18}$/.test(phone)) {
+    return res.status(400).json({ error: "Please enter a valid phone number." });
   }
 
   const supabase = getSupabaseAdmin();
@@ -140,7 +145,7 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
     const discount = discountByShop.get(shopId) ?? 0;
     const total = productsTotal + Number(deliveryCharge) - discount;
 
-    const { data: order, error: orderError } = await supabase
+    let { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         buyer_id: req.user.id,
@@ -148,12 +153,31 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
         total,
         shipping_address: shipping_address || null,
         buyer_note: buyer_note || null,
+        buyer_phone: phone || null,
         ...(useCouponColumns
           ? { coupon_code: coupon?.code ?? null, discount }
           : {}),
       })
       .select()
       .single();
+
+    // Phone column not migrated yet — save without it.
+    if (orderError && /buyer_phone/.test(orderError.message)) {
+      ({ data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          buyer_id: req.user.id,
+          shop_id: shopId,
+          total,
+          shipping_address: shipping_address || null,
+          buyer_note: buyer_note || null,
+          ...(useCouponColumns
+            ? { coupon_code: coupon?.code ?? null, discount }
+            : {}),
+        })
+        .select()
+        .single());
+    }
 
     if (orderError || !order) {
       await revertStocks();

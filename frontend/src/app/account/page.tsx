@@ -172,6 +172,14 @@ export default async function AccountPage({
                   <span>Total</span>
                   <span>{formatCurrency(order.total, order.currency)}</span>
                 </div>
+                {order.coupon_code && Number(order.discount ?? 0) > 0 && (
+                  <div className="mt-1 flex justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                    <span>Coupon {order.coupon_code}</span>
+                    <span>
+                      −{formatCurrency(Number(order.discount), order.currency)}
+                    </span>
+                  </div>
+                )}
 
                 {order.status === "delivered" && (
                   <FeedbackForm

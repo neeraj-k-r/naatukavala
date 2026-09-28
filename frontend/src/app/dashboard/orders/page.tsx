@@ -103,6 +103,17 @@ export default async function SellerOrdersPage() {
                   Ship to: {order.shipping_address}
                 </p>
               )}
+              {order.buyer_phone && (
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Call:{" "}
+                  <a
+                    href={`tel:${order.buyer_phone}`}
+                    className="font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
+                  >
+                    {order.buyer_phone}
+                  </a>
+                </p>
+              )}
               {order.buyer_note && (
                 <p className="mt-1 text-xs italic text-slate-500 dark:text-slate-400">
                   Note: {order.buyer_note}

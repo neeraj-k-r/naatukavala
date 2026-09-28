@@ -98,6 +98,9 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
   // One coupon per checkout, validated authoritatively here (never trust client math).
   let coupon: CouponRow | null = null;
   let discountByShop = new Map<string, number>();
+  // The coupon columns may not be migrated yet — omit them then so plain
+  // checkouts keep working.
+  let useCouponColumns = false;
   if (typeof coupon_code === "string" && coupon_code.trim()) {
     if (!(await hasOrderCouponColumns())) {
       await revertStocks();
@@ -123,6 +126,9 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
     }
     coupon = decision.coupon;
     discountByShop = new Map(decision.lines.map((line) => [line.shop_id, line.discount]));
+    useCouponColumns = true;
+  } else {
+    useCouponColumns = await hasOrderCouponColumns();
   }
 
   for (const [shopId, lines] of byShop) {
@@ -142,8 +148,9 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
         total,
         shipping_address: shipping_address || null,
         buyer_note: buyer_note || null,
-        coupon_code: coupon?.code ?? null,
-        discount,
+        ...(useCouponColumns
+          ? { coupon_code: coupon?.code ?? null, discount }
+          : {}),
       })
       .select()
       .single();

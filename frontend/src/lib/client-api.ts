@@ -54,3 +54,46 @@ export async function uploadFile(file: File): Promise<string> {
   }
   return json.url;
 }
+
+export interface CouponCartLine {
+  product_id: string;
+  quantity: number;
+}
+
+export interface CouponPreviewResult {
+  valid: boolean;
+  code: string;
+  kind: string;
+  message: string;
+  discount_total: number;
+}
+
+/** Previews a coupon code against the cart without consuming anything. */
+export async function validateCoupon(
+  code: string,
+  cart: CouponCartLine[],
+): Promise<CouponPreviewResult> {
+  const token = await getAccessToken();
+  if (!token) throw new Error("Please log in to use coupons.");
+
+  const res = await fetch(`${API_URL}/coupons/validate`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ code, cart }),
+    cache: "no-store",
+  });
+  const json = (await res.json().catch(() => ({}))) as Partial<CouponPreviewResult> & {
+    error?: string;
+  };
+  if (!res.ok) throw new Error(json.error ?? "Could not check the code.");
+  return {
+    valid: json.valid ?? false,
+    code: json.code ?? "",
+    kind: json.kind ?? "",
+    message: json.message ?? "",
+    discount_total: json.discount_total ?? 0,
+  };
+}

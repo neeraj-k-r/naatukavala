@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { placeOrder } from "@/lib/actions";
 import SubmitButton from "@/components/SubmitButton";
 import { useCart, cartGroupedByShop } from "@/components/CartContext";
+import { validateCoupon } from "@/lib/client-api";
+import type { CouponPreviewResult } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
 
@@ -16,6 +18,22 @@ export default function CheckoutForm() {
   const [state, action, pending] = useActionState(placeOrder, undefined);
   const groups = cartGroupedByShop(items);
 
+  const [code, setCode] = useState("");
+  const [applied, setApplied] = useState<{
+    preview: CouponPreviewResult;
+    cartKey: string;
+  } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
+
+  // The preview belongs to the exact cart it was computed for.
+  const cartKey = items
+    .map((item) => `${item.product_id}:${item.quantity}`)
+    .join("|");
+  const activePreview =
+    applied && applied.cartKey === cartKey ? applied.preview : null;
+  const discountTotal = activePreview?.discount_total ?? 0;
+
   useEffect(() => {
     if (items.length === 0 && !pending) {
       router.replace("/cart");
@@ -23,6 +41,35 @@ export default function CheckoutForm() {
   }, [items.length, pending, router]);
 
   if (items.length === 0 && !pending) return null;
+
+  async function applyCoupon() {
+    setCouponError(null);
+    const term = code.trim();
+    if (!term || applying) return;
+    setApplying(true);
+    try {
+      const result = await validateCoupon(
+        term,
+        items.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+        })),
+      );
+      if (result.valid) {
+        setApplied({ preview: result, cartKey });
+      } else {
+        setApplied(null);
+        setCouponError(result.message);
+      }
+    } catch (err) {
+      setApplied(null);
+      setCouponError(
+        err instanceof Error ? err.message : "Could not check the code.",
+      );
+    } finally {
+      setApplying(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
@@ -33,6 +80,11 @@ export default function CheckoutForm() {
           <input type="hidden" name="cart" value={JSON.stringify(
             items.map(({ product_id, quantity }) => ({ product_id, quantity })),
           )} />
+          <input
+            type="hidden"
+            name="coupon_code"
+            value={activePreview ? activePreview.code : ""}
+          />
 
           {state?.error && (
             <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -89,12 +141,59 @@ export default function CheckoutForm() {
             pendingText="Placing order…"
             className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
           >
-            Place order · {formatCurrency(subtotal + deliveryTotal)}
+            Place order · {formatCurrency(subtotal + deliveryTotal - discountTotal)}
           </SubmitButton>
         </form>
 
         <aside className="h-fit rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <h3 className="font-bold text-slate-900 dark:text-slate-100">Order summary</h3>
+
+          <div className="mt-4 rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
+            {activePreview ? (
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                  {activePreview.code} · −{formatCurrency(activePreview.discount_total)}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setApplied(null);
+                    setCode("");
+                    setCouponError(null);
+                  }}
+                  className="text-xs font-medium text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <input
+                    value={code}
+                    onChange={(event) => setCode(event.target.value)}
+                    placeholder="Coupon code"
+                    aria-label="Coupon code"
+                    className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm uppercase outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={applying || !code.trim()}
+                    className="shrink-0 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                  >
+                    {applying ? "Checking…" : "Apply"}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                    {couponError}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+
           <div className="mt-4 space-y-4">
             {groups.map((group) => (
               <div key={group.shop_slug}>
@@ -129,9 +228,15 @@ export default function CheckoutForm() {
                 <span>{formatCurrency(deliveryTotal)}</span>
               </div>
             )}
+            {discountTotal > 0 && (
+              <div className="flex justify-between text-emerald-700 dark:text-emerald-400">
+                <span>Coupon{activePreview ? ` (${activePreview.code})` : ""}</span>
+                <span>−{formatCurrency(discountTotal)}</span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-slate-100 pt-2 text-base dark:border-slate-800">
               <span>Total</span>
-              <span>{formatCurrency(subtotal + deliveryTotal)}</span>
+              <span>{formatCurrency(subtotal + deliveryTotal - discountTotal)}</span>
             </div>
           </div>
         </aside>

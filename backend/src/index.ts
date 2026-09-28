@@ -12,6 +12,7 @@ import promotionRoutes from "./routes/promotions.js";
 import wishlistRoutes from "./routes/wishlist.js";
 import marketplaceRoutes from "./routes/marketplace.js";
 import reviewsRoutes from "./routes/reviews.js";
+import couponsRoutes from "./routes/coupons.js";
 import { securityHeaders } from "./middleware/security.js";
 
 const app = express();
@@ -58,6 +59,7 @@ app.use("/promotions", promotionRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/marketplace", marketplaceRoutes);
 app.use("/reviews", reviewsRoutes);
+app.use("/coupons", couponsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);

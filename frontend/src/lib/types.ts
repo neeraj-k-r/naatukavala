@@ -75,6 +75,8 @@ export interface Order {
   feedback: string | null;
   feedback_at: string | null;
   feedback_images?: string[] | null;
+  coupon_code?: string | null;
+  discount?: number | null;
   created_at: string;
   shop?: Pick<Shop, "name" | "slug" | "return_policy"> | null;
 }
@@ -84,6 +86,41 @@ export type ReturnStatus = "requested" | "approved" | "rejected";
 export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
 
 export type ProductApproval = "approved" | "pending" | "rejected";
+
+export type CouponKind = "flat" | "percent";
+
+export interface Coupon {
+  id: string;
+  code: string;
+  kind: CouponKind;
+  value: number;
+  min_order_value: number;
+  max_discount: number | null;
+  max_uses: number | null;
+  used_count: number;
+  per_user_limit: number;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CouponShopLine {
+  shop_id: string;
+  shop_name: string;
+  subtotal: number;
+  discount: number;
+  total: number;
+}
+
+export interface CouponPreview {
+  valid: boolean;
+  code: string;
+  kind: CouponKind;
+  message: string;
+  discount_total: number;
+  lines: CouponShopLine[];
+}
 
 export interface Promotion {
   id: string;

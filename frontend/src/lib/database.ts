@@ -76,6 +76,8 @@ interface Row {
     feedback: string | null;
     feedback_at: string | null;
     feedback_images: string[];
+    coupon_code: string | null;
+    discount: number;
     created_at: string;
   };
   order_items: {
@@ -140,6 +142,30 @@ interface Row {
     is_read: boolean;
     created_at: string;
     updated_at: string;
+  };
+  coupons: {
+    id: string;
+    code: string;
+    kind: string;
+    value: number;
+    min_order_value: number;
+    max_discount: number | null;
+    max_uses: number | null;
+    used_count: number;
+    per_user_limit: number;
+    starts_at: string | null;
+    ends_at: string | null;
+    is_active: boolean;
+    created_by: string | null;
+    created_at: string;
+  };
+  coupon_redemptions: {
+    id: string;
+    coupon_id: string;
+    order_id: string;
+    buyer_id: string;
+    discount: number;
+    created_at: string;
   };
 }
 
@@ -215,6 +241,18 @@ export type Database = {
         Row: Row["admin_notifications"];
         Insert: InsertOf<"admin_notifications">;
         Update: UpdateOf<"admin_notifications">;
+        Relationships: [];
+      };
+      coupons: {
+        Row: Row["coupons"];
+        Insert: InsertOf<"coupons">;
+        Update: UpdateOf<"coupons">;
+        Relationships: [];
+      };
+      coupon_redemptions: {
+        Row: Row["coupon_redemptions"];
+        Insert: InsertOf<"coupon_redemptions">;
+        Update: UpdateOf<"coupon_redemptions">;
         Relationships: [];
       };
     };

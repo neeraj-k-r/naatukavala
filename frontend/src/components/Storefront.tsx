@@ -77,10 +77,10 @@ export default async function Storefront({
 
   return (
     <div>
-      {/* Banner — plain img with fixed bounds (no fill positioning). */}
+      {/* Banner — small fixed strip, never scales with viewport. */}
       <div
         className="w-full overflow-hidden bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50"
-        style={{ height: "clamp(160px, 22vw, 208px)" }}
+        style={{ height: 120 }}
       >
         {shop.banner_url && (
           // eslint-disable-next-line @next/next/no-img-element

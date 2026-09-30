@@ -317,6 +317,11 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
   const { name, price, stock, category, description, images } = req.body ?? {};
   if (!name) return res.status(400).json({ error: "Product name is required." });
 
+  const categoryText = typeof category === "string" ? category.trim() : "";
+  if (categoryText.length > 60) {
+    return res.status(400).json({ error: "Category must be under 60 characters." });
+  }
+
   const variants = parseVariants(req.body?.variants);
   if (!Array.isArray(variants)) {
     return res.status(400).json({ error: variants.error });
@@ -362,7 +367,7 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
       name,
       price: parsedPrice,
       stock: parsedStock,
-      category: category || null,
+      category: categoryText || null,
       description: description || null,
       images: Array.isArray(images) ? images : [],
       is_active: true,
@@ -386,6 +391,11 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
 
   const { name, price, stock, category, description, is_active, images } = req.body ?? {};
   if (!name) return res.status(400).json({ error: "Product name is required." });
+
+  const categoryText = typeof category === "string" ? category.trim() : "";
+  if (categoryText.length > 60) {
+    return res.status(400).json({ error: "Category must be under 60 characters." });
+  }
 
   const variants = parseVariants(req.body?.variants);
   if (!Array.isArray(variants)) {
@@ -425,7 +435,7 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
       name,
       price: parsedPrice,
       stock: Number(stock ?? 0),
-      category: category || null,
+      category: categoryText || null,
       description: description || null,
       is_active: is_active === undefined ? true : Boolean(is_active),
       images: Array.isArray(images) ? images : [],
@@ -441,7 +451,7 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
         name,
         price: parsedPrice,
         stock: Number(stock ?? 0),
-        category: category || null,
+        category: categoryText || null,
         description: description || null,
         is_active: is_active === undefined ? true : Boolean(is_active),
         images: Array.isArray(images) ? images : [],

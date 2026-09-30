@@ -3,7 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached } from "../lib/cache.js";
-import { hasApprovalColumn } from "../lib/productApproval.js";
+import { hasApprovalColumn, variantJoin } from "../lib/productApproval.js";
 import { verifyToken } from "../middleware/auth.js";
 
 const router: Router = express.Router();
@@ -28,9 +28,10 @@ router.get("/bootstrap", async (req, res) => {
     const data = await cached(key, async () => {
       const [products, shops, spotlight, categories] = await Promise.all([
         (async () => {
+          const vj = await variantJoin();
           let query = supabase
             .from("products")
-            .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
+            .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
             .eq("is_active", true)
             .eq("shop.status", "approved");
           if (await hasApprovalColumn()) query = query.eq("approval_status", "approved");
@@ -72,9 +73,10 @@ router.get("/bootstrap", async (req, res) => {
           let products: unknown[] = [];
           let shops: unknown[] = [];
           if (promoProductIds.length > 0) {
+            const vj = await variantJoin();
             let productQuery = supabase
               .from("products")
-              .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
+              .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
               .in("id", promoProductIds)
               .eq("is_active", true)
               .eq("shop.status", "approved");
@@ -83,7 +85,7 @@ router.get("/bootstrap", async (req, res) => {
             }
             const { data } = await productQuery;
             const rank = new Map(promoProductIds.map((id, i) => [id, i]));
-            products = ((data ?? []) as { id: string }[])
+            products = ((data ?? []) as unknown as { id: string }[])
               .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
               .slice(0, 12);
           }

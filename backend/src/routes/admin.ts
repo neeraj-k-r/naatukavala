@@ -4,7 +4,7 @@ import express from "express";
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { clearCache } from "../lib/cache.js";
 import type { Database, ProductApproval } from "../lib/database.js";
-import { hasApprovalColumn } from "../lib/productApproval.js";
+import { hasApprovalColumn, variantJoin } from "../lib/productApproval.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
@@ -537,7 +537,7 @@ router.get("/products", async (req, res) => {
   const supabase = getSupabaseAdmin();
   let query = supabase
     .from("products")
-    .select("*, shop:shops!inner(name, slug)")
+    .select(`*, shop:shops!inner(name, slug)${await variantJoin()}`)
     .order("created_at", { ascending: false });
 
   // Without the approval column nothing can be pending — only "approved"

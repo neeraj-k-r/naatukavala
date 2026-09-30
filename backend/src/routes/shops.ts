@@ -3,7 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
-import { hasApprovalColumn } from "../lib/productApproval.js";
+import { hasApprovalColumn, variantJoin } from "../lib/productApproval.js";
 import { summarize, type ReviewRow } from "../lib/reviews.js";
 import { slugify } from "../lib/utils.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
@@ -100,7 +100,7 @@ router.get("/:slug", async (req, res) => {
 
       let productsQuery = supabase
         .from("products")
-        .select("*")
+        .select(`*${await variantJoin()}`)
         .eq("shop_id", shop.id)
         .eq("is_active", true)
         .order("created_at", { ascending: false });

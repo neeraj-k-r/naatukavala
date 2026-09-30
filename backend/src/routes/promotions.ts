@@ -3,7 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
-import { hasApprovalColumn } from "../lib/productApproval.js";
+import { hasApprovalColumn, variantJoin } from "../lib/productApproval.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router: Router = express.Router();
@@ -40,9 +40,10 @@ router.get("/spotlight", async (_req, res) => {
       let shops: unknown[] = [];
 
       if (promoProductIds.length > 0) {
+        const vj = await variantJoin();
         let productQuery = supabase
           .from("products")
-          .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
+          .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
           .in("id", promoProductIds)
           .eq("is_active", true)
           .eq("shop.status", "approved");
@@ -52,7 +53,7 @@ router.get("/spotlight", async (_req, res) => {
         const { data, error: productError } = await productQuery;
         if (productError) throw productError;
         const rank = new Map(promoProductIds.map((id, i) => [id, i]));
-        products = ((data ?? []) as { id: string }[])
+        products = ((data ?? []) as unknown as { id: string }[])
           .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
           .slice(0, 12);
       }

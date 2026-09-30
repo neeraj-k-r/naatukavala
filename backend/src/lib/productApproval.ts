@@ -20,3 +20,28 @@ export async function hasApprovalColumn(): Promise<boolean> {
   }
   return approvalColumn;
 }
+
+let variantsTable: boolean | null = null;
+
+/**
+ * Whether product_variants exists (checked once). Reads embed the join
+ * only when present, so catalog endpoints survive before migration.
+ */
+export async function hasVariantsTable(): Promise<boolean> {
+  if (variantsTable !== null) return variantsTable;
+  try {
+    const { error } = await getSupabaseAdmin()
+      .from("product_variants")
+      .select("id")
+      .limit(1);
+    variantsTable = !error;
+  } catch {
+    variantsTable = false;
+  }
+  return variantsTable;
+}
+
+/** Embed snippet for variant joins, empty when the table is missing. */
+export async function variantJoin(): Promise<string> {
+  return (await hasVariantsTable()) ? ", variants:product_variants(*)" : "";
+}

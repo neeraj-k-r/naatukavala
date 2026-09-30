@@ -3,7 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached, clearCache } from "../lib/cache.js";
-import { hasApprovalColumn } from "../lib/productApproval.js";
+import { hasApprovalColumn, variantJoin } from "../lib/productApproval.js";
 import { summarize, type ReviewRow } from "../lib/reviews.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
@@ -205,9 +205,10 @@ router.get("/marketplace", async (req, res) => {
   ].join("|");
 
   const products = await cached(key, async () => {
+    const vj = await variantJoin();
     let query = supabase
       .from("products")
-      .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
+      .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
       .eq("is_active", true)
       .eq("shop.status", "approved");
 
@@ -274,7 +275,7 @@ router.get("/owner", requireAuth, requireRole(["seller", "admin", "superadmin"])
 
   const { data, error } = await supabase
     .from("products")
-    .select("*")
+    .select(`*${await variantJoin()}`)
     .eq("shop_id", shop.id)
     .order("created_at", { ascending: false });
 
@@ -288,9 +289,10 @@ router.get("/:id", async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     const product = await cached(`product:${id}`, async () => {
+      const vj = await variantJoin();
       let query = supabase
         .from("products")
-        .select("*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)")
+        .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
         .eq("id", id)
         .eq("shop.status", "approved");
 

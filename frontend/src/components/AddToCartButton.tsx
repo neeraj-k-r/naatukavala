@@ -14,6 +14,26 @@ interface Props {
   shopSlug: string;
   deliveryCharge: number;
   stock: number;
+  variantId?: string | null;
+  variantLabel?: string | null;
+  disabled?: boolean;
+  disabledLabel?: string;
+}
+
+interface Props {
+  productId: string;
+  name: string;
+  price: number;
+  currency: string;
+  image: string | null;
+  shopName: string;
+  shopSlug: string;
+  deliveryCharge: number;
+  stock: number;
+  variantId?: string | null;
+  variantLabel?: string | null;
+  disabled?: boolean;
+  disabledLabel?: string;
 }
 
 export default function AddToCartButton({
@@ -26,9 +46,21 @@ export default function AddToCartButton({
   shopSlug,
   deliveryCharge,
   stock,
+  variantId = null,
+  variantLabel = null,
+  disabled = false,
+  disabledLabel = "",
 }: Props) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
+
+  if (disabled) {
+    return (
+      <span className="inline-flex items-center justify-center rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+        {disabledLabel || "Unavailable"}
+      </span>
+    );
+  }
 
   if (stock === 0) {
     return (
@@ -43,6 +75,8 @@ export default function AddToCartButton({
       onClick={() => {
         addItem({
           product_id: productId,
+          variant_id: variantId,
+          variant_label: variantLabel,
           name,
           price,
           currency,

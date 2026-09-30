@@ -85,6 +85,7 @@ interface Row {
     id: string;
     order_id: string;
     product_id: string;
+    variant_id: string | null;
     product_name: string;
     image_url: string | null;
     quantity: number;
@@ -166,6 +167,16 @@ interface Row {
     order_id: string;
     buyer_id: string;
     discount: number;
+    created_at: string;
+  };
+  product_variants: {
+    id: string;
+    product_id: string;
+    option_name: string;
+    option_value: string;
+    price: number;
+    stock: number;
+    is_active: boolean;
     created_at: string;
   };
 }
@@ -254,6 +265,12 @@ export type Database = {
         Row: Row["coupon_redemptions"];
         Insert: InsertOf<"coupon_redemptions">;
         Update: UpdateOf<"coupon_redemptions">;
+        Relationships: [];
+      };
+      product_variants: {
+        Row: Row["product_variants"];
+        Insert: InsertOf<"product_variants">;
+        Update: UpdateOf<"product_variants">;
         Relationships: [];
       };
     };

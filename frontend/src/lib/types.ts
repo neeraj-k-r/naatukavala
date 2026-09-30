@@ -53,6 +53,7 @@ export interface Product {
   images: string[];
   is_active: boolean;
   approval_status?: ProductApproval | null;
+  variants?: ProductVariant[];
   created_at: string;
   shop?: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy" | "verification_status"> | null;
 }
@@ -255,6 +256,7 @@ export interface OrderItem {
   id: string;
   order_id: string;
   product_id: string;
+  variant_id?: string | null;
   product_name: string;
   image_url: string | null;
   quantity: number;
@@ -265,6 +267,18 @@ export interface OrderItem {
 export interface CartLine {
   product_id: string;
   quantity: number;
+  variant_id?: string | null;
+}
+
+export interface ProductVariant {
+  id: string;
+  product_id: string;
+  option_name: string;
+  option_value: string;
+  price: number;
+  stock: number;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface AdminSalesSummary {

@@ -515,6 +515,7 @@ export async function createProduct(state: unknown, formData: FormData) {
   const category = String(formData.get("category") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const images = formData.getAll("images").map((image) => String(image));
+  const variants = String(formData.get("variants") ?? "");
 
   if (!Number.isFinite(price) || price < 0) {
     return { error: "Please enter a valid price." };
@@ -531,6 +532,7 @@ export async function createProduct(state: unknown, formData: FormData) {
         category: category || null,
         description: description || null,
         images,
+        variants: variants || null,
       }),
     });
     createdPending = data.approval_status === "pending";
@@ -555,6 +557,7 @@ export async function updateProduct(state: unknown, formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const isActive = formData.get("is_active") === "true";
   const images = formData.getAll("images").map((image) => String(image));
+  const variants = String(formData.get("variants") ?? "");
 
   if (!name) {
     return { error: "Product name is required." };
@@ -575,6 +578,7 @@ export async function updateProduct(state: unknown, formData: FormData) {
         description: description || null,
         is_active: isActive,
         images,
+        variants: variants || null,
       }),
     });
     updatedPending = data.approval_status === "pending";

@@ -77,19 +77,18 @@ export default async function Storefront({
 
   return (
     <div>
-      {/* Banner — small fixed strip, never scales with viewport. */}
-      <div
-        className="w-full overflow-hidden bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50"
-        style={{ height: 120, maxHeight: 120, minHeight: 120 }}
-      >
-        {shop.banner_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={shop.banner_url}
-            alt={shop.name}
-            className="h-full w-full object-cover"
-          />
-        )}
+      {/* Banner — contained rounded showcase with fixed heights. */}
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6">
+        <div className="h-48 w-full overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50 shadow-sm sm:h-64">
+          {shop.banner_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={shop.banner_url}
+              alt={shop.name}
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6">

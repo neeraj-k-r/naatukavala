@@ -121,10 +121,6 @@ export default async function Storefront({
               )}
             </div>
           </div>
-
-          <p className="text-xs font-medium text-slate-400 dark:text-slate-500">
-            {shop.slug}.{process.env.NEXT_PUBLIC_APP_DOMAIN || "shop"}
-          </p>
         </div>
 
         {shop.description && (

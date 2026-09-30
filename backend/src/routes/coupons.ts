@@ -21,7 +21,7 @@ router.post(
     if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
     const code = String(req.body?.code ?? "");
-    const cart: { product_id?: unknown; quantity?: unknown }[] = Array.isArray(
+    const cart: { product_id?: unknown; quantity?: unknown; variant_id?: unknown }[] = Array.isArray(
       req.body?.cart,
     )
       ? req.body.cart
@@ -42,14 +42,37 @@ router.post(
       .in("id", ids);
     const productById = new Map(((products ?? []) as { id: string; price: number; shop_id: string }[]).map((p) => [p.id, p]));
 
+    // Variant-aware pricing, mirroring order creation.
+    const variantIds = [
+      ...new Set(
+        cart.map((line) => String(line?.variant_id ?? "")).filter(Boolean),
+      ),
+    ];
+    const variantById = new Map<string, { id: string; product_id: string; price: number }>();
+    if (variantIds.length > 0) {
+      const { data: variants } = await supabase
+        .from("product_variants")
+        .select("id, product_id, price")
+        .in("id", variantIds)
+        .eq("is_active", true);
+      for (const v of ((variants ?? []) as { id: string; product_id: string; price: number }[])) {
+        variantById.set(v.id, v);
+      }
+    }
+
     const subtotalByShop = new Map<string, number>();
     for (const line of cart) {
       const product = productById.get(String(line?.product_id ?? ""));
       if (!product) continue;
       const qty = Math.max(1, Math.floor(Number(line?.quantity ?? 1)));
+      const variant = variantById.get(String(line?.variant_id ?? ""));
+      const unitPrice =
+        variant && variant.product_id === product.id
+          ? Number(variant.price)
+          : Number(product.price);
       subtotalByShop.set(
         product.shop_id,
-        Math.round(((subtotalByShop.get(product.shop_id) ?? 0) + Number(product.price) * qty) * 100) / 100,
+        Math.round(((subtotalByShop.get(product.shop_id) ?? 0) + unitPrice * qty) * 100) / 100,
       );
     }
     if (subtotalByShop.size === 0) {

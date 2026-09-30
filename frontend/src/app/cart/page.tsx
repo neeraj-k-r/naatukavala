@@ -62,7 +62,7 @@ export default function CartPage() {
             <div className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
               {group.items.map((item) => (
                 <div
-                  key={item.product_id}
+                  key={`${item.product_id}:${item.variant_id ?? ""}`}
                   className="flex items-center gap-4 py-4"
                 >
                   <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
@@ -88,6 +88,11 @@ export default function CartPage() {
                     >
                       {item.name}
                     </Link>
+                    {item.variant_label && (
+                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        {item.variant_label}
+                      </p>
+                    )}
                     <p className="mt-0.5 text-sm font-bold text-slate-900 dark:text-slate-100">
                       {formatCurrency(item.price, item.currency)}
                     </p>
@@ -95,7 +100,7 @@ export default function CartPage() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setQuantity(item.product_id, item.quantity - 1)}
+                      onClick={() => setQuantity(item.product_id, item.quantity - 1, item.variant_id ?? null)}
                       className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-lg font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                       aria-label="Decrease quantity"
                     >
@@ -105,7 +110,7 @@ export default function CartPage() {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => setQuantity(item.product_id, item.quantity + 1)}
+                      onClick={() => setQuantity(item.product_id, item.quantity + 1, item.variant_id ?? null)}
                       disabled={item.quantity >= item.stock}
                       className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-lg font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                       aria-label="Increase quantity"
@@ -113,7 +118,7 @@ export default function CartPage() {
                       +
                     </button>
                     <button
-                      onClick={() => removeItem(item.product_id)}
+                      onClick={() => removeItem(item.product_id, item.variant_id ?? null)}
                       className="ml-2 text-sm text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
                       aria-label="Remove item"
                     >

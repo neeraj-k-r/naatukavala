@@ -53,6 +53,7 @@ export default function CheckoutForm() {
         items.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
+          variant_id: item.variant_id ?? null,
         })),
       );
       if (result.valid) {

@@ -10,6 +10,8 @@ import {
 
 export interface CartItem {
   product_id: string;
+  variant_id?: string | null;
+  variant_label?: string | null;
   name: string;
   price: number;
   currency: string;
@@ -27,8 +29,8 @@ interface CartContextValue {
   subtotal: number;
   deliveryTotal: number;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  setQuantity: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
+  setQuantity: (productId: string, quantity: number, variantId?: string | null) => void;
+  removeItem: (productId: string, variantId?: string | null) => void;
   clear: () => void;
 }
 
@@ -46,6 +48,12 @@ function read(): CartItem[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       cache = raw ? (JSON.parse(raw) as CartItem[]) : [];
+      // Older carts predate variants — normalize missing fields.
+      cache = cache.map((line) => ({
+        ...line,
+        variant_id: line.variant_id ?? null,
+        variant_label: line.variant_label ?? null,
+      }));
     } catch {
       cache = [];
     }
@@ -73,12 +81,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const items = useSyncExternalStore(subscribe, read, () => EMPTY);
 
   const value = useMemo<CartContextValue>(() => {
+    // Lines are keyed by product + variant: same shirt in two sizes are
+    // two separate lines.
+    const sameLine = (line: CartItem, productId: string, variantId?: string | null) =>
+      line.product_id === productId && (line.variant_id ?? null) === (variantId ?? null);
+
     const addItem = (item: Omit<CartItem, "quantity">, quantity = 1) => {
-      const existing = cache.find((line) => line.product_id === item.product_id);
+      const withDefaults = {
+        ...item,
+        variant_id: item.variant_id ?? null,
+        variant_label: item.variant_label ?? null,
+      };
+      const existing = cache.find((line) =>
+        sameLine(line, withDefaults.product_id, withDefaults.variant_id),
+      );
       let next: CartItem[];
       if (existing) {
         next = cache.map((line) =>
-          line.product_id === item.product_id
+          sameLine(line, withDefaults.product_id, withDefaults.variant_id)
             ? {
                 ...line,
                 quantity: Math.min(
@@ -91,23 +111,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } else {
         next = [
           ...cache,
-          { ...item, quantity: Math.min(item.stock, Math.max(1, quantity)) },
+          {
+            ...withDefaults,
+            quantity: Math.min(withDefaults.stock, Math.max(1, quantity)),
+          },
         ];
       }
       write(next);
     };
 
-    const setQuantity = (productId: string, quantity: number) => {
+    const setQuantity = (productId: string, quantity: number, variantId: string | null = null) => {
       const next = cache.map((line) =>
-        line.product_id === productId
+        sameLine(line, productId, variantId)
           ? { ...line, quantity: Math.max(0, Math.min(line.stock, quantity)) }
           : line,
       );
       write(next);
     };
 
-    const removeItem = (productId: string) => {
-      write(cache.filter((line) => line.product_id !== productId));
+    const removeItem = (productId: string, variantId: string | null = null) => {
+      write(cache.filter((line) => !sameLine(line, productId, variantId)));
     };
 
     const clear = () => write([]);

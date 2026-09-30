@@ -58,6 +58,7 @@ export async function uploadFile(file: File): Promise<string> {
 export interface CouponCartLine {
   product_id: string;
   quantity: number;
+  variant_id?: string | null;
 }
 
 export interface CouponPreviewResult {

@@ -85,7 +85,9 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
     if (!product) continue;
     const qty = Math.max(1, Math.floor(Number(line.quantity)));
     const options = variantsByProduct.get(product.id) ?? [];
-    const variantId = String(line.variant_id ?? "");
+    const variantId = String(
+      (line as { variant_id?: unknown }).variant_id ?? "",
+    );
     let variant: { id: string; option_name: string; option_value: string; price: number; stock: number } | null = null;
     let unitPrice = Number(product.price);
     let label: string = product.name;

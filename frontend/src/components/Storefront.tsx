@@ -95,7 +95,7 @@ export default async function Storefront({
       <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6">
         <div className="-mt-10 mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-end gap-4">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-white text-3xl shadow dark:border-slate-800 dark:bg-slate-900">
+            <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-white text-3xl shadow dark:border-slate-800 dark:bg-slate-900">
               {shop.logo_url ? (
                 <Image
                   src={shop.logo_url}

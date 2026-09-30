@@ -77,8 +77,11 @@ export default async function Storefront({
 
   return (
     <div>
-      {/* Banner */}
-      <div className="h-40 w-full overflow-hidden bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50 sm:h-52">
+      {/* Banner — inline height so no stylesheet quirk can stretch it. */}
+      <div
+        className="w-full overflow-hidden bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50"
+        style={{ height: "clamp(160px, 22vw, 208px)" }}
+      >
         {shop.banner_url && (
           <div className="relative h-full w-full">
             <Image

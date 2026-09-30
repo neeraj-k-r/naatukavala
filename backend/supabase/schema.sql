@@ -640,6 +640,75 @@ alter table public.orders
 alter table public.orders
   add column if not exists buyer_phone text;
 
+-- ------------------------------------------------------------
+-- Product variants (options with own price/stock, e.g. Size:Large).
+-- order_items.variant_id is intentionally FK-free: past orders keep
+-- their snapshot even after sellers edit variant rows.
+-- ------------------------------------------------------------
+create table if not exists public.product_variants (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products (id) on delete cascade,
+  option_name text not null,
+  option_value text not null,
+  price numeric(12, 2) not null check (price >= 0),
+  stock integer not null default 0 check (stock >= 0),
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  unique (product_id, option_name, option_value)
+);
+
+create index if not exists product_variants_product_idx
+  on public.product_variants (product_id);
+
+alter table public.order_items
+  add column if not exists variant_id uuid;
+
+alter table public.product_variants enable row level security;
+
+create policy product_variants_select_public on public.product_variants
+  for select using (
+    is_active = true
+    and exists (
+      select 1 from public.products p
+      join public.shops s on s.id = p.shop_id
+      where p.id = product_id
+        and p.is_active = true
+        and s.status = 'approved'::public.shop_status
+    )
+  );
+create policy product_variants_select_owner on public.product_variants
+  for select using (
+    exists (
+      select 1 from public.products p
+      join public.shops s on s.id = p.shop_id
+      where p.id = product_id and s.owner_id = auth.uid()
+    )
+  );
+create policy product_variants_insert_owner on public.product_variants
+  for insert with check (
+    exists (
+      select 1 from public.products p
+      join public.shops s on s.id = p.shop_id
+      where p.id = product_id and s.owner_id = auth.uid()
+    )
+  );
+create policy product_variants_update_owner on public.product_variants
+  for update using (
+    exists (
+      select 1 from public.products p
+      join public.shops s on s.id = p.shop_id
+      where p.id = product_id and s.owner_id = auth.uid()
+    )
+  );
+create policy product_variants_delete_owner on public.product_variants
+  for delete using (
+    exists (
+      select 1 from public.products p
+      join public.shops s on s.id = p.shop_id
+      where p.id = product_id and s.owner_id = auth.uid()
+    )
+  );
+
 alter table public.coupons enable row level security;
 alter table public.coupon_redemptions enable row level security;
 

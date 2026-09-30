@@ -1,10 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import ProductImageUpload from "@/components/ProductImageUpload";
 import SubmitButton from "@/components/SubmitButton";
 import VariantManager from "@/components/VariantManager";
+import {
+  OTHER_CATEGORY,
+  PRODUCT_CATEGORIES,
+  isPredefinedCategory,
+} from "@/lib/categories";
 
 import type { Product } from "@/lib/types";
 
@@ -20,6 +25,18 @@ export default function ProductForm({
   submitLabel: string;
 }) {
   const [state, formAction] = useActionState(action, undefined);
+
+  const initialCategory = product?.category ?? "";
+  const [category, setCategory] = useState(
+    !initialCategory || isPredefinedCategory(initialCategory)
+      ? initialCategory
+      : OTHER_CATEGORY,
+  );
+  const [customCategory, setCustomCategory] = useState(
+    initialCategory && !isPredefinedCategory(initialCategory)
+      ? initialCategory
+      : "",
+  );
 
   return (
     <form action={formAction} className="space-y-5">
@@ -40,7 +57,7 @@ export default function ProductForm({
         typeof state === "object" &&
         "success" in state &&
         (state as { pendingReview?: boolean }).pendingReview === true && (
-          <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
             Saved — sent for admin review. It goes live once approved.
           </div>
         )}
@@ -116,15 +133,45 @@ export default function ProductForm({
         >
           Category
         </label>
-        <input
+        <select
           id="category"
-          name="category"
-          type="text"
-          placeholder="e.g. Stationery, Grocery, Craft"
-          defaultValue={product?.category ?? ""}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-        />
+          name={category === OTHER_CATEGORY ? undefined : "category"}
+          value={category}
+          onChange={(event) => setCategory(event.target.value)}
+          required
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        >
+          <option value="">Select a category</option>
+          {PRODUCT_CATEGORIES.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+          <option value={OTHER_CATEGORY}>Other…</option>
+        </select>
       </div>
+
+      {category === OTHER_CATEGORY && (
+        <div>
+          <label
+            htmlFor="custom_category"
+            className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
+            Custom category
+          </label>
+          <input
+            id="custom_category"
+            name="category"
+            type="text"
+            required
+            maxLength={60}
+            value={customCategory}
+            onChange={(event) => setCustomCategory(event.target.value)}
+            placeholder="Type a category"
+            className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          />
+        </div>
+      )}
 
       <VariantManager initial={product?.variants ?? []} />
 

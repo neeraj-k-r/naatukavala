@@ -23,6 +23,13 @@ export default function ProductCard({
 }) {
   const image = product.images?.[0];
   const verified = product.shop?.verification_status === "verified";
+  const variantPrices = (product.variants ?? [])
+    .filter((variant) => variant.is_active)
+    .map((variant) => Number(variant.price));
+  const hasVariants = variantPrices.length > 0;
+  const fromPrice = hasVariants
+    ? Math.min(Number(product.price), ...variantPrices)
+    : Number(product.price);
 
   return (
     <Link
@@ -75,7 +82,8 @@ export default function ProductCard({
           {product.name}
         </h3>
         <p className="mt-auto pt-1 text-base font-bold text-slate-900 dark:text-slate-100">
-          {formatCurrency(product.price, product.currency)}
+          {hasVariants && fromPrice !== Number(product.price) ? "from " : ""}
+          {formatCurrency(hasVariants ? fromPrice : product.price, product.currency)}
         </p>
       </div>
     </Link>

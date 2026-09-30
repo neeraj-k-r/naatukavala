@@ -77,21 +77,18 @@ export default async function Storefront({
 
   return (
     <div>
-      {/* Banner — inline height so no stylesheet quirk can stretch it. */}
+      {/* Banner — plain img with fixed bounds (no fill positioning). */}
       <div
         className="w-full overflow-hidden bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50"
         style={{ height: "clamp(160px, 22vw, 208px)" }}
       >
         {shop.banner_url && (
-          <div className="relative h-full w-full">
-            <Image
-              src={shop.banner_url}
-              alt={shop.name}
-              fill
-              sizes="100vw"
-              className="object-cover"
-            />
-          </div>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={shop.banner_url}
+            alt={shop.name}
+            className="h-full w-full object-cover"
+          />
         )}
       </div>
 

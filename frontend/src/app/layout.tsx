@@ -50,6 +50,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
+      // The theme script above may add `.dark` before hydration —
+      // expected, not an error.
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-slate-50 font-sans dark:bg-slate-950 dark:text-slate-200">

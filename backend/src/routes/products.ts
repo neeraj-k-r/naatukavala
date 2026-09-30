@@ -33,6 +33,104 @@ function isMissingApprovalColumn(err: unknown): boolean {
   );
 }
 
+/** True when a table hasn't been migrated yet. */
+function isMissingTable(err: unknown, table: string): boolean {
+  const code = (err as { code?: unknown })?.code;
+  const message = (err as { message?: unknown })?.message;
+  return (
+    code === "PGRST205" ||
+    code === "42P01" ||
+    (typeof message === "string" && message.includes(table))
+  );
+}
+
+interface VariantInput {
+  option_name: string;
+  option_value: string;
+  price: number;
+  stock: number;
+}
+
+const MAX_VARIANTS = 20;
+
+/** Validates the variants payload (array or JSON string). */
+function parseVariants(raw: unknown): VariantInput[] | { error: string } {
+  if (raw === undefined || raw === null || raw === "") return [];
+  let arr: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      arr = JSON.parse(raw);
+    } catch {
+      return { error: "Variants are invalid." };
+    }
+  }
+  if (!Array.isArray(arr)) return { error: "Variants are invalid." };
+  if (arr.length > MAX_VARIANTS) {
+    return { error: "At most 20 variants per product." };
+  }
+  const seen = new Set<string>();
+  const out: VariantInput[] = [];
+  for (const item of arr) {
+    const v = item as Record<string, unknown>;
+    const option_name = String(v.option_name ?? "").trim().slice(0, 50);
+    const option_value = String(v.option_value ?? "").trim().slice(0, 50);
+    const price = Number(v.price);
+    const stock = Math.floor(Number(v.stock ?? 0));
+    if (!option_name || !option_value) {
+      return { error: "Each variant needs an option name and value." };
+    }
+    if (!Number.isFinite(price) || price < 0) {
+      return { error: "Variant prices must be zero or more." };
+    }
+    if (!Number.isInteger(stock) || stock < 0) {
+      return { error: "Variant stock must be zero or more." };
+    }
+    const key = `${option_name.toLowerCase()}|${option_value.toLowerCase()}`;
+    if (seen.has(key)) return { error: "Duplicate variant options." };
+    seen.add(key);
+    out.push({ option_name, option_value, price, stock });
+  }
+  return out;
+}
+
+/**
+ * Replaces a product's variant set. Returns an error message when the
+ * variants table hasn't been migrated yet and variants were requested.
+ */
+async function replaceVariants(
+  productId: string,
+  variants: VariantInput[],
+): Promise<string | null> {
+  const supabase = getSupabaseAdmin();
+  const { error: deleteError } = await supabase
+    .from("product_variants")
+    .delete()
+    .eq("product_id", productId);
+  if (deleteError && !isMissingTable(deleteError, "product_variants")) {
+    return deleteError.message;
+  }
+  if (variants.length === 0) return null;
+  const { error: insertError } = await supabase
+    .from("product_variants")
+    .insert(
+      variants.map((v) => ({
+        product_id: productId,
+        option_name: v.option_name,
+        option_value: v.option_value,
+        price: v.price,
+        stock: v.stock,
+        is_active: true,
+      })),
+    );
+  if (insertError) {
+    if (isMissingTable(insertError, "product_variants")) {
+      return "Variants are not available right now.";
+    }
+    return insertError.message;
+  }
+  return null;
+}
+
 router.get("/reviews/:productId", async (req, res) => {
   const id = String(req.params.productId);
 
@@ -217,6 +315,11 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
   const { name, price, stock, category, description, images } = req.body ?? {};
   if (!name) return res.status(400).json({ error: "Product name is required." });
 
+  const variants = parseVariants(req.body?.variants);
+  if (!Array.isArray(variants)) {
+    return res.status(400).json({ error: variants.error });
+  }
+
   const parsedPrice = Number(price);
   const parsedStock = Number(stock ?? 0);
   if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
@@ -238,7 +341,7 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
   // every single new product needs admin approval.
   const approval_status = needsProductReview(req, shop) ? "pending" : "approved";
 
-  let { error } = await supabase.from("products").insert({
+  let { data: created, error } = await supabase.from("products").insert({
     shop_id: shop.id,
     name,
     price: parsedPrice,
@@ -248,11 +351,11 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
     images: Array.isArray(images) ? images : [],
     is_active: true,
     approval_status,
-  });
+  }).select("id").single();
 
   // Approval column not migrated yet — save without it.
   if (error && isMissingApprovalColumn(error)) {
-    ({ error } = await supabase.from("products").insert({
+    ({ data: created, error } = await supabase.from("products").insert({
       shop_id: shop.id,
       name,
       price: parsedPrice,
@@ -261,10 +364,17 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
       description: description || null,
       images: Array.isArray(images) ? images : [],
       is_active: true,
-    }));
+    }).select("id").single());
   }
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error || !created) return res.status(500).json({ error: error?.message ?? "Could not create the product." });
+
+  const variantsError = await replaceVariants(created.id, variants);
+  if (variantsError) {
+    await supabase.from("products").delete().eq("id", created.id);
+    return res.status(500).json({ error: variantsError });
+  }
+
   clearCache();
   return res.status(201).json({ ok: true, approval_status });
 });
@@ -274,6 +384,11 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
 
   const { name, price, stock, category, description, is_active, images } = req.body ?? {};
   if (!name) return res.status(400).json({ error: "Product name is required." });
+
+  const variants = parseVariants(req.body?.variants);
+  if (!Array.isArray(variants)) {
+    return res.status(400).json({ error: variants.error });
+  }
 
   const parsedPrice = Number(price);
   if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
@@ -288,6 +403,16 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
     .maybeSingle();
 
   if (!shop) return res.status(400).json({ error: "Please create your shop before adding products." });
+
+  // Ownership check first: the scoped update below is silent on zero rows,
+  // and variant replacement must never touch another shop's product.
+  const { data: owned } = await supabase
+    .from("products")
+    .select("id")
+    .eq("id", String(req.params.id))
+    .eq("shop_id", shop.id)
+    .maybeSingle();
+  if (!owned) return res.status(404).json({ error: "Product not found." });
 
   // Edits from unverified sellers go back to the review queue as well.
   const approval_status = needsProductReview(req, shop) ? "pending" : "approved";
@@ -324,6 +449,11 @@ router.put("/:id", requireAuth, requireRole(["seller", "admin", "superadmin"]), 
   }
 
   if (error) return res.status(500).json({ error: error.message });
+
+  const productId = String(req.params.id);
+  const variantsError = await replaceVariants(productId, variants);
+  if (variantsError) return res.status(500).json({ error: variantsError });
+
   clearCache();
   return res.json({ ok: true, approval_status });
 });

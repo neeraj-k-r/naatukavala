@@ -2,10 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import AddToCartButton from "@/components/AddToCartButton";
+import ProductPurchasePanel from "@/components/ProductPurchasePanel";
 import ReviewsSection from "@/components/ReviewsSection";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import WishlistButton from "@/components/WishlistButton";
 import { getProductById, getProductReviews, getVotedHelpful, getWishlistIds } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/utils";
@@ -89,17 +88,13 @@ export default async function ProductPage({
             </p>
           )}
 
-          <p className="mt-4 text-3xl font-extrabold text-slate-900 dark:text-slate-100">
-            {formatCurrency(product.price, product.currency)}
-          </p>
+          <ProductPurchasePanel
+            product={product}
+            wished={wishlistIds.has(product.id)}
+            signedIn={Boolean(user)}
+          />
 
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {product.stock > 0
-              ? `${product.stock} available in stock`
-              : "Currently out of stock"}
-          </p>
-
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
             Delivery charge:{" "}
             <span className="font-medium text-slate-700 dark:text-slate-300">
               {formatCurrency(product.shop.delivery_charge, product.currency)}
@@ -120,32 +115,6 @@ export default async function ProductPage({
               {product.description}
             </p>
           )}
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <AddToCartButton
-              productId={product.id}
-              name={product.name}
-              price={product.price}
-              currency={product.currency}
-              image={image ?? null}
-              shopName={product.shop.name}
-              shopSlug={product.shop.slug}
-              deliveryCharge={product.shop.delivery_charge}
-              stock={product.stock}
-            />
-            <Link
-              href="/cart"
-              className="inline-flex items-center justify-center rounded-xl border border-emerald-600 px-6 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-800"
-            >
-              View cart
-            </Link>
-            <WishlistButton
-              productId={product.id}
-              initialWished={wishlistIds.has(product.id)}
-              signedIn={Boolean(user)}
-              size="detail"
-            />
-          </div>
 
           <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-5 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
             <p className="font-semibold text-slate-800 dark:text-slate-200">About this shop</p>

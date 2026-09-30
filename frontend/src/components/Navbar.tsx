@@ -172,9 +172,11 @@ export default function Navbar({
               <Link href={authUrl("/")} className="hover:text-emerald-700 dark:hover:text-emerald-400">
                 Marketplace
               </Link>
-              <Link href={authUrl("/sell")} className="hover:text-emerald-700 dark:hover:text-emerald-400">
-                Sell with us
-              </Link>
+              {(!role || role === "buyer") && (
+                <Link href={authUrl("/sell")} className="hover:text-emerald-700 dark:hover:text-emerald-400">
+                  Sell with us
+                </Link>
+              )}
               {role === "seller" && (
                 <Link href="/dashboard" className="hover:text-emerald-700 dark:hover:text-emerald-400">
                   Dashboard

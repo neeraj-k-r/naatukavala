@@ -78,7 +78,7 @@ export default async function Storefront({
   return (
     <div>
       {/* Banner */}
-      <div className="h-40 w-full bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50 sm:h-52">
+      <div className="h-40 w-full overflow-hidden bg-gradient-to-r from-emerald-100 via-teal-100 to-emerald-50 sm:h-52">
         {shop.banner_url && (
           <div className="relative h-full w-full">
             <Image

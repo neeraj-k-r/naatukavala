@@ -36,52 +36,125 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
     return res.status(400).json({ error: "Some products in your cart are no longer available." });
   }
 
-  const byShop = new Map<string, { product: (typeof products)[0]; quantity: number }[]>();
+  // Variant catalog for this cart (best effort pre-migration).
+  const variantsByProduct = new Map<string, {
+    id: string;
+    product_id: string;
+    option_name: string;
+    option_value: string;
+    price: number;
+    stock: number;
+    is_active: boolean;
+  }[]>();
+  try {
+    const { data: variantRows, error: variantsError } = await supabase
+      .from("product_variants")
+      .select("*")
+      .in("product_id", ids)
+      .eq("is_active", true);
+    if (!variantsError) {
+      for (const v of (variantRows ?? []) as {
+        id: string;
+        product_id: string;
+        option_name: string;
+        option_value: string;
+        price: number;
+        stock: number;
+        is_active: boolean;
+      }[]) {
+        const list = variantsByProduct.get(v.product_id) ?? [];
+        list.push(v);
+        variantsByProduct.set(v.product_id, list);
+      }
+    }
+  } catch {
+    // Variants table not migrated yet — everything sells at base price.
+  }
+
+  interface ResolvedLine {
+    product: (typeof products)[number];
+    quantity: number;
+    variantId: string | null;
+    unitPrice: number;
+    label: string;
+  }
+
+  const byShop = new Map<string, ResolvedLine[]>();
   for (const line of cart) {
     const product = products.find((p) => p.id === line.product_id);
     if (!product) continue;
     const qty = Math.max(1, Math.floor(Number(line.quantity)));
-    if (product.stock < qty) {
+    const options = variantsByProduct.get(product.id) ?? [];
+    const variantId = String(line.variant_id ?? "");
+    let variant: { id: string; option_name: string; option_value: string; price: number; stock: number } | null = null;
+    let unitPrice = Number(product.price);
+    let label: string = product.name;
+
+    if (options.length > 0) {
+      // Products with options always sell through a chosen variant.
+      variant = options.find((o) => o.id === variantId) ?? null;
+      if (!variant) {
+        return res.status(400).json({ error: `Please choose an option for "${product.name}".` });
+      }
+      if (variant.stock < qty) {
+        return res.status(400).json({
+          error: `"${product.name} (${variant.option_name}: ${variant.option_value})" only has ${variant.stock} in stock.`,
+        });
+      }
+      unitPrice = Number(variant.price);
+      label = `${product.name} (${variant.option_name}: ${variant.option_value})`;
+    } else if (product.stock < qty) {
       return res.status(400).json({ error: `"${product.name}" only has ${product.stock} in stock.` });
     }
+
     const list = byShop.get(product.shop_id) ?? [];
-    list.push({ product, quantity: qty });
+    list.push({ product, quantity: qty, variantId: variant?.id ?? null, unitPrice, label });
     byShop.set(product.shop_id, list);
   }
 
-  const qtyById = new Map<string, number>();
-  for (const line of cart) {
-    const id = String(line.product_id ?? "");
-    if (!id) continue;
-    qtyById.set(id, (qtyById.get(id) ?? 0) + Math.max(1, Math.floor(Number(line.quantity))));
+  // Aggregate per stock bucket (variant or base product) for safe deduction.
+  const buckets = new Map<string, { kind: "variant" | "product"; id: string; qty: number; snapshot: number; name: string }>();
+  for (const lines of byShop.values()) {
+    for (const { product, quantity, variantId } of lines) {
+      if (variantId) {
+        const v = variantsByProduct.get(product.id)?.find((o) => o.id === variantId);
+        const key = `v:${variantId}`;
+        const entry = buckets.get(key) ?? { kind: "variant" as const, id: variantId, qty: 0, snapshot: Number(v?.stock ?? 0), name: product.name };
+        entry.qty += quantity;
+        buckets.set(key, entry);
+      } else {
+        const key = `p:${product.id}`;
+        const entry = buckets.get(key) ?? { kind: "product" as const, id: product.id, qty: 0, snapshot: Number(product.stock ?? 0), name: product.name };
+        entry.qty += quantity;
+        buckets.set(key, entry);
+      }
+    }
   }
 
-  const deducted: { id: string; qty: number }[] = [];
+  const deducted: { kind: "variant" | "product"; id: string; qty: number; snapshot: number }[] = [];
   const revertStocks = async () => {
     for (const d of deducted) {
-      const product = products.find((p) => p.id === d.id);
       await supabase
-        .from("products")
-        .update({ stock: Math.max(0, Number(product?.stock ?? 0) + d.qty) })
+        .from(d.kind === "variant" ? "product_variants" : "products")
+        .update({ stock: Math.max(0, d.snapshot + d.qty) })
         .eq("id", d.id);
     }
     deducted.length = 0;
   };
 
-  for (const [productId, qty] of qtyById) {
-    const product = products.find((p) => p.id === productId);
-    if (!product) continue;
+  for (const bucket of buckets.values()) {
+    const table = bucket.kind === "variant" ? "product_variants" : "products";
     const { data, error } = await supabase
-      .from("products")
-      .update({ stock: Math.max(0, Number(product.stock ?? 0) - qty) })
-      .eq("id", productId)
-      .eq("stock", Number(product.stock ?? 0))
+      .from(table)
+      .update({ stock: Math.max(0, bucket.snapshot - bucket.qty) })
+      .eq("id", bucket.id)
+      .eq("stock", bucket.snapshot)
       .select("id");
     if (error || !data || data.length === 0) {
       await revertStocks();
-      return res.status(409).json({ error: `"${product.name}" is no longer in stock. Please refresh your cart.` });
+      return res.status(409).json({ error: `"${bucket.name}" is no longer in stock. Please refresh your cart.` });
     }
-    deducted.push({ id: productId, qty });
+    deducted.push({ kind: bucket.kind, id: bucket.id, qty: bucket.qty, snapshot: bucket.snapshot });
   }
 
   const shopIds = [...byShop.keys()];
@@ -116,7 +189,7 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
       shop_name: nameById.get(shop_id) ?? "Shop",
       subtotal:
         Math.round(
-          lines.reduce((sum, { product, quantity }) => sum + Number(product.price) * quantity, 0) * 100,
+          lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0) * 100,
         ) / 100,
     }));
     const decision = await evaluateCoupon(req.user.id, coupon_code, priced);
@@ -138,7 +211,7 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
 
   for (const [shopId, lines] of byShop) {
     const productsTotal = lines.reduce(
-      (sum, { product, quantity }) => sum + Number(product.price) * quantity,
+      (sum, line) => sum + line.unitPrice * line.quantity,
       0,
     );
     const deliveryCharge = chargeById.get(shopId) ?? 0;
@@ -184,17 +257,33 @@ router.post("/", requireAuth, requireRole(["buyer", "seller", "admin", "superadm
       return res.status(500).json({ error: "Could not place your order. Please try again." });
     }
 
-    const { error: itemsError } = await supabase.from("order_items").insert(
-      lines.map(({ product, quantity }) => ({
+    let { error: itemsError } = await supabase.from("order_items").insert(
+      lines.map(({ product, quantity, variantId, unitPrice, label }) => ({
         order_id: order.id,
         product_id: product.id,
-        product_name: product.name,
+        variant_id: variantId,
+        product_name: label,
         image_url: product.images?.[0] ?? null,
         quantity,
-        unit_price: product.price,
+        unit_price: unitPrice,
         currency: product.currency ?? "INR",
       })),
     );
+
+    // Variant column not migrated yet — save without it.
+    if (itemsError && /variant_id/.test(itemsError.message)) {
+      ({ error: itemsError } = await supabase.from("order_items").insert(
+        lines.map(({ product, quantity, unitPrice, label }) => ({
+          order_id: order.id,
+          product_id: product.id,
+          product_name: label,
+          image_url: product.images?.[0] ?? null,
+          quantity,
+          unit_price: unitPrice,
+          currency: product.currency ?? "INR",
+        })),
+      ));
+    }
 
     if (itemsError) {
       await revertStocks();

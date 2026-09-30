@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import ProductImageUpload from "@/components/ProductImageUpload";
 import SubmitButton from "@/components/SubmitButton";
+import VariantManager from "@/components/VariantManager";
 
 import type { Product } from "@/lib/types";
 
@@ -124,6 +125,8 @@ export default function ProductForm({
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         />
       </div>
+
+      <VariantManager initial={product?.variants ?? []} />
 
       <div>
         <label

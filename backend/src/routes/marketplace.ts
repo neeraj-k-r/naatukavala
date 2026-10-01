@@ -3,6 +3,7 @@ import express from "express";
 
 import { getSupabaseAdmin } from "../lib/supabase.js";
 import { cached } from "../lib/cache.js";
+import { searchProducts } from "../lib/fuzzySearch.js";
 import { hasApprovalColumn, variantJoin } from "../lib/productApproval.js";
 import { verifyToken } from "../middleware/auth.js";
 
@@ -28,19 +29,8 @@ router.get("/bootstrap", async (req, res) => {
     const data = await cached(key, async () => {
       const [products, shops, spotlight, categories] = await Promise.all([
         (async () => {
-          const vj = await variantJoin();
-          let query = supabase
-            .from("products")
-            .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
-            .eq("is_active", true)
-            .eq("shop.status", "approved");
-          if (await hasApprovalColumn()) query = query.eq("approval_status", "approved");
-          if (category) query = query.eq("category", category);
-          if (search && search.trim()) query = query.ilike("name", `%${search.trim()}%`);
-          query = query.order("created_at", { ascending: false });
-          const { data, error } = await query;
-          if (error) throw error;
-          return data ?? [];
+          // Exact substring match first, fuzzy fallback when nothing hits.
+          return searchProducts(supabase, { search, category });
         })(),
         (async () => {
           const { data, error } = await supabase

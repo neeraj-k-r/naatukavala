@@ -3,6 +3,8 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+import SortSelect from "@/components/SortSelect";
+
 export type ShopSort = "featured" | "newest" | "price-asc" | "price-desc";
 
 const sortLabels: Record<ShopSort, string> = {
@@ -71,25 +73,18 @@ export default function ShopFilterBar({
             Search
           </button>
         </form>
-        <select
-          value={activeSort}
-          onChange={(event) =>
-            navigate(
-              withUpdated(
-                "sort",
-                event.target.value === "featured" ? "" : event.target.value,
-              ),
-            )
-          }
-          aria-label="Sort products"
-          className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-        >
-          {(Object.keys(sortLabels) as ShopSort[]).map((sort) => (
-            <option key={sort} value={sort}>
-              {sortLabels[sort]}
-            </option>
-          ))}
-        </select>
+        <div className="sm:w-56 sm:flex-none">
+          <SortSelect<ShopSort>
+            value={activeSort}
+            options={(Object.keys(sortLabels) as ShopSort[]).map((sort) => ({
+              value: sort,
+              label: sortLabels[sort],
+            }))}
+            onChange={(next) =>
+              navigate(withUpdated("sort", next === "featured" ? "" : next))
+            }
+          />
+        </div>
       </div>
 
       {categories.length > 0 && (

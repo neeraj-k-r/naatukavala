@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 
 import SearchBar from "@/components/SearchBar";
-import CategoryPills from "@/components/CategoryPills";
+import MarketplaceFilterBar from "@/components/MarketplaceFilterBar";
 import ProductGrid from "@/components/ProductGrid";
 import { getMarketplace } from "@/lib/api";
 import { getUser } from "@/lib/auth";
@@ -21,21 +21,20 @@ export default async function MarketplacePage({
   const params = await searchParams;
   const search = typeof params.q === "string" ? params.q : "";
   const category = typeof params.category === "string" ? params.category : "";
+  const sort = typeof params.sort === "string" ? params.sort : "";
+  const maxPrice = typeof params.maxPrice === "string" ? params.maxPrice : "";
+  const inStockOnly = params.inStock === "1";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       {/* Hero paints instantly — the catalog streams in below */}
-      <section className="mb-10 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 px-6 py-12 text-white sm:px-10">
+      <section className="mb-8 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 px-5 py-8 text-white sm:mb-10 sm:rounded-3xl sm:px-10 sm:py-12">
         <div className="max-w-2xl">
-          <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl">
+          <h1 className="text-balance text-2xl font-extrabold leading-tight sm:text-4xl">
             Every local shop, one marketplace.
           </h1>
-          <p className="mt-3 text-emerald-50">
-            Stationery, groceries, crafts and more — browse products from shops
-            and independent sellers across your neighbourhood, and buy online.
-          </p>
         </div>
-        <div className="mt-8">
+        <div className="mt-5 sm:mt-8">
           <Suspense fallback={null}>
             <SearchBar />
           </Suspense>
@@ -43,10 +42,16 @@ export default async function MarketplacePage({
       </section>
 
       <Suspense
-        key={`${search}|${category}`}
+        key={`${search}|${category}|${sort}|${maxPrice}|${inStockOnly}`}
         fallback={<CatalogSkeleton />}
       >
-        <MarketplaceCatalog search={search} category={category} />
+        <MarketplaceCatalog
+          search={search}
+          category={category}
+          sort={sort}
+          maxPrice={maxPrice}
+          inStockOnly={inStockOnly}
+        />
       </Suspense>
     </div>
   );
@@ -56,17 +61,43 @@ export default async function MarketplacePage({
 async function MarketplaceCatalog({
   search,
   category,
+  sort,
+  maxPrice,
+  inStockOnly,
 }: {
   search: string;
   category: string;
+  sort: string;
+  maxPrice: string;
+  inStockOnly: boolean;
 }) {
   const [bundle, user] = await Promise.all([
     getMarketplace({ search, category }),
     getUser(),
   ]);
-  const { products, shops, spotlight, categories } = bundle;
+  const { shops, spotlight, categories } = bundle;
   const signedIn = Boolean(user);
   const wishlistIds = user ? new Set(bundle.wishlistIds) : new Set<string>();
+
+  // Extra filters applied on top of the backend result (no backend change).
+  const cap = Number(maxPrice);
+  let products = bundle.products.filter((product) => {
+    if (inStockOnly && product.stock <= 0) return false;
+    if (maxPrice !== "" && Number.isFinite(cap) && product.price > cap) {
+      return false;
+    }
+    return true;
+  });
+  products = [...products];
+  if (sort === "price-asc") {
+    products.sort((a, b) => a.price - b.price);
+  } else if (sort === "price-desc") {
+    products.sort((a, b) => b.price - a.price);
+  } else if (sort === "newest") {
+    products.sort(
+      (a, b) => +new Date(b.created_at) - +new Date(a.created_at),
+    );
+  }
 
   const promotedProductIds = new Set([
     ...spotlight.products.map((product) => product.id),
@@ -76,9 +107,9 @@ async function MarketplaceCatalog({
 
   return (
     <>
-      <div className="mb-8">
-        <CategoryPills categories={categories} active={category} />
-      </div>
+      <Suspense fallback={null}>
+        <MarketplaceFilterBar categories={categories} resultCount={products.length} />
+      </Suspense>
 
       <div className="mb-5 flex items-baseline justify-between gap-3">
         <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -114,8 +145,8 @@ async function MarketplaceCatalog({
             <div
               className={
                 spotlight.products.length > 0
-                  ? "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
-                  : "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+                  ? "mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"
+                  : "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"
               }
             >
               {spotlight.shops.map((shop) => (
@@ -129,11 +160,11 @@ async function MarketplaceCatalog({
       <ProductGrid products={products} promotedIds={promotedProductIds} wishlistIds={wishlistIds} signedIn={signedIn} />
 
       {shops.length > 0 && (
-        <section className="mt-16">
-          <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-slate-100">
+        <section className="mt-10 sm:mt-16">
+          <h2 className="mb-3 text-lg font-bold text-slate-900 sm:mb-4 sm:text-xl dark:text-slate-100">
             Featured shops
           </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {shops.map((shop) => (
               <ShopCard key={shop.id} shop={shop} />
             ))}
@@ -196,9 +227,9 @@ function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }
           />
         </div>
       )}
-      <div className="p-5">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-10 w-10 flex-none items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-base font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+      <div className="p-4 sm:p-5">
+        <div className="mb-2 flex items-center gap-2.5 sm:mb-3 sm:gap-3">
+          <div className="flex h-9 w-9 flex-none items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-sm font-bold text-emerald-700 sm:h-10 sm:w-10 sm:text-base dark:bg-emerald-950 dark:text-emerald-300">
             {shop.logo_url ? (
               <Image
                 src={shop.logo_url}
@@ -211,14 +242,14 @@ function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }
               <span>{shop.name.slice(0, 1).toUpperCase()}</span>
             )}
           </div>
-          <p className="text-lg font-bold text-emerald-700 group-hover:underline dark:text-emerald-400">
+          <p className="min-w-0 break-words text-base font-bold text-emerald-700 group-hover:underline sm:text-lg dark:text-emerald-400">
             {shop.name}
           </p>
         </div>
         {shop.tagline && (
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{shop.tagline}</p>
+          <p className="mt-1 break-words text-[13px] text-slate-500 sm:text-sm dark:text-slate-400">{shop.tagline}</p>
         )}
-        <p className="mt-3 text-xs font-medium text-slate-400 dark:text-slate-500">
+        <p className="mt-2 truncate text-xs font-medium text-slate-400 sm:mt-3 dark:text-slate-500">
           {shop.slug}.{process.env.NEXT_PUBLIC_APP_DOMAIN || "shop"}
         </p>
       </div>

@@ -30,6 +30,16 @@ export const metadata: Metadata = {
   },
   description:
     "A marketplace for local shop-owners and small vendors. Browse products from every shop and buy online.",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/icon.png", type: "image/png" }],
+  },
+  openGraph: {
+    title: "Naatukavala — Every local shop, online",
+    description:
+      "A marketplace for local shop-owners and small vendors. Browse products from every shop and buy online.",
+    images: [{ url: "/naatukavala.png", width: 1024, height: 1024, alt: "Naatukavala logo" }],
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

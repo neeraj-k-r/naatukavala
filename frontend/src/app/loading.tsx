@@ -15,10 +15,11 @@ export default function MarketplaceLoading() {
         {[0, 1, 2, 3, 4].map((i) => (
           <span
             key={i}
+            style={{ animation: `naatukavala-dot 1.2s ease-in-out ${i * 0.15}s infinite` }}
             className={
               i === 0
                 ? "h-3.5 w-3.5 rounded-full bg-emerald-950 dark:bg-emerald-400"
-                : "h-3.5 w-3.5 rounded-full bg-emerald-950/25 dark:bg-slate-700"
+                : "h-3.5 w-3.5 rounded-full bg-emerald-950/40 dark:bg-slate-600"
             }
           />
         ))}

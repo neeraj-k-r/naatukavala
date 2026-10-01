@@ -2,7 +2,12 @@ import Image from "next/image";
 
 export default function MarketplaceLoading() {
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center bg-[#f6f1de] px-4 py-16 dark:bg-slate-950">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Loading Naatukavala"
+      className="flex min-h-[70vh] flex-col items-center justify-center bg-[#f6f1de] px-4 py-16 dark:bg-slate-950"
+    >
       <Image
         src="/naatukavala.png"
         alt="Naatukavala"

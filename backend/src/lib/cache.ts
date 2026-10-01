@@ -1,6 +1,8 @@
 const store = new Map<string, { expires: number; value: unknown }>();
 
-const TTL_MS = 30_000;
+// Catalog reads go through the frontend on every page render: keep them warm
+// for longer. All catalog mutations call clearCache() to stay instant.
+const TTL_MS = 120_000;
 
 /** Caches the result of an async query for a short TTL (public catalog reads). */
 export async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {

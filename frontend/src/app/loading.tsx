@@ -11,7 +11,19 @@ export default function MarketplaceLoading() {
         className="h-44 w-44 rounded-full object-cover shadow-lg ring-4 ring-emerald-900/15"
         priority
       />
-      <p className="mt-6 text-xl font-medium tracking-[0.2em] text-emerald-950 dark:text-emerald-200">
+      <div className="mt-8 flex items-center gap-2.5" aria-hidden>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span
+            key={i}
+            className={
+              i === 0
+                ? "h-3.5 w-3.5 rounded-full bg-emerald-950 dark:bg-emerald-400"
+                : "h-3.5 w-3.5 rounded-full bg-emerald-950/25 dark:bg-slate-700"
+            }
+          />
+        ))}
+      </div>
+      <p className="mt-4 text-xl font-medium tracking-[0.2em] text-emerald-950 dark:text-emerald-200">
         Loading...
       </p>
     </div>

@@ -1,24 +1,19 @@
+import Image from "next/image";
+
 export default function MarketplaceLoading() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="mb-10 h-52 animate-pulse rounded-3xl bg-slate-100 dark:bg-slate-800" />
-      <div className="mb-6 flex gap-2">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-9 w-24 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="aspect-square animate-pulse bg-slate-100 dark:bg-slate-800" />
-            <div className="space-y-2 p-4">
-              <div className="h-3 w-16 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
-              <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
-              <div className="h-4 w-1/3 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="flex min-h-[70vh] flex-col items-center justify-center bg-[#f6f1de] px-4 py-16 dark:bg-slate-950">
+      <Image
+        src="/naatukavala.png"
+        alt="Naatukavala"
+        width={220}
+        height={220}
+        className="h-44 w-44 rounded-full object-cover shadow-lg ring-4 ring-emerald-900/15"
+        priority
+      />
+      <p className="mt-6 text-xl font-medium tracking-[0.2em] text-emerald-950 dark:text-emerald-200">
+        Loading...
+      </p>
     </div>
   );
 }

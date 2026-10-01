@@ -12,7 +12,7 @@ import { shopUrl } from "@/lib/subdomain";
 import type { Shop } from "@/lib/types";
 
 export const metadata = {
-  title: "Marketplace — every local shop, online",
+  title: { absolute: "Naatukavala" },
 };
 
 export default async function MarketplacePage({

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import type { Shop } from "@/lib/types";
@@ -28,7 +29,14 @@ export default function Footer({ siteShop = null }: { siteShop?: Shop | null }) 
   return (
     <footer className="mt-auto border-t border-emerald-100 bg-emerald-50/60 dark:border-slate-800 dark:bg-slate-950">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-slate-600 dark:text-slate-400 sm:flex-row sm:px-6">
-        <p className="font-semibold text-emerald-900 dark:text-emerald-200">
+        <p className="flex items-center gap-2 font-semibold text-emerald-900 dark:text-emerald-200">
+          <Image
+            src="/naatukavala.png"
+            alt="Naatukavala"
+            width={28}
+            height={28}
+            className="h-7 w-7 rounded-full object-cover"
+          />
           Naatukavala — every local shop, online.
         </p>
         <nav className="flex items-center gap-5">

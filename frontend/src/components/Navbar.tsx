@@ -153,9 +153,14 @@ export default function Navbar({
           </Link>
         ) : (
           <Link href={authUrl("/")} className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-lg font-bold text-white">
-              N
-            </span>
+            <Image
+              src="/naatukavala.png"
+              alt="Naatukavala"
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-full object-cover"
+              priority
+            />
             <span className="text-xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-200">
               Naatukavala
             </span>

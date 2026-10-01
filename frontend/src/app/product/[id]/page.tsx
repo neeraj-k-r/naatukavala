@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import ProductGallery from "@/components/ProductGallery";
 import ProductPurchasePanel from "@/components/ProductPurchasePanel";
 import ReviewsSection from "@/components/ReviewsSection";
 import VerifiedBadge from "@/components/VerifiedBadge";
@@ -21,7 +21,7 @@ export default async function ProductPage({
   ]);
   if (!product) notFound();
 
-  const [image, reviews] = [product.images?.[0], await getProductReviews(id)];
+  const reviews = await getProductReviews(id);
   const votedIds = user
     ? await getVotedHelpful(reviews.reviews.map((review) => review.order_id))
     : new Set<string>();
@@ -30,43 +30,7 @@ export default async function ProductPage({
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="grid gap-10 lg:grid-cols-2">
         {/* Gallery */}
-        <div>
-          <div className="relative aspect-square overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            {image ? (
-              <Image
-                src={image}
-                alt={product.name}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-6xl">
-                🌿
-              </div>
-            )}
-            {product.stock === 0 && (
-              <span className="absolute left-3 top-3 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-semibold text-white">
-                Out of stock
-              </span>
-            )}
-          </div>
-
-          {product.images.length > 1 && (
-            <div className="mt-3 flex gap-3">
-              {product.images.map((src) => (
-                <Image
-                  key={src}
-                  src={src}
-                  alt={product.name}
-                  width={80}
-                  height={80}
-                  className="h-20 w-20 rounded-xl border border-slate-100 object-cover dark:border-slate-700"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery images={product.images} name={product.name} stock={product.stock} />
 
         {/* Details */}
         <div className="flex flex-col">

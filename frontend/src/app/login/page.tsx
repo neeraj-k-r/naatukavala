@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useActionState } from "react";
 
 import { signIn } from "@/lib/actions";
@@ -12,6 +13,19 @@ export default function LoginPage() {
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-md flex-col justify-center px-4 py-12">
       <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4 flex items-center gap-3">
+          <Image
+            src="/naatukavala.png"
+            alt="Naatukavala"
+            width={44}
+            height={44}
+            className="h-11 w-11 rounded-full object-cover"
+            priority
+          />
+          <span className="text-lg font-extrabold tracking-tight text-emerald-900 dark:text-emerald-200">
+            Naatukavala
+          </span>
+        </div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Welcome back</h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Log in to buy, or manage your shop.

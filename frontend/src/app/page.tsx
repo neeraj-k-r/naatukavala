@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 
 import SearchBar from "@/components/SearchBar";
+import DealsShelf from "@/components/DealsShelf";
 import HeroCarousel from "@/components/HeroCarousel";
 import CategoryRail from "@/components/CategoryRail";
 import MarketplaceFilterBar from "@/components/MarketplaceFilterBar";
@@ -102,9 +103,24 @@ async function MarketplaceCatalog({
   const hasSpotlight =
     spotlight.products.length > 0 || spotlight.shops.length > 0;
 
+  // Browse-mode shelf: sponsored picks first, then newest arrivals.
+  const shelfProducts =
+    search || category
+      ? []
+      : [
+          ...spotlight.products,
+          ...products.filter((product) => !promotedProductIds.has(product.id)),
+        ].slice(0, 10);
+
   return (
     <>
       <CategoryRail categories={categories} active={category} search={search} />
+      <DealsShelf
+        products={shelfProducts}
+        promotedIds={promotedProductIds}
+        wishlistIds={wishlistIds}
+        signedIn={signedIn}
+      />
       <Suspense fallback={null}>
         <MarketplaceFilterBar categories={categories} resultCount={products.length} />
       </Suspense>

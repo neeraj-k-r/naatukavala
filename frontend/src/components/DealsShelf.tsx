@@ -150,7 +150,7 @@ export default function DealsShelf({
           <>
             <button
               type="button"
-              onClick={() => go(safeIndex - 1)}
+              onClick={(e) => { e.stopPropagation(); go(safeIndex - 1); }}
               aria-label="Previous trending product"
               className="absolute left-3 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full border border-white/40 bg-white/20 p-2 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
             >
@@ -160,7 +160,7 @@ export default function DealsShelf({
             </button>
             <button
               type="button"
-              onClick={() => go(safeIndex + 1)}
+              onClick={(e) => { e.stopPropagation(); go(safeIndex + 1); }}
               aria-label="Next trending product"
               className="absolute right-3 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full border border-white/40 bg-white/20 p-2 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
             >

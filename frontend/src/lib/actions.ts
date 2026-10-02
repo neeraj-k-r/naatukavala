@@ -199,6 +199,40 @@ export async function deleteAccount(state: unknown, formData: FormData) {
   redirect("/");
 }
 
+/** Saves the signed-in user's default delivery address and phone. */
+export async function updateProfile(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+
+  const fullName = String(formData.get("full_name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim();
+
+  if (fullName.length > MAX_NAME_LENGTH) {
+    return { error: "Name must be under 100 characters." };
+  }
+  if (address.length > 500) {
+    return { error: "Address must be under 500 characters." };
+  }
+
+  try {
+    await fetchApi("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({
+        full_name: fullName || undefined,
+        phone,
+        address,
+      }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not save your details.") };
+  }
+
+  revalidatePath("/account");
+  revalidatePath("/checkout");
+  return { success: true };
+}
+
 // ---------------------------------------------------------------- Promotions
 
 /** Sellers request a sponsored spot for their shop or one product. */

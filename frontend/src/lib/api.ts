@@ -205,6 +205,18 @@ export async function getProductById(
 
 // ---------------------------------------------------------------- User
 
+/** Signed-in user's own profile, including saved address/phone. */
+export async function getMyProfile(): Promise<import("@/lib/types").Profile | null> {
+  try {
+    const { user } = await fetchApi<{
+      user: { profile: import("@/lib/types").Profile | null };
+    }>("/auth/me");
+    return user?.profile ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Any shop owned by a user, regardless of status (used by sellers). */
 export async function getShopByOwner(
   _ownerId: string,

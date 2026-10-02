@@ -18,6 +18,20 @@ import { securityHeaders } from "./middleware/security.js";
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 
+// Fail fast with a clear message when required env is missing (hosting
+// dashboards set these per-service; a cryptic crash on first request is
+// harder to debug from deploy logs).
+const requiredEnv = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] as const;
+const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+if (missingEnv.length > 0) {
+  console.error(`Missing required env vars: ${missingEnv.join(", ")}`);
+  process.exit(1);
+}
+
+// Behind Render/Railway/etc. the app sits behind a proxy — trust it so
+// req.ip/secure cookies behave correctly.
+app.set("trust proxy", 1);
+
 app.use(securityHeaders);
 
 // Reflecting any origin together with credentials lets arbitrary sites make

@@ -1,12 +1,20 @@
 import type { Router } from "express";
 import express from "express";
 import multer from "multer";
+import { mkdirSync } from "fs";
 import { unlink } from "fs/promises";
+import { join } from "path";
 
 import { requireAuth } from "../middleware/auth.js";
 import cloudinary from "../lib/cloudinary.js";
 
 const router: Router = express.Router();
+
+function ensureUploadDir(): string {
+  const dir = join(process.cwd(), "uploads");
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
 
 const ALLOWED_MIME = new Set([
   "image/jpeg",
@@ -16,7 +24,9 @@ const ALLOWED_MIME = new Set([
 ]);
 
 const upload = multer({
-  dest: "uploads/",
+  // Fresh deploys have no uploads/ dir (gitignored) — multer throws ENOENT
+  // without it, so ensure it exists (temp files only; images go to Cloudinary).
+  dest: ensureUploadDir(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, done) => {
     // Images only — never let authenticated users host executables or

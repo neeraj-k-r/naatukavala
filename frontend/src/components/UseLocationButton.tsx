@@ -3,6 +3,28 @@
 import { useState } from "react";
 
 /**
+ * Builds "house, street, area, city, state, PIN" from reverse-geocode
+ * parts, skipping the noise. Falls back to display_name, then coords.
+ */
+function cleanAddress(
+  body: { display_name?: string; address?: Record<string, string> },
+  latitude: number,
+  longitude: number,
+): string {
+  const a = body.address ?? {};
+  const street = [a.house_number, a.road].filter(Boolean).join(" ");
+  const parts = [
+    street || a.amenity || a.building || null,
+    a.suburb ?? a.neighbourhood ?? a.hamlet ?? a.locality ?? null,
+    a.city ?? a.town ?? a.village ?? a.municipality ?? null,
+    a.state ?? null,
+    a.postcode ?? null,
+  ].filter((part): part is string => Boolean(part));
+  if (parts.length > 0) return [...new Set(parts)].join(", ");
+  return body.display_name ?? `${latitude}, ${longitude}`;
+}
+
+/**
  * Fills the address field from the device's current location.
  * Uses the browser geolocation API plus free OpenStreetMap reverse
  * geocoding (no API key) — falls back to raw coordinates offline.
@@ -40,12 +62,19 @@ export default function UseLocationButton({
 
     const { latitude, longitude } = position.coords;
     try {
+      // zoom=18 asks for building-level precision; addressdetails lets us
+      // build a short delivery-style address instead of the raw
+      // display_name blob (which often names a nearby road, not you).
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
         { headers: { Accept: "application/json" } },
       );
-      const body = (await res.json()) as { display_name?: string };
-      onResolved(body.display_name ?? `${latitude}, ${longitude}`);
+      const body = (await res.json()) as {
+        display_name?: string;
+        address?: Record<string, string>;
+      };
+      onResolved(cleanAddress(body, latitude, longitude));
+      setMessage("Location filled — please check and edit if needed.");
     } catch {
       onResolved(`${latitude}, ${longitude}`);
     }
@@ -64,7 +93,15 @@ export default function UseLocationButton({
         {status === "locating" ? "Locating…" : "Use my current location"}
       </button>
       {message && (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{message}</p>
+        <p
+          className={`mt-1 text-xs ${
+            status === "error"
+              ? "text-red-600 dark:text-red-400"
+              : "text-slate-500 dark:text-slate-400"
+          }`}
+        >
+          {message}
+        </p>
       )}
     </div>
   );

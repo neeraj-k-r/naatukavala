@@ -19,10 +19,11 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
           { key: "X-Frame-Options", value: "DENY" },
           // The app never needs these in the browser (uploads use file
-          // inputs, not device capture).
+          // inputs, not device capture) — except geolocation, which
+          // checkout uses for "Use my current location".
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(), geolocation=(self)",
           },
         ],
       },

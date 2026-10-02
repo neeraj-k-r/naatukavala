@@ -82,7 +82,7 @@ export default function HeroCarousel() {
     <section
       aria-roledescription="carousel"
       aria-label="Featured"
-      className="mb-5 sm:mb-6"
+      className="mb-4 sm:mb-5"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -106,7 +106,7 @@ export default function HeroCarousel() {
           <div
             key={slide.id}
             aria-hidden={slideIndex !== index}
-            className={`col-start-1 row-start-1 overflow-hidden px-5 py-8 transition-opacity duration-500 sm:px-10 sm:py-12 ${slide.backdrop} ${
+            className={`col-start-1 row-start-1 overflow-hidden px-4 py-4 transition-opacity duration-500 sm:px-6 sm:py-6 ${slide.backdrop} ${
               slideIndex === index
                 ? "pointer-events-auto relative z-10 opacity-100"
                 : "pointer-events-none relative z-0 opacity-0"
@@ -133,7 +133,7 @@ export default function HeroCarousel() {
                     aria-hidden
                     className="block h-1.5 w-12 rounded-full bg-orange-500"
                   />
-                  <h1 className="mt-3 text-balance text-3xl font-extrabold leading-tight text-emerald-950 sm:text-5xl dark:text-emerald-50">
+                  <h1 className="mt-2 text-balance text-2xl font-extrabold leading-tight text-emerald-950 sm:text-4xl dark:text-emerald-50">
                     {slide.title}{" "}
                     {slide.accent && (
                       <span className="text-orange-600 dark:text-orange-400">
@@ -141,11 +141,11 @@ export default function HeroCarousel() {
                       </span>
                     )}
                   </h1>
-                  <div className="mt-5 sm:mt-6">
+                  <div className="mt-4 sm:mt-4">
                     <Link
                       href={slide.cta.href}
                       tabIndex={slideIndex === index ? 0 : -1}
-                      className="inline-flex h-11 items-center gap-2 rounded-full bg-emerald-700 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800"
+                      className="inline-flex h-10 items-center gap-2 rounded-full bg-emerald-700 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800"
                     >
                       {slide.cta.label}
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
@@ -172,18 +172,18 @@ export default function HeroCarousel() {
                   </span>
                 )}
                 <div className="relative z-10 max-w-2xl">
-                  <p className="text-xs font-bold uppercase tracking-widest text-white/80 sm:text-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-white/80 sm:text-xs">
                     {slide.eyebrow}
                   </p>
-                  <h1 className="mt-1 text-balance text-2xl font-extrabold leading-tight text-white sm:text-4xl">
+                  <h1 className="mt-0.5 text-balance text-lg font-extrabold leading-tight text-white sm:text-2xl">
                     {slide.title}
                   </h1>
                 </div>
-                <div className="mt-5 sm:mt-8">
+                <div className="relative z-10 mt-3 sm:mt-4">
                   <Link
                     href={slide.cta.href}
                     tabIndex={slideIndex === index ? 0 : -1}
-                    className="inline-block h-11 items-center rounded-xl bg-white/95 px-6 py-2.5 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-white"
+                    className="inline-block h-9 items-center rounded-xl bg-white/95 px-4 py-1.5 text-[13px] font-bold text-slate-900 shadow-sm transition hover:bg-white"
                   >
                     {slide.cta.label}
                   </Link>
@@ -194,12 +194,13 @@ export default function HeroCarousel() {
         ))}
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-3">
+      <div className="mt-2 flex items-center justify-center gap-3">
         <button
           type="button"
-          onClick={() => go(index - 1)}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); go(index - 1); }}
+          onMouseDown={(e) => e.stopPropagation()}
           aria-label="Previous banner"
-          className="rounded-full border border-slate-200 bg-white p-1.5 text-slate-500 shadow-sm transition hover:text-emerald-700 sm:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
+          className="cursor-pointer rounded-full border border-white/40 bg-white/20 p-1.5 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 sm:hidden"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
             <path d="M15 18l-6-6 6-6" />
@@ -223,9 +224,10 @@ export default function HeroCarousel() {
         </div>
         <button
           type="button"
-          onClick={() => go(index + 1)}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); go(index + 1); }}
+          onMouseDown={(e) => e.stopPropagation()}
           aria-label="Next banner"
-          className="rounded-full border border-slate-200 bg-white p-1.5 text-slate-500 shadow-sm transition hover:text-emerald-700 sm:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
+          className="cursor-pointer rounded-full border border-white/40 bg-white/20 p-1.5 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 sm:hidden"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
             <path d="M9 6l6 6-6 6" />

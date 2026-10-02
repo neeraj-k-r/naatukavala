@@ -123,6 +123,45 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 /**
+ * Self-service profile update: buyers save their default delivery
+ * address and phone, reused to prefill checkout. Role/email changes
+ * are rejected here — roles only change via the admin API.
+ */
+router.patch("/me", requireAuth, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+
+  const full_name = String(req.body?.full_name ?? "").trim();
+  const phone = String(req.body?.phone ?? "").trim();
+  const address = String(req.body?.address ?? "").trim();
+
+  if (full_name.length > 100) {
+    return res.status(400).json({ error: "Name must be under 100 characters." });
+  }
+  if (phone && !/^\+?[0-9\s-]{7,18}$/.test(phone)) {
+    return res.status(400).json({ error: "Please enter a valid phone number." });
+  }
+  if (address.length > 500) {
+    return res.status(400).json({ error: "Address must be under 500 characters." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  const patch: Record<string, string | null> = {};
+  if (req.body?.full_name !== undefined) patch.full_name = full_name || "";
+  if (req.body?.phone !== undefined) patch.phone = phone || null;
+  if (req.body?.address !== undefined) patch.address = address || null;
+  if (Object.keys(patch).length === 0) {
+    return res.status(400).json({ error: "Nothing to update." });
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(patch)
+    .eq("id", req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  return res.json({ ok: true });
+});
+
+/**
  * Self-deletion: removes the signed-in user's own account after verifying
  * their password. Sellers whose shops have order history are stopped with
  * guidance (orders reference shops with ON DELETE RESTRICT); everything

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import SearchBar from "@/components/SearchBar";
 import DealsShelf from "@/components/DealsShelf";
+import TrustStrip from "@/components/TrustStrip";
 import HeroCarousel from "@/components/HeroCarousel";
 import CategoryRail from "@/components/CategoryRail";
 import MarketplaceFilterBar from "@/components/MarketplaceFilterBar";
@@ -38,6 +39,7 @@ export default async function MarketplacePage({
           </Suspense>
         }
       />
+      <TrustStrip />
 
       <Suspense
         key={`${search}|${category}|${sort}|${maxPrice}|${inStockOnly}`}

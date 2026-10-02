@@ -16,6 +16,10 @@ type Slide = {
   cta: { label: string; href: string };
   theme: "editorial" | "brand";
   backdrop: string;
+  /** Optional photo background that matches the slide's message. */
+  photo?: string;
+  /** Readability scrim over the photo, tinted to the slide's color. */
+  scrim?: string;
 };
 
 const slides: Slide[] = [
@@ -35,6 +39,9 @@ const slides: Slide[] = [
     cta: { label: "Sell with us", href: "/sell" },
     theme: "brand",
     backdrop: "bg-gradient-to-br from-amber-500 to-orange-600",
+    photo: "/hero-shopkeeper.jpg",
+    scrim:
+      "bg-gradient-to-r from-orange-950/80 via-orange-950/45 via-[45%] to-orange-950/10",
   },
   {
     id: "shops",
@@ -43,6 +50,9 @@ const slides: Slide[] = [
     cta: { label: "Browse shops", href: "#featured-shops" },
     theme: "brand",
     backdrop: "bg-gradient-to-br from-teal-600 to-emerald-800",
+    photo: "/hero-storefront.jpg",
+    scrim:
+      "bg-gradient-to-r from-emerald-950/80 via-emerald-950/45 via-[45%] to-emerald-950/10",
   },
 ];
 
@@ -147,7 +157,21 @@ export default function HeroCarousel() {
               </>
             ) : (
               <>
-                <div className="max-w-2xl">
+                {slide.photo && (
+                  <span aria-hidden className="absolute inset-0">
+                    <Image
+                      src={slide.photo}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, 60vw"
+                      className="object-cover object-center"
+                    />
+                    {slide.scrim && (
+                      <span aria-hidden className={`absolute inset-0 ${slide.scrim}`} />
+                    )}
+                  </span>
+                )}
+                <div className="relative z-10 max-w-2xl">
                   <p className="text-xs font-bold uppercase tracking-widest text-white/80 sm:text-sm">
                     {slide.eyebrow}
                   </p>

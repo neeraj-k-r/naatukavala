@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 
 import SearchBar from "@/components/SearchBar";
+import CategoryRail from "@/components/CategoryRail";
 import MarketplaceFilterBar from "@/components/MarketplaceFilterBar";
 import ProductGrid from "@/components/ProductGrid";
 import { getMarketplace } from "@/lib/api";
@@ -107,6 +108,7 @@ async function MarketplaceCatalog({
 
   return (
     <>
+      <CategoryRail categories={categories} active={category} search={search} />
       <Suspense fallback={null}>
         <MarketplaceFilterBar categories={categories} resultCount={products.length} />
       </Suspense>

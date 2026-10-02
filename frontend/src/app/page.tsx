@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
 
-import SearchBar from "@/components/SearchBar";
 import DealsShelf from "@/components/DealsShelf";
 import HeroCarousel from "@/components/HeroCarousel";
 import CategoryRail from "@/components/CategoryRail";
@@ -31,13 +30,7 @@ export default async function MarketplacePage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       {/* Hero paints instantly — the catalog streams in below */}
-      <HeroCarousel
-        searchSlot={
-          <Suspense fallback={null}>
-            <SearchBar />
-          </Suspense>
-        }
-      />
+      <HeroCarousel />
 
       <Suspense
         key={`${search}|${category}|${sort}|${maxPrice}|${inStockOnly}`}
@@ -125,7 +118,7 @@ async function MarketplaceCatalog({
         <MarketplaceFilterBar categories={categories} resultCount={products.length} />
       </Suspense>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+      <section id="all-products" className="scroll-mt-20 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl dark:text-slate-100">
             {search ? `Results for "${search}"` : "All products"}

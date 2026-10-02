@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { placeOrder } from "@/lib/actions";
 import SubmitButton from "@/components/SubmitButton";
+import UseLocationButton from "@/components/UseLocationButton";
 import { useCart, cartGroupedByShop } from "@/components/CartContext";
 import { validateCoupon } from "@/lib/client-api";
 import type { CouponPreviewResult } from "@/lib/client-api";
@@ -31,6 +32,7 @@ export default function CheckoutForm({
   } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
+  const [address, setAddress] = useState(initialAddress);
 
   // The preview belongs to the exact cart it was computed for.
   const cartKey = items
@@ -109,12 +111,16 @@ export default function CheckoutForm({
               >
                 Shipping address
               </label>
+              <div className="mb-2 flex justify-end">
+                <UseLocationButton onResolved={setAddress} />
+              </div>
               <textarea
                 id="shipping_address"
                 name="shipping_address"
                 required
                 rows={3}
-                defaultValue={initialAddress}
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
                 placeholder="House / street, area, city, PIN code"
                 className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />

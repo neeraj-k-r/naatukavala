@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 
 import SearchBar from "@/components/SearchBar";
+import HeroCarousel from "@/components/HeroCarousel";
 import CategoryRail from "@/components/CategoryRail";
 import MarketplaceFilterBar from "@/components/MarketplaceFilterBar";
 import ProductGrid from "@/components/ProductGrid";
@@ -29,18 +30,13 @@ export default async function MarketplacePage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       {/* Hero paints instantly — the catalog streams in below */}
-      <section className="mb-8 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 px-5 py-8 text-white sm:mb-10 sm:rounded-3xl sm:px-10 sm:py-12">
-        <div className="max-w-2xl">
-          <h1 className="text-balance text-2xl font-extrabold leading-tight sm:text-4xl">
-            Every local shop, one marketplace.
-          </h1>
-        </div>
-        <div className="mt-5 sm:mt-8">
+      <HeroCarousel
+        searchSlot={
           <Suspense fallback={null}>
             <SearchBar />
           </Suspense>
-        </div>
-      </section>
+        }
+      />
 
       <Suspense
         key={`${search}|${category}|${sort}|${maxPrice}|${inStockOnly}`}
@@ -162,7 +158,7 @@ async function MarketplaceCatalog({
       <ProductGrid products={products} promotedIds={promotedProductIds} wishlistIds={wishlistIds} signedIn={signedIn} />
 
       {shops.length > 0 && (
-        <section className="mt-10 sm:mt-16">
+        <section id="featured-shops" className="mt-10 scroll-mt-20 sm:mt-16">
           <h2 className="mb-3 text-lg font-bold text-slate-900 sm:mb-4 sm:text-xl dark:text-slate-100">
             Featured shops
           </h2>

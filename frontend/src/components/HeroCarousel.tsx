@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -102,40 +103,48 @@ export default function HeroCarousel() {
             }`}
           >
             {slide.theme === "editorial" ? (
-              <div className="relative max-w-2xl">
-                <span
-                  aria-hidden
-                  className="block h-1.5 w-12 rounded-full bg-orange-500"
-                />
-                <h1 className="mt-3 text-balance text-3xl font-extrabold leading-tight text-emerald-950 sm:text-5xl dark:text-emerald-50">
-                  {slide.title}{" "}
-                  {slide.accent && (
-                    <span className="text-orange-600 dark:text-orange-400">
-                      {slide.accent}
-                    </span>
-                  )}
-                </h1>
-                <div className="mt-5 sm:mt-6">
-                  <Link
-                    href={slide.cta.href}
-                    tabIndex={slideIndex === index ? 0 : -1}
-                    className="inline-flex h-11 items-center gap-2 rounded-full bg-emerald-700 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800"
-                  >
-                    {slide.cta.label}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
-                      <path d="M5 12h14M13 6l6 6-6 6" />
-                    </svg>
-                  </Link>
+              <>
+                <span aria-hidden className="absolute inset-0">
+                  <Image
+                    src="/hero-market.jpg"
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 100vw, 60vw"
+                    priority={slideIndex === 0}
+                    className="object-cover object-center"
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 bg-gradient-to-r from-[#faf5e9] via-[#faf5e9]/85 via-[45%] to-[#faf5e9]/5 dark:from-slate-900 dark:via-slate-900/85 dark:to-slate-900/5"
+                  />
+                </span>
+                <div className="relative z-10 max-w-2xl">
+                  <span
+                    aria-hidden
+                    className="block h-1.5 w-12 rounded-full bg-orange-500"
+                  />
+                  <h1 className="mt-3 text-balance text-3xl font-extrabold leading-tight text-emerald-950 sm:text-5xl dark:text-emerald-50">
+                    {slide.title}{" "}
+                    {slide.accent && (
+                      <span className="text-orange-600 dark:text-orange-400">
+                        {slide.accent}
+                      </span>
+                    )}
+                  </h1>
+                  <div className="mt-5 sm:mt-6">
+                    <Link
+                      href={slide.cta.href}
+                      tabIndex={slideIndex === index ? 0 : -1}
+                      className="inline-flex h-11 items-center gap-2 rounded-full bg-emerald-700 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800"
+                    >
+                      {slide.cta.label}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-200/50 blur-2xl dark:bg-emerald-900/40"
-                />
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -bottom-14 right-24 h-32 w-32 rounded-full bg-orange-200/60 blur-2xl dark:bg-orange-900/30"
-                />
-              </div>
+              </>
             ) : (
               <>
                 <div className="max-w-2xl">

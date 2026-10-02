@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { getPriceDropCount } from "@/lib/client-api";
 import { signOut } from "@/lib/actions";
+import SearchBar from "@/components/SearchBar";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useCart } from "@/components/CartContext";
 import type { AuthUser } from "@/lib/auth";
@@ -171,34 +172,19 @@ export default function Navbar({
           </Link>
         )}
 
-        <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex dark:text-slate-300">
-          {shopMode ? (
+        {shopMode ? (
+          <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex dark:text-slate-300">
             <Link href="/" className="hover:text-emerald-700 dark:hover:text-emerald-400">
               Home
             </Link>
-          ) : (
-            <>
-              <Link href={authUrl("/")} className="hover:text-emerald-700 dark:hover:text-emerald-400">
-                Marketplace
-              </Link>
-              {(!role || role === "buyer") && (
-                <Link href={authUrl("/sell")} className="hover:text-emerald-700 dark:hover:text-emerald-400">
-                  Sell with us
-                </Link>
-              )}
-              {role === "seller" && (
-                <Link href="/dashboard" className="hover:text-emerald-700 dark:hover:text-emerald-400">
-                  Dashboard
-                </Link>
-              )}
-              {(role === "superadmin" || role === "admin") && (
-                <Link href="/admin" className="hover:text-emerald-700 dark:hover:text-emerald-400">
-                  Admin
-                </Link>
-              )}
-            </>
-          )}
-        </nav>
+          </nav>
+        ) : (
+          <div className="hidden min-w-0 flex-1 justify-center px-2 md:flex">
+            <Suspense fallback={null}>
+              <SearchBar variant="inline" placeholder="Search for products, shops…" />
+            </Suspense>
+          </div>
+        )}
 
         {/* Desktop actions */}
         <div className="hidden items-center gap-2 md:flex">
@@ -227,6 +213,40 @@ export default function Navbar({
               </span>
             )}
           </Link>
+          {!shopMode && (
+            <>
+              <Link
+                href={authUrl("/")}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                Marketplace
+              </Link>
+              {(!role || role === "buyer") && (
+                <Link
+                  href={authUrl("/sell")}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Sell with us
+                </Link>
+              )}
+              {role === "seller" && (
+                <Link
+                  href="/dashboard"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Dashboard
+                </Link>
+              )}
+              {(role === "superadmin" || role === "admin") && (
+                <Link
+                  href="/admin"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Admin
+                </Link>
+              )}
+            </>
+          )}
 
           {!user ? (
             <div className="flex items-center gap-2">

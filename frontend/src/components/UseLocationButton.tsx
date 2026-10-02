@@ -2,27 +2,7 @@
 
 import { useState } from "react";
 
-/**
- * Builds "house, street, area, city, state, PIN" from reverse-geocode
- * parts, skipping the noise. Falls back to display_name, then coords.
- */
-function cleanAddress(
-  body: { display_name?: string; address?: Record<string, string> },
-  latitude: number,
-  longitude: number,
-): string {
-  const a = body.address ?? {};
-  const street = [a.house_number, a.road].filter(Boolean).join(" ");
-  const parts = [
-    street || a.amenity || a.building || null,
-    a.suburb ?? a.neighbourhood ?? a.hamlet ?? a.locality ?? null,
-    a.city ?? a.town ?? a.village ?? a.municipality ?? null,
-    a.state ?? null,
-    a.postcode ?? null,
-  ].filter((part): part is string => Boolean(part));
-  if (parts.length > 0) return [...new Set(parts)].join(", ");
-  return body.display_name ?? `${latitude}, ${longitude}`;
-}
+import { currentPosition, reverseGeocode } from "@/lib/geocode";
 
 /**
  * Fills the address field from the device's current location.
@@ -38,45 +18,27 @@ export default function UseLocationButton({
   const [message, setMessage] = useState<string | null>(null);
 
   async function handleClick() {
-    if (!("geolocation" in navigator)) {
-      setStatus("error");
-      setMessage("Your browser does not support location access.");
-      return;
-    }
     setStatus("locating");
     setMessage(null);
 
-    let position: GeolocationPosition;
+    let coords;
     try {
-      position = await new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-        }),
-      );
+      coords = await currentPosition();
     } catch {
       setStatus("error");
-      setMessage("Could not get your location. Please allow location access.");
+      setMessage(
+        "geolocation" in navigator
+          ? "Could not get your location. Please allow location access."
+          : "Your browser does not support location access.",
+      );
       return;
     }
 
-    const { latitude, longitude } = position.coords;
     try {
-      // zoom=18 asks for building-level precision; addressdetails lets us
-      // build a short delivery-style address instead of the raw
-      // display_name blob (which often names a nearby road, not you).
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-        { headers: { Accept: "application/json" } },
-      );
-      const body = (await res.json()) as {
-        display_name?: string;
-        address?: Record<string, string>;
-      };
-      onResolved(cleanAddress(body, latitude, longitude));
+      onResolved(await reverseGeocode(coords.latitude, coords.longitude));
       setMessage("Location filled — please check and edit if needed.");
     } catch {
-      onResolved(`${latitude}, ${longitude}`);
+      onResolved(`${coords.latitude}, ${coords.longitude}`);
     }
     setStatus("idle");
   }

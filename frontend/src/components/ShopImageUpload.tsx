@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 
+import ImageEditor from "@/components/ImageEditor";
 import { uploadFile } from "@/lib/client-api";
 
 export default function ShopImageUpload({
@@ -21,9 +22,10 @@ export default function ShopImageUpload({
   const [url, setUrl] = useState(initialUrl);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ url: string; name: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function handleFile(file: File) {
+  async function uploadEdited(file: File) {
     setError(null);
     setUploading(true);
     try {
@@ -33,8 +35,21 @@ export default function ShopImageUpload({
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
     }
+  }
+
+  function handleFile(file: File) {
+    if (inputRef.current) inputRef.current.value = "";
+    if (file.type === "image/gif") {
+      void uploadEdited(file);
+    } else {
+      setEditing({ url: URL.createObjectURL(file), name: file.name });
+    }
+  }
+
+  function closeEditor() {
+    if (editing) URL.revokeObjectURL(editing.url);
+    setEditing(null);
   }
 
   return (
@@ -98,6 +113,18 @@ export default function ShopImageUpload({
 
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       {hint && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{hint}</p>}
+
+      {editing && (
+        <ImageEditor
+          src={editing.url}
+          fileName={editing.name}
+          onCancel={closeEditor}
+          onDone={(file) => {
+            closeEditor();
+            void uploadEdited(file);
+          }}
+        />
+      )}
     </div>
   );
 }

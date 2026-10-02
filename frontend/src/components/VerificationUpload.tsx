@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useRef, useState, useTransition } from "react";
+import { useActionState, useRef, useState } from "react";
 
+import ImageEditor from "@/components/ImageEditor";
 import { submitVerification } from "@/lib/actions";
 import { uploadFile } from "@/lib/client-api";
 
@@ -19,13 +20,14 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
   const [docUrl, setDocUrl] = useState(shop.verification_doc_url ?? "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ url: string; name: string } | null>(null);
   const [state, action, pending] = useActionState(submitVerification, undefined);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const info = statusLabels[shop.verification_status];
   const verified = shop.verification_status === "verified";
 
-  async function handleFile(file: File) {
+  async function uploadEdited(file: File) {
     setUploadError(null);
     setUploading(true);
     try {
@@ -35,8 +37,17 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
     }
+  }
+
+  function handleFile(file: File) {
+    if (inputRef.current) inputRef.current.value = "";
+    setEditing({ url: URL.createObjectURL(file), name: file.name });
+  }
+
+  function closeEditor() {
+    if (editing) URL.revokeObjectURL(editing.url);
+    setEditing(null);
   }
 
   return (
@@ -127,6 +138,18 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
             <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
               Your last submission was rejected. Upload a clearer image and resubmit.
             </p>
+          )}
+
+          {editing && (
+            <ImageEditor
+              src={editing.url}
+              fileName={editing.name}
+              onCancel={closeEditor}
+              onDone={(file) => {
+                closeEditor();
+                void uploadEdited(file);
+              }}
+            />
           )}
 
           <button

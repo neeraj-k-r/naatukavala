@@ -127,18 +127,21 @@ async function MarketplaceCatalog({
         <MarketplaceFilterBar categories={categories} resultCount={products.length} />
       </Suspense>
 
-      <div className="mb-5 flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-          {search ? `Results for "${search}"` : "All products"}
-        </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {products.length} item{products.length === 1 ? "" : "s"}
-        </p>
-      </div>
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl dark:text-slate-100">
+            {search ? `Results for "${search}"` : "All products"}
+          </h2>
+          <p className="flex-none rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            {products.length} item{products.length === 1 ? "" : "s"}
+          </p>
+        </div>
+        <ProductGrid products={products} promotedIds={promotedProductIds} wishlistIds={wishlistIds} signedIn={signedIn} />
+      </section>
 
       {/* Sponsored spotlight — admin-approved promotions get top placement */}
       {hasSpotlight && (
-        <section className="mb-10 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 dark:border-amber-900 dark:from-amber-950 dark:to-slate-900 sm:p-6">
+        <section className="mb-5 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:mb-6 dark:border-amber-900 dark:from-amber-950 dark:to-slate-900 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
             <span className="rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-950">
               Sponsored
@@ -173,11 +176,9 @@ async function MarketplaceCatalog({
         </section>
       )}
 
-      <ProductGrid products={products} promotedIds={promotedProductIds} wishlistIds={wishlistIds} signedIn={signedIn} />
-
       {shops.length > 0 && (
-        <section id="featured-shops" className="mt-10 scroll-mt-20 sm:mt-16">
-          <h2 className="mb-3 text-lg font-bold text-slate-900 sm:mb-4 sm:text-xl dark:text-slate-100">
+        <section id="featured-shops" className="mt-5 scroll-mt-20 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mt-6 sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="mb-3 text-lg font-extrabold tracking-tight text-slate-900 sm:mb-4 sm:text-xl dark:text-slate-100">
             Featured shops
           </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">

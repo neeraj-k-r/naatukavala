@@ -12,7 +12,13 @@ import type { CouponPreviewResult } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
 
-export default function CheckoutForm() {
+export default function CheckoutForm({
+  initialAddress = "",
+  initialPhone = "",
+}: {
+  initialAddress?: string;
+  initialPhone?: string;
+}) {
   const { items, subtotal, deliveryTotal } = useCart();
   const router = useRouter();
   const [state, action, pending] = useActionState(placeOrder, undefined);
@@ -108,6 +114,7 @@ export default function CheckoutForm() {
                 name="shipping_address"
                 required
                 rows={3}
+                defaultValue={initialAddress}
                 placeholder="House / street, area, city, PIN code"
                 className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />
@@ -126,6 +133,7 @@ export default function CheckoutForm() {
                 type="tel"
                 required
                 autoComplete="tel"
+                defaultValue={initialPhone}
                 placeholder="e.g. 98765 43210"
                 className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               />

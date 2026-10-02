@@ -858,6 +858,19 @@ export async function placeOrder(state: unknown, formData: FormData) {
     return { error: messageOf(err, "Could not place your order. Please try again.") };
   }
 
+  // Remember the delivery details for next time (best-effort).
+  try {
+    await fetchApi("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({
+        phone: buyerPhone,
+        address: shippingAddress,
+      }),
+    });
+  } catch {
+    // Ordering already succeeded — a stale saved address is harmless.
+  }
+
   revalidatePath("/account");
   revalidatePath("/dashboard/orders");
   redirect("/account?placed=1");

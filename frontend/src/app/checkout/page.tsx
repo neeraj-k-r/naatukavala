@@ -37,5 +37,10 @@ export default async function CheckoutPage() {
     );
   }
 
-  return <CheckoutForm />;
+  return (
+    <CheckoutForm
+      initialAddress={user.profile?.address ?? ""}
+      initialPhone={user.profile?.phone ?? ""}
+    />
+  );
 }

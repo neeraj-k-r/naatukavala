@@ -6,10 +6,13 @@ import { useState } from "react";
 export default function SearchBar({
   variant = "stacked",
   placeholder = "Search products across all shops…",
+  onNavigate,
 }: {
   /** "inline" stays single-row for tight spots like the navbar. */
   variant?: "stacked" | "inline";
   placeholder?: string;
+  /** Runs after navigation (e.g. close the mobile menu). */
+  onNavigate?: () => void;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,6 +26,7 @@ export default function SearchBar({
     } else {
       router.push("/");
     }
+    onNavigate?.();
   }
 
   const inline = variant === "inline";

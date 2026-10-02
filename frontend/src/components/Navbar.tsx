@@ -385,6 +385,17 @@ export default function Navbar({
       {/* Mobile menu */}
       {mobileOpen && (
         <nav className="border-t border-emerald-100 bg-white px-3 py-3 md:hidden dark:border-slate-800 dark:bg-slate-950">
+          {!shopMode && (
+            <div className="mb-2">
+              <Suspense fallback={null}>
+                <SearchBar
+                  variant="inline"
+                  placeholder="Search for products, shops…"
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              </Suspense>
+            </div>
+          )}
           <div className="flex flex-col gap-1 text-sm font-medium text-slate-700 dark:text-slate-300">
             {shopMode ? (
               <Link

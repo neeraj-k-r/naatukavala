@@ -858,17 +858,20 @@ export async function placeOrder(state: unknown, formData: FormData) {
     return { error: messageOf(err, "Could not place your order. Please try again.") };
   }
 
-  // Remember the delivery details for next time (best-effort).
-  try {
-    await fetchApi("/auth/me", {
-      method: "PATCH",
-      body: JSON.stringify({
-        phone: buyerPhone,
-        address: shippingAddress,
-      }),
-    });
-  } catch {
-    // Ordering already succeeded — a stale saved address is harmless.
+  // Remember the delivery details for next time (best-effort) —
+  // only when the buyer ticked "save as my delivery address".
+  if (formData.get("save_address") === "true") {
+    try {
+      await fetchApi("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          phone: buyerPhone,
+          address: shippingAddress,
+        }),
+      });
+    } catch {
+      // Ordering already succeeded — a stale saved address is harmless.
+    }
   }
 
   revalidatePath("/account");

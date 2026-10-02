@@ -150,6 +150,17 @@ export default function CheckoutForm({
               </p>
             </div>
 
+            <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300">
+              <input
+                type="checkbox"
+                name="save_address"
+                value="true"
+                defaultChecked
+                className="h-4 w-4 rounded accent-emerald-600"
+              />
+              Save as my delivery address for next time
+            </label>
+
             <div className="mt-4">
               <label
                 htmlFor="buyer_note"

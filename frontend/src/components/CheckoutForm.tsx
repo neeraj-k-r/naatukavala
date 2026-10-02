@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+import MapPinPicker from "@/components/MapPinPicker";
 import { placeOrder } from "@/lib/actions";
 import SubmitButton from "@/components/SubmitButton";
 import UseLocationButton from "@/components/UseLocationButton";
@@ -111,8 +112,9 @@ export default function CheckoutForm({
               >
                 Shipping address
               </label>
-              <div className="mb-2 flex justify-end">
+              <div className="mb-2 flex flex-wrap justify-end gap-2">
                 <UseLocationButton onResolved={setAddress} />
+                <MapPinPicker onResolved={setAddress} />
               </div>
               <textarea
                 id="shipping_address"

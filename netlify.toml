@@ -9,6 +9,9 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 # Required env vars (Site settings → Environment variables, set BEFORE building):
 #   NEXT_PUBLIC_API_URL          https://<render-service>.onrender.com
 #   NEXT_PUBLIC_APP_DOMAIN       <site>.netlify.app (update + rebuild after first deploy)

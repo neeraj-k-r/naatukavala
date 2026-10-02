@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 
+import ImageEditor from "@/components/ImageEditor";
 import { submitFeedback } from "@/lib/actions";
 import { uploadFile } from "@/lib/client-api";
 
@@ -23,26 +24,47 @@ export default function FeedbackForm({
   const [images, setImages] = useState<string[]>(initialImages);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ url: string; name: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+  const queueRef = useRef<File[]>([]);
 
-  async function handleFiles(files: FileList | null) {
+  async function uploadOne(file: File) {
+    setUploading(true);
+    try {
+      const url = await uploadFile(file);
+      setImages((prev) =>
+        prev.length >= MAX_PHOTOS ? prev : [...prev, url],
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  /** GIFs skip the editor (cropping would kill animation). */
+  function editNext(files: File[]) {
+    const [first, ...rest] = files;
+    queueRef.current = rest;
+    if (!first) return;
+    if (first.type === "image/gif") {
+      void uploadOne(first).then(() => editNext(rest));
+    } else {
+      setEditing({ url: URL.createObjectURL(first), name: first.name });
+    }
+  }
+
+  function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     setError(null);
-    for (const file of Array.from(files).slice(0, MAX_PHOTOS - images.length)) {
-      setUploading(true);
-      try {
-        const url = await uploadFile(file);
-        setImages((prev) =>
-          prev.length >= MAX_PHOTOS ? prev : [...prev, url],
-        );
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Upload failed");
-      } finally {
-        setUploading(false);
-      }
-    }
     if (inputRef.current) inputRef.current.value = "";
+    editNext(Array.from(files).slice(0, MAX_PHOTOS - images.length));
+  }
+
+  function closeEditor() {
+    if (editing) URL.revokeObjectURL(editing.url);
+    setEditing(null);
   }
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -163,6 +185,25 @@ export default function FeedbackForm({
       </div>
 
       {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+      {editing && (
+        <ImageEditor
+          src={editing.url}
+          fileName={editing.name}
+          onCancel={() => {
+            const rest = queueRef.current;
+            queueRef.current = [];
+            closeEditor();
+            editNext(rest);
+          }}
+          onDone={(file) => {
+            const rest = queueRef.current;
+            queueRef.current = [];
+            closeEditor();
+            void uploadOne(file).then(() => editNext(rest));
+          }}
+        />
+      )}
 
       <div className="mt-3 flex justify-end">
         <button

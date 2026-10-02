@@ -23,7 +23,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost";
+// Absolute base so OG/Twitter images resolve to the production domain
+// instead of localhost when the link is shared.
+const siteUrl =
+  appDomain === "localhost" ? "http://localhost:3000" : `https://${appDomain}`;
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Naatukavala — Every local shop, online",
     template: "%s · Naatukavala",

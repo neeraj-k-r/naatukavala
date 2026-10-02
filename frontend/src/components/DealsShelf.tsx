@@ -137,39 +137,34 @@ export default function DealsShelf({
           </div>
         </Link>
 
-        <div className="absolute right-3 top-3 z-10">
-          <WishlistButton
-            productId={product.id}
-            initialWished={wishlistIds.has(product.id)}
-            signedIn={signedIn}
-            size="trending"
-          />
+        <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-between px-2">
+          {count > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); go(safeIndex - 1); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                aria-label="Previous trending product"
+                className="cursor-pointer rounded-full border border-white/40 bg-white/20 p-2 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 pointer-events-auto"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); go(safeIndex + 1); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                aria-label="Next trending product"
+                className="cursor-pointer rounded-full border border-white/40 bg-white/20 p-2 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 pointer-events-auto"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
-
-        {count > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); go(safeIndex - 1); }}
-              aria-label="Previous trending product"
-              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full border border-white/40 bg-white/20 p-2 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); go(safeIndex + 1); }}
-              aria-label="Next trending product"
-              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 cursor-pointer rounded-full border border-white/40 bg-white/20 p-2 text-white opacity-80 shadow backdrop-blur-md transition hover:bg-white/35 hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </button>
-          </>
-        )}
       </div>
 
       {count > 1 && (

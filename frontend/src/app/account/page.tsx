@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import AddressForm from "@/components/AddressForm";
 import ClearCartOnMount from "@/components/ClearCartOnMount";
 import DeleteAccountForm from "@/components/DeleteAccountForm";
 import FeedbackForm from "@/components/FeedbackForm";
@@ -28,7 +29,8 @@ const statusStyles: Record<string, string> = {
 export default async function AccountPage({
   searchParams,
 }: PageProps<"/account">) {
-  const { id: userId } = await requireBuyer();
+  const user = await requireBuyer();
+  const userId = user.id;
   const params = await searchParams;
   const placed = params.placed === "1";
 
@@ -203,6 +205,14 @@ export default async function AccountPage({
           })}
         </div>
       )}
+
+      <section className="mt-12">
+        <AddressForm
+          initialName={user.profile?.full_name ?? ""}
+          initialPhone={user.profile?.phone ?? ""}
+          initialAddress={user.profile?.address ?? ""}
+        />
+      </section>
 
       <section className="mt-12">
         <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Danger zone</h2>

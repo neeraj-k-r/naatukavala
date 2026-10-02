@@ -26,7 +26,7 @@ const slides = [
     eyebrow: "Neighbourhood favourites",
     title: "Discover verified sellers near you.",
     cta: { label: "Browse shops", href: "#featured-shops" },
-    backdrop: "bg-gradient-to-br from-sky-600 to-indigo-700",
+    backdrop: "bg-gradient-to-br from-teal-600 to-emerald-800",
   },
 ];
 

@@ -179,6 +179,16 @@ interface Row {
     is_active: boolean;
     created_at: string;
   };
+  product_deletions: {
+    id: string;
+    product_id: string;
+    product_name: string | null;
+    shop_id: string | null;
+    deleted_by: string | null;
+    reason: string;
+    soft: boolean;
+    created_at: string;
+  };
 }
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
@@ -271,6 +281,12 @@ export type Database = {
         Row: Row["product_variants"];
         Insert: InsertOf<"product_variants">;
         Update: UpdateOf<"product_variants">;
+        Relationships: [];
+      };
+      product_deletions: {
+        Row: Row["product_deletions"];
+        Insert: InsertOf<"product_deletions">;
+        Update: UpdateOf<"product_deletions">;
         Relationships: [];
       };
     };

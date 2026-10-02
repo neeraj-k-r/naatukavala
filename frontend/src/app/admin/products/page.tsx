@@ -1,8 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import ProductDecisionButtons from "@/components/ProductDecisionButtons";
+import SuperadminDeleteProductButton from "@/components/SuperadminDeleteProductButton";
 import { requireAdmin } from "@/lib/auth";
-import { getPendingProducts } from "@/lib/api";
+import { getAdminProducts } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export const metadata = {
@@ -11,9 +13,27 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage() {
-  await requireAdmin();
-  const products = await getPendingProducts();
+const TABS = [
+  { key: "pending", label: "Pending" },
+  { key: "approved", label: "Live" },
+  { key: "rejected", label: "Rejected" },
+] as const;
+
+type TabKey = (typeof TABS)[number]["key"];
+
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ status?: string }>;
+}) {
+  const user = await requireAdmin();
+  const params = searchParams ? await searchParams : {};
+  const status: TabKey =
+    params.status === "approved" || params.status === "rejected"
+      ? params.status
+      : "pending";
+  const products = await getAdminProducts(status);
+  const isSuperadmin = user.profile?.role === "superadmin";
 
   return (
     <div className="space-y-6">
@@ -22,12 +42,30 @@ export default async function AdminProductsPage() {
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Products from unverified sellers wait here. Verified sellers go
           live instantly and never appear in this queue.
+          {isSuperadmin &&
+            " As superadmin you can also delete any product — a reason is required and saved to the audit log."}
         </p>
+      </div>
+
+      <div className="flex gap-2">
+        {TABS.map((tab) => (
+          <Link
+            key={tab.key}
+            href={`/admin/products?status=${tab.key}`}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium ${
+              status === tab.key
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
       </div>
 
       {products.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-          No products waiting for review.
+          No {status === "approved" ? "live" : status} products.
         </p>
       ) : (
         <div className="space-y-3">
@@ -64,7 +102,17 @@ export default async function AdminProductsPage() {
                   {formatCurrency(product.price, product.currency)}
                 </p>
               </div>
-              <ProductDecisionButtons productId={product.id} />
+              <div className="flex flex-wrap items-center gap-2">
+                {status === "pending" && (
+                  <ProductDecisionButtons productId={product.id} />
+                )}
+                {isSuperadmin && (
+                  <SuperadminDeleteProductButton
+                    productId={product.id}
+                    productName={product.name}
+                  />
+                )}
+              </div>
             </div>
           ))}
         </div>

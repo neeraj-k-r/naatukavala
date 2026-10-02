@@ -377,6 +377,38 @@ export async function decideProductApproval(state: unknown, formData: FormData) 
   return { success: true };
 }
 
+/** Superadmin-only: deletes any product with a mandatory reason. */
+export async function deleteProductAsAdmin(state: unknown, formData: FormData) {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (!user.profile || user.profile.role !== "superadmin") {
+    redirect("/");
+  }
+
+  const productId = String(formData.get("product_id") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!productId) return { error: "Missing product." };
+  if (reason.length < 5) {
+    return { error: "Please give a reason (at least 5 characters)." };
+  }
+  if (reason.length > 500) {
+    return { error: "Reason must be under 500 characters." };
+  }
+
+  try {
+    await fetchApi(`/admin/products/${productId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ reason }),
+    });
+  } catch (err) {
+    return { error: messageOf(err, "Could not delete the product.") };
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+  return { success: true };
+}
+
 /** Toggles the signed-in user's helpful vote on a review. */
 export async function toggleHelpful(state: unknown, formData: FormData) {
   const user = await getUser();

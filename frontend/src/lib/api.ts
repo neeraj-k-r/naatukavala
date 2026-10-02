@@ -307,10 +307,17 @@ export async function getShopReviews(slug: string): Promise<RatingSummary> {
 export async function getPendingProducts(): Promise<
   (Product & { shop?: { name: string; slug: string } | null })[]
 > {
+  return getAdminProducts("pending");
+}
+
+/** Every product in one approval state (admin review queue, fails closed). */
+export async function getAdminProducts(
+  status: "pending" | "approved" | "rejected" = "pending",
+): Promise<(Product & { shop?: { name: string; slug: string } | null })[]> {
   try {
     const { products } = await fetchApi<{
       products: (Product & { shop?: { name: string; slug: string } | null })[];
-    }>("/admin/products?status=pending");
+    }>(`/admin/products?status=${encodeURIComponent(status)}`);
     return products ?? [];
   } catch {
     return [];

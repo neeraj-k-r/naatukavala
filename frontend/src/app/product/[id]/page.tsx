@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ProductGallery from "@/components/ProductGallery";
 import ProductPurchasePanel from "@/components/ProductPurchasePanel";
 import ReviewsSection from "@/components/ReviewsSection";
+import SuperadminDeleteProductButton from "@/components/SuperadminDeleteProductButton";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { getProductById, getProductReviews, getVotedHelpful, getWishlistIds } from "@/lib/api";
 import { getUser } from "@/lib/auth";
@@ -57,6 +58,19 @@ export default async function ProductPage({
             wished={wishlistIds.has(product.id)}
             signedIn={Boolean(user)}
           />
+
+          {user?.profile?.role === "superadmin" && (
+            <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4 dark:border-red-900 dark:bg-red-950/40">
+              <p className="text-xs text-red-700 dark:text-red-300">
+                Superadmin: remove this product from the marketplace with a
+                recorded reason.
+              </p>
+              <SuperadminDeleteProductButton
+                productId={product.id}
+                productName={product.name}
+              />
+            </div>
+          )}
 
           <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
             Delivery charge:{" "}

@@ -580,6 +580,72 @@ router.patch("/products/:id", async (req, res) => {
   return res.json({ ok: true });
 });
 
+/**
+ * Superadmin-only product removal with a mandatory reason.
+ * DELETE /admin/products/:id { reason }
+ * - Hard-deletes the product; when order history references it
+ *   (ON DELETE RESTRICT) it is hidden instead (is_active=false).
+ * - The reason is stored in the product_deletions audit table
+ *   (best-effort when the migration hasn't run yet) so sellers/admins
+ *   can see why it was removed.
+ */
+router.delete("/products/:id", async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated." });
+  if (req.user.profile?.role !== "superadmin") {
+    return res.status(403).json({ error: "Only a superadmin can delete products." });
+  }
+
+  const reason = String(req.body?.reason ?? "").trim();
+  if (reason.length < 5) {
+    return res.status(400).json({ error: "Please give a reason (at least 5 characters)." });
+  }
+  if (reason.length > 500) {
+    return res.status(400).json({ error: "Reason must be under 500 characters." });
+  }
+
+  const supabase = getSupabaseAdmin();
+  const productId = String(req.params.id);
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("id, shop_id, name")
+    .eq("id", productId)
+    .maybeSingle();
+  if (!product) return res.status(404).json({ error: "Product not found." });
+
+  const recordAudit = async (soft: boolean) => {
+    const { error } = await supabase.from("product_deletions").insert({
+      product_id: productId,
+      product_name: (product as { name?: string }).name ?? null,
+      shop_id: (product as { shop_id?: string }).shop_id ?? null,
+      deleted_by: req.user!.id,
+      reason,
+      soft,
+    } as never);
+    // Table not migrated yet — audit is best-effort, deletion still counts.
+    if (error) console.warn("[admin] product_deletions audit failed:", error.message);
+  };
+
+  const { error } = await supabase.from("products").delete().eq("id", productId);
+  if (error) {
+    if (error.message.includes("foreign key constraint") || error.code === "23503") {
+      const { error: softError } = await supabase
+        .from("products")
+        .update({ is_active: false, approval_status: "rejected" })
+        .eq("id", productId);
+      if (softError) return res.status(500).json({ error: softError.message });
+      await recordAudit(true);
+      clearCache();
+      return res.json({ ok: true, soft: true });
+    }
+    return res.status(500).json({ error: error.message });
+  }
+
+  await recordAudit(false);
+  clearCache();
+  return res.json({ ok: true });
+});
+
 router.patch("/users/:id/role", async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 

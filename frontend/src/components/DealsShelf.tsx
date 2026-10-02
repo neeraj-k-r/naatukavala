@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 import AdaptiveProductImage from "@/components/AdaptiveProductImage";
 
+import WishlistButton from "@/components/WishlistButton";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { formatCurrency } from "@/lib/utils";
 
 import type { ProductWithShop } from "@/lib/types";
@@ -19,9 +21,13 @@ const SWIPE_THRESHOLD_PX = 40;
 export default function DealsShelf({
   products,
   promotedIds,
+  wishlistIds,
+  signedIn,
 }: {
   products: ProductWithShop[];
   promotedIds: Set<string>;
+  wishlistIds: Set<string>;
+  signedIn: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -44,6 +50,7 @@ export default function DealsShelf({
   const go = (next: number) => setIndex(((next % count) + count) % count);
   const product = products[safeIndex];
   const image = product.images?.[0];
+  const verified = product.shop?.verification_status === "verified";
 
   return (
     <section aria-label="Trending now" className="mb-8 sm:mb-10">
@@ -92,6 +99,7 @@ export default function DealsShelf({
             <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/80 via-slate-900/30 to-transparent p-4 pt-12 sm:hidden">
               <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-300">
                 {product.shop?.name}
+                {verified && <VerifiedBadge />}
                 {promotedIds.has(product.id) && (
                   <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-amber-950">
                     Sponsored
@@ -110,6 +118,7 @@ export default function DealsShelf({
           <div className="hidden flex-1 flex-col justify-center gap-1 p-6 sm:flex lg:p-8">
             <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
               {product.shop?.name}
+              {verified && <VerifiedBadge />}
               {promotedIds.has(product.id) && (
                 <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-amber-950">
                   Sponsored
@@ -127,6 +136,15 @@ export default function DealsShelf({
             </span>
           </div>
         </Link>
+
+        <div className="absolute right-3 top-3 z-10">
+          <WishlistButton
+            productId={product.id}
+            initialWished={wishlistIds.has(product.id)}
+            signedIn={signedIn}
+            size="trending"
+          />
+        </div>
 
         <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-between px-2">
           {count > 1 && (

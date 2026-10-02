@@ -94,7 +94,7 @@ export default function MarketplaceFilterBar({
 
   return (
     <>
-      <div className="mb-5 sm:mb-6">
+      <div className="flex-none">
         <button
           type="button"
           onClick={() => setOpen(true)}

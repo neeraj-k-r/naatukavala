@@ -24,7 +24,7 @@ export default function CategoryRail({
   };
 
   return (
-    <section aria-label="Shop by category" className="mb-5 sm:mb-6">
+    <section aria-label="Shop by category" className="w-full sm:min-w-0 sm:flex-1">
       <div className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0">
         <RailTile label="All" href={hrefFor("")} active={active === ""} />
         {categories.map((category) => (

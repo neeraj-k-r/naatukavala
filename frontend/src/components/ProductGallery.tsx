@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 
+import AdaptiveProductImage from "@/components/AdaptiveProductImage";
+
 const SWIPE_THRESHOLD_PX = 40;
 
 export default function ProductGallery({
@@ -35,7 +37,7 @@ export default function ProductGallery({
   return (
     <div>
       <div
-        className="relative aspect-square touch-pan-y overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm select-none dark:border-slate-800 dark:bg-slate-900"
+        className="relative aspect-square touch-pan-y overflow-hidden rounded-3xl border border-slate-100 bg-slate-200 shadow-sm select-none dark:border-slate-800 dark:bg-slate-800"
         onTouchStart={(event) => {
           startX.current = event.touches[0].clientX;
         }}
@@ -57,15 +59,14 @@ export default function ProductGallery({
         }}
       >
         {active ? (
-          <Image
-            key={active}
-            src={active}
-            alt={name}
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-            priority
-          />
+          <span key={active} className="pointer-events-none absolute inset-0">
+            <AdaptiveProductImage
+              src={active}
+              alt={name}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              priority
+            />
+          </span>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-6xl">
             🌿
@@ -82,7 +83,7 @@ export default function ProductGallery({
               type="button"
               onClick={goPrev}
               aria-label="Previous image"
-              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-700 shadow-md transition hover:bg-white dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/50 p-2 text-slate-700 shadow-sm backdrop-blur-sm transition hover:bg-white/80 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800/80"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
                 <path d="M15 18l-6-6 6-6" />
@@ -92,7 +93,7 @@ export default function ProductGallery({
               type="button"
               onClick={goNext}
               aria-label="Next image"
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-700 shadow-md transition hover:bg-white dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/50 p-2 text-slate-700 shadow-sm backdrop-blur-sm transition hover:bg-white/80 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800/80"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
                 <path d="M9 6l6 6-6 6" />

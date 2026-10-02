@@ -107,16 +107,18 @@ async function MarketplaceCatalog({
 
   return (
     <>
-      <CategoryRail categories={categories} active={category} search={search} />
       <DealsShelf
         products={shelfProducts}
         promotedIds={promotedProductIds}
         wishlistIds={wishlistIds}
         signedIn={signedIn}
       />
-      <Suspense fallback={null}>
-        <MarketplaceFilterBar categories={categories} resultCount={products.length} />
-      </Suspense>
+      <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center">
+        <CategoryRail categories={categories} active={category} search={search} />
+        <Suspense fallback={null}>
+          <MarketplaceFilterBar categories={categories} resultCount={products.length} />
+        </Suspense>
+      </div>
 
       <section id="all-products" className="scroll-mt-20 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex items-center justify-between gap-3">

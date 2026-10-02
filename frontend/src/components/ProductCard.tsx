@@ -1,5 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
+
+import AdaptiveProductImage from "@/components/AdaptiveProductImage";
 
 import { formatCurrency } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
@@ -36,14 +37,12 @@ export default function ProductCard({
       href={`/product/${product.id}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
     >
-      <div className="relative aspect-square bg-slate-100 dark:bg-slate-800">
+      <div className="relative aspect-square overflow-hidden bg-slate-200 dark:bg-slate-800">
         {image ? (
-          <Image
+          <AdaptiveProductImage
             src={image}
             alt={product.name}
-            fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-4xl">
@@ -65,11 +64,13 @@ export default function ProductCard({
             {dealLabel}
           </span>
         )}
-        <WishlistButton
-          productId={product.id}
-          initialWished={wished}
-          signedIn={signedIn}
-        />
+        {wished && (
+          <WishlistButton
+            productId={product.id}
+            initialWished={wished}
+            signedIn={signedIn}
+          />
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         <p className="flex items-center gap-1.5">

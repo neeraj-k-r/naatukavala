@@ -11,5 +11,18 @@ export default function OfflineGate({ children }: { children: React.ReactNode })
   const online = useOnlineStatus();
 
   if (!online) return <OfflinePage />;
-  return <>{children}</>;
+
+  return (
+    <>
+      {/* Fetch the offline illustration while there is still a connection so
+          the browser has it cached when the network drops. */}
+      <img
+        src="/naatukavaladisc.png"
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute h-px w-px opacity-0"
+      />
+      {children}
+    </>
+  );
 }

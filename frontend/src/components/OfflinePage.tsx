@@ -1,21 +1,22 @@
 "use client";
 
-import Image from "next/image";
-
 /**
  * Full-screen "market disconnected" state, shown when the browser reports
  * it is offline. Mirrors the friendly offline pages big marketplaces use
  * (a dog sleeping by the shop) instead of a blank screen or browser error.
+ *
+ * Uses a plain <img> (not next/image) on purpose: the src stays the literal
+ * /naatukavaladisc.png URL, so the preload done while online caches the
+ * exact same request the offline page makes.
  */
 export default function OfflinePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#faf5e9] px-6 py-12 text-center dark:bg-slate-950">
-      <Image
+      <img
         src="/naatukavaladisc.png"
         alt="A dog sleeping in front of a closed shop"
         width={320}
         height={320}
-        priority
         className="w-64 max-w-full sm:w-80"
       />
 

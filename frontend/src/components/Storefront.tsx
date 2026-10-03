@@ -171,6 +171,7 @@ export default async function Storefront({
               delivery_charge: shop.delivery_charge,
               return_policy: shop.return_policy,
               verification_status: shop.verification_status,
+              banner_url: shop.banner_url,
             },
           }))}
           wishlistIds={wishlistIds}

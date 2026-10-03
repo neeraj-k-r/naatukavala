@@ -50,7 +50,7 @@ export interface Product {
 }
 
 export interface ProductWithShop extends Product {
-  shop: Pick<Shop, "name" | "slug" | "delivery_charge">;
+  shop: Pick<Shop, "name" | "slug" | "delivery_charge" | "banner_url">;
 }
 
 export interface Order {

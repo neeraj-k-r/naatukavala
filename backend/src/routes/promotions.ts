@@ -43,7 +43,7 @@ router.get("/spotlight", async (_req, res) => {
         const vj = await variantJoin();
         let productQuery = supabase
           .from("products")
-          .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
+          .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}`)
           .in("id", promoProductIds)
           .eq("is_active", true)
           .eq("shop.status", "approved");

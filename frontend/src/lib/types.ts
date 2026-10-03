@@ -59,7 +59,7 @@ export interface Product {
 }
 
 export interface ProductWithShop extends Product {
-  shop: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy" | "verification_status">;
+  shop: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy" | "verification_status" | "banner_url">;
 }
 
 export interface Order {

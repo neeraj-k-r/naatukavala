@@ -283,7 +283,7 @@ router.get("/:id", async (req, res) => {
       const vj = await variantJoin();
       let query = supabase
         .from("products")
-        .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`)
+        .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}`)
         .eq("id", id)
         .eq("shop.status", "approved");
 

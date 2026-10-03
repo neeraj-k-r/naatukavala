@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -114,14 +115,20 @@ export default function DealsShelf({
               </p>
             </div>
           </div>
-          {/* Desktop side panel — no cropping, no overlay */}
+          {/* Desktop side panel — shop banner behind the text */}
           <div className="hidden flex-1 flex-col justify-center gap-1 p-6 sm:flex lg:p-8 relative overflow-hidden">
             {product.shop?.banner_url && (
-              <div
-                aria-hidden
-                className="absolute inset-0 z-0 object-cover scale-110 blur-xl opacity-30 dark:opacity-20"
-                style={{ backgroundImage: `url(${product.shop.banner_url})` }}
-              />
+              <span aria-hidden className="absolute inset-0 z-0">
+                <Image
+                  src={product.shop.banner_url}
+                  alt=""
+                  fill
+                  sizes="(max-width: 1024px) 50vw, 40vw"
+                  className="object-cover"
+                />
+                {/* Light veil so dark text stays readable over any banner */}
+                <span className="absolute inset-0 bg-white/65 dark:bg-slate-900/70" />
+              </span>
             )}
             <div className="relative z-10">
             <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">

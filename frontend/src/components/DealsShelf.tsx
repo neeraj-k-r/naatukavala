@@ -89,16 +89,17 @@ export default function DealsShelf({
                 alt={product.name}
                 sizes="(max-width: 640px) 100vw, 50vw"
                 priority
+                foregroundClassName="object-cover"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-5xl">
                 🌿
               </div>
             )}
-            {/* Mobile overlay caption */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/80 via-slate-900/30 to-transparent p-4 pt-12 sm:hidden">
+            {/* Mobile overlay caption — z-20 so it sits above the z-10 image */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-slate-900/80 via-slate-900/30 to-transparent p-4 pt-12 sm:hidden">
               <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-300">
-                {product.shop?.name}
+                <span className="min-w-0 truncate">{product.shop?.name}</span>
                 {verified && <VerifiedBadge />}
                 {promotedIds.has(product.id) && (
                   <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-amber-950">
@@ -106,7 +107,7 @@ export default function DealsShelf({
                   </span>
                 )}
               </p>
-              <p className="mt-1 line-clamp-1 text-lg font-extrabold text-white">
+              <p className="mt-1 text-lg font-extrabold text-white">
                 {product.name}
               </p>
               <p className="mt-0.5 text-base font-bold text-white">
@@ -117,7 +118,7 @@ export default function DealsShelf({
           {/* Desktop side panel — no cropping, no overlay */}
           <div className="hidden flex-1 flex-col justify-center gap-1 p-6 sm:flex lg:p-8">
             <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-              {product.shop?.name}
+              <span className="min-w-0 truncate">{product.shop?.name}</span>
               {verified && <VerifiedBadge />}
               {promotedIds.has(product.id) && (
                 <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-amber-950">

@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import OfflineGate from "@/components/OfflineGate";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { CartProvider } from "@/components/CartContext";
 import { getUser } from "@/lib/auth";
 import { getShopBySlug } from "@/lib/api";
@@ -81,6 +82,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         <CartProvider>
+          <ServiceWorkerRegistration />
           <OfflineGate>
             <Navbar user={user} siteShop={siteShop} />
             <main className="flex-1">{children}</main>

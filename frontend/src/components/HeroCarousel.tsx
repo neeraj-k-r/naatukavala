@@ -34,8 +34,9 @@ const slides: Slide[] = [
   },
   {
     id: "sell",
-    eyebrow: "For shop owners",
-    title: "Open your shop online in minutes.",
+    eyebrow: "",
+    title: "Open your shop online.",
+    accent: "In minutes.",
     cta: { label: "Sell with us", href: "/sell" },
     theme: "brand",
     backdrop: "bg-gradient-to-br from-amber-500 to-orange-600",
@@ -45,8 +46,9 @@ const slides: Slide[] = [
   },
   {
     id: "shops",
-    eyebrow: "Neighbourhood favourites",
-    title: "Discover verified sellers near you.",
+    eyebrow: "",
+    title: "Discover verified sellers.",
+    accent: "Near you.",
     cta: { label: "Browse shops", href: "#featured-shops" },
     theme: "brand",
     backdrop: "bg-gradient-to-br from-teal-600 to-emerald-800",
@@ -172,11 +174,16 @@ export default function HeroCarousel() {
                   </span>
                 )}
                 <div className="relative z-10 max-w-2xl">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-white/80 sm:text-xs">
-                    {slide.eyebrow}
-                  </p>
-                  <h1 className="mt-0.5 text-balance text-lg font-extrabold leading-tight text-white sm:text-2xl">
-                    {slide.title}
+                  {slide.eyebrow && (
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-white/80 sm:text-xs">
+                      {slide.eyebrow}
+                    </p>
+                  )}
+                  <h1 className="text-balance text-lg font-extrabold leading-tight text-white sm:text-2xl">
+                    {slide.title}{" "}
+                    {slide.accent && (
+                      <span className="text-orange-400">{slide.accent}</span>
+                    )}
                   </h1>
                 </div>
                 <div className="relative z-10 mt-3 sm:mt-4">

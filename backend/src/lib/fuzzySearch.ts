@@ -121,7 +121,7 @@ export async function searchProducts(
   if (search) {
     let exact = supabase
       .from("products")
-      .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`);
+      .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}`);
     exact = applyBase(exact);
     exact = exact.ilike("name", `%${search}%`);
     if (filters.limit) exact = exact.limit(Number(filters.limit));
@@ -135,7 +135,7 @@ export async function searchProducts(
   if (!search) {
     let query = supabase
       .from("products")
-      .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`);
+      .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}`);
     query = applyBase(query);
     if (filters.limit) query = query.limit(Number(filters.limit));
     query = query.order("created_at", { ascending: false });
@@ -147,7 +147,7 @@ export async function searchProducts(
   // Fuzzy fallback: rank a bounded candidate set in JS.
   let candidates = supabase
     .from("products")
-    .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status)${vj}`);
+    .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}`);
   candidates = applyBase(candidates);
   candidates = candidates.order("created_at", { ascending: false }).limit(FUZZY_CANDIDATES);
   const { data, error } = await candidates;

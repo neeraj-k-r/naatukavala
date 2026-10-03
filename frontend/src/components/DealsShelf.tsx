@@ -89,7 +89,6 @@ export default function DealsShelf({
                 alt={product.name}
                 sizes="(max-width: 640px) 100vw, 50vw"
                 priority
-                foregroundClassName="object-cover"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-5xl">
@@ -116,7 +115,15 @@ export default function DealsShelf({
             </div>
           </div>
           {/* Desktop side panel — no cropping, no overlay */}
-          <div className="hidden flex-1 flex-col justify-center gap-1 p-6 sm:flex lg:p-8">
+          <div className="hidden flex-1 flex-col justify-center gap-1 p-6 sm:flex lg:p-8 relative overflow-hidden">
+            {product.shop?.banner_url && (
+              <div
+                aria-hidden
+                className="absolute inset-0 z-0 object-cover scale-110 blur-xl opacity-30 dark:opacity-20"
+                style={{ backgroundImage: `url(${product.shop.banner_url})` }}
+              />
+            )}
+            <div className="relative z-10">
             <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
               <span className="min-w-0 truncate">{product.shop?.name}</span>
               {verified && <VerifiedBadge />}
@@ -135,6 +142,7 @@ export default function DealsShelf({
             <span className="mt-3 inline-flex w-fit items-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
               View product
             </span>
+            </div>
           </div>
         </Link>
 

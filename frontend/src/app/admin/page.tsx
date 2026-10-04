@@ -221,6 +221,16 @@ export default async function AdminOverviewPage() {
           </p>
           <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Roles & accounts</p>
         </Link>
+        <Link
+          href="/admin/terms-acceptances"
+          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+        >
+          <p className="text-sm text-slate-500 dark:text-slate-400">Terms Acceptances</p>
+          <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+            View
+          </p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Who accepted & when</p>
+        </Link>
       </div>
 
       {pending.length > 0 && (

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { adminFetch } from "@/lib/api";
+import { fetchApi } from "@/lib/api";
 import TermsAcceptancesTable from "./TermsAcceptancesTable";
 import { AdminTableSkeleton, AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
 
@@ -10,12 +10,12 @@ export const metadata = {
 
 async function TermsAcceptancesContent({
   searchParams,
-}: PageProps<"/admin/terms-acceptances">) {
+}: { searchParams: Promise<{ page?: string; limit?: string }> }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1));
   const limit = Math.max(1, Math.min(200, Number(params.limit ?? 50)));
 
-  const data = await adminFetch<{
+  const data = await fetchApi<{
     acceptances: {
       id: string;
       user_id: string;
@@ -44,7 +44,7 @@ async function TermsAcceptancesContent({
 
 export default async function TermsAcceptancesPage({
   searchParams,
-}: PageProps<"/admin/terms-acceptances">) {
+}: { searchParams: Promise<{ page?: string; limit?: string }> }) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <Suspense fallback={<AdminPageHeaderSkeleton />}>

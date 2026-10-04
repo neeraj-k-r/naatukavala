@@ -6,6 +6,7 @@ import { useRef, useState, useTransition } from "react";
 import ImageEditor from "@/components/ImageEditor";
 import { submitFeedback } from "@/lib/actions";
 import { uploadFile } from "@/lib/client-api";
+import { prepareUploadFile } from "@/lib/prepareImage";
 
 const MAX_PHOTOS = 4;
 
@@ -55,11 +56,23 @@ export default function FeedbackForm({
     }
   }
 
-  function handleFiles(files: FileList | null) {
+  async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     setError(null);
     if (inputRef.current) inputRef.current.value = "";
-    editNext(Array.from(files).slice(0, MAX_PHOTOS - images.length));
+    // iPhone photos arrive as HEIC — convert to JPEG first so the
+    // crop editor and upload can actually read them.
+    setUploading(true);
+    try {
+      const prepared = await Promise.all(
+        Array.from(files).slice(0, MAX_PHOTOS - images.length).map(prepareUploadFile),
+      );
+      editNext(prepared);
+    } catch {
+      setError("Could not read that photo. Try a JPEG or PNG instead.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   function closeEditor() {
@@ -176,7 +189,7 @@ export default function FeedbackForm({
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
             multiple
             className="hidden"
             onChange={(event) => void handleFiles(event.target.files)}

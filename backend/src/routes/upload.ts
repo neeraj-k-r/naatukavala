@@ -37,6 +37,10 @@ const ALLOWED_MIME = new Set([
   "image/png",
   "image/webp",
   "image/gif",
+  // Belt-and-braces: the frontend converts iPhone HEIC to JPEG first,
+  // but accept it here too (Cloudinary handles it) rather than failing.
+  "image/heic",
+  "image/heif",
 ]);
 
 const upload = multer({
@@ -48,7 +52,7 @@ const upload = multer({
     // Images only — never let authenticated users host executables or
     // scripts under the project's Cloudinary account.
     if (ALLOWED_MIME.has(file.mimetype)) done(null, true);
-    else done(new Error("Only JPEG, PNG, WEBP or GIF images are allowed."));
+    else done(new Error("Only JPEG, PNG, WEBP, GIF or HEIC images are allowed."));
   },
 });
 

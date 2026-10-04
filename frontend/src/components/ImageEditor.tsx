@@ -11,6 +11,9 @@ const ASPECTS = [
   { label: "4:3", value: 4 / 3 },
 ] as const;
 
+/** Longest side of an exported photo — keeps uploads under the 5MB cap. */
+const MAX_EXPORT_SIDE = 2048;
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -38,13 +41,18 @@ async function exportCropped(
     Math.abs(image.width * Math.sin(radians)) +
     Math.abs(image.height * Math.cos(radians));
 
+  // Phone photos are huge — downscale the export so the 5MB upload
+  // limit isn't tripped by full-resolution camera shots.
+  const scale = Math.min(1, MAX_EXPORT_SIDE / Math.max(crop.width, crop.height));
+
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(crop.width);
-  canvas.height = Math.round(crop.height);
+  canvas.width = Math.round(crop.width * scale);
+  canvas.height = Math.round(crop.height * scale);
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is not available.");
 
   ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.scale(scale, scale);
   ctx.rotate(radians);
   ctx.translate(-image.width / 2, -image.height / 2);
   // react-easy-crop reports the crop box in rotated-image coordinates.

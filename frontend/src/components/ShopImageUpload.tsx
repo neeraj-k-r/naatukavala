@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 
 import ImageEditor from "@/components/ImageEditor";
 import { uploadFile } from "@/lib/client-api";
+import { prepareUploadFile } from "@/lib/prepareImage";
 
 export default function ShopImageUpload({
   name,
@@ -38,12 +39,22 @@ export default function ShopImageUpload({
     }
   }
 
-  function handleFile(file: File) {
+  async function handleFile(file: File) {
     if (inputRef.current) inputRef.current.value = "";
-    if (file.type === "image/gif") {
-      void uploadEdited(file);
-    } else {
-      setEditing({ url: URL.createObjectURL(file), name: file.name });
+    // iPhone photos arrive as HEIC — convert to JPEG first so the
+    // crop editor and upload can actually read them.
+    setUploading(true);
+    try {
+      const prepared = await prepareUploadFile(file);
+      if (prepared.type === "image/gif") {
+        void uploadEdited(prepared);
+      } else {
+        setEditing({ url: URL.createObjectURL(prepared), name: prepared.name });
+        setUploading(false);
+      }
+    } catch {
+      setError("Could not read that photo. Try a JPEG or PNG instead.");
+      setUploading(false);
     }
   }
 
@@ -103,7 +114,7 @@ export default function ShopImageUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
         className="hidden"
         onChange={(event) => {
           const file = event.target.files?.[0];

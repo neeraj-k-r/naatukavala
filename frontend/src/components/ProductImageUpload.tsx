@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 
 import ImageEditor from "@/components/ImageEditor";
 import { uploadFile } from "@/lib/client-api";
+import { prepareUploadFile } from "@/lib/prepareImage";
 
 export default function ProductImageUpload({
   initialImages = [],
@@ -13,6 +14,7 @@ export default function ProductImageUpload({
 }) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [uploading, setUploading] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ url: string; name: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,11 +44,20 @@ export default function ProductImageUpload({
     }
   }
 
-  function handleFiles(files: FileList | null) {
+  async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     setError(null);
     if (inputRef.current) inputRef.current.value = "";
-    editNext(Array.from(files));
+    // iPhone photos arrive as HEIC — convert to JPEG first so the
+    // crop editor and upload can actually read them.
+    setConverting(true);
+    try {
+      editNext(await Promise.all(Array.from(files).map(prepareUploadFile)));
+    } catch {
+      setError("Could not read that photo. Try a JPEG or PNG instead.");
+    } finally {
+      setConverting(false);
+    }
   }
 
   function closeEditor() {
@@ -85,11 +96,11 @@ export default function ProductImageUpload({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          disabled={uploading}
+          disabled={uploading || converting}
             className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:border-slate-600 dark:text-slate-500 dark:hover:text-emerald-400"
         >
-          {uploading ? (
-            <span className="text-xs">Uploading…</span>
+          {uploading || converting ? (
+            <span className="text-xs">{converting ? "Reading…" : "Uploading…"}</span>
           ) : (
             <>
               <span className="text-2xl">＋</span>
@@ -100,7 +111,7 @@ export default function ProductImageUpload({
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
           multiple
           className="hidden"
           onChange={(event) => handleFiles(event.target.files)}

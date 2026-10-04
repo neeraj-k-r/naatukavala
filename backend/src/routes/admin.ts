@@ -11,6 +11,56 @@ const router: Router = express.Router();
 
 router.use(requireAuth, requireRole(["admin", "superadmin"]));
 
+/** Terms & Conditions acceptance logs for admin review. */
+router.get("/terms-acceptances", async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    const limit = Math.max(1, Math.min(200, Math.floor(Number(req.query.limit ?? 50)) || 50));
+    const offset = Math.max(0, Math.floor(Number(req.query.offset ?? 0)) || 0);
+
+    const { data, error, count } = await supabase
+      .from("terms_acceptances")
+      .select("id, user_id, version, accepted_at", { count: "exact" })
+      .order("accepted_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    const userIds = [...new Set((data ?? []).map((row) => row.user_id))];
+    const userEmails = new Map<string, string>();
+    const userNames = new Map<string, string>();
+
+    if (userIds.length > 0) {
+      const { data: { users } } = await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: userIds.length,
+      });
+      for (const user of users ?? []) {
+        userEmails.set(user.id, user.email ?? "");
+      }
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+      for (const profile of profiles ?? []) {
+        userNames.set(profile.id, profile.full_name);
+      }
+    }
+
+    return res.json({
+      acceptances: (data ?? []).map((row) => ({
+        ...row,
+        user_email: userEmails.get(row.user_id) ?? null,
+        user_name: userNames.get(row.user_id) ?? null,
+      })),
+      total: count ?? 0,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load terms acceptances." });
+  }
+});
+
 router.get("/shops", async (_req, res) => {
   const supabase = getSupabaseAdmin();
 

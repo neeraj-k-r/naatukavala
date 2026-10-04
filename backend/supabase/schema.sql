@@ -715,3 +715,24 @@ alter table public.coupon_redemptions enable row level security;
 create policy coupon_redemptions_select_own on public.coupon_redemptions
   for select using (buyer_id = auth.uid());
 
+-- ------------------------------------------------------------
+-- Terms & Conditions acceptance log (admin can view who accepted when).
+-- ------------------------------------------------------------
+create table if not exists public.terms_acceptances (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  version text not null default '1',
+  accepted_at timestamptz not null default now()
+);
+
+create index if not exists terms_acceptances_user_idx on public.terms_acceptances (user_id);
+create index if not exists terms_acceptances_accepted_idx on public.terms_acceptances (accepted_at);
+
+alter table public.terms_acceptances enable row level security;
+
+-- Users can see their own acceptance; admins bypass RLS via service role.
+create policy terms_acceptances_select_own on public.terms_acceptances
+  for select using (user_id = auth.uid());
+create policy terms_acceptances_insert_own on public.terms_acceptances
+  for insert with check (user_id = auth.uid());
+

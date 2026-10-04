@@ -189,6 +189,12 @@ interface Row {
     soft: boolean;
     created_at: string;
   };
+  terms_acceptances: {
+    id: string;
+    user_id: string;
+    version: string;
+    accepted_at: string;
+  };
 }
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
@@ -287,6 +293,12 @@ export type Database = {
         Row: Row["product_deletions"];
         Insert: InsertOf<"product_deletions">;
         Update: UpdateOf<"product_deletions">;
+        Relationships: [];
+      };
+      terms_acceptances: {
+        Row: Row["terms_acceptances"];
+        Insert: InsertOf<"terms_acceptances">;
+        Update: UpdateOf<"terms_acceptances">;
         Relationships: [];
       };
     };

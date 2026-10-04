@@ -1,8 +1,11 @@
+import { Suspense } from "react";
+
 import CouponCreateForm from "@/components/CouponCreateForm";
 import CouponToggleButton from "@/components/CouponToggleButton";
 import { requireAdmin } from "@/lib/auth";
 import { getCoupons } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
+import { AdminCardListSkeleton, AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
 
 export const metadata = {
   title: "Coupons",
@@ -27,7 +30,7 @@ function describe(coupon: Awaited<ReturnType<typeof getCoupons>>[number]) {
   return `${value}${cap}${min}${uses}`;
 }
 
-export default async function AdminCouponsPage() {
+async function CouponsContent() {
   await requireAdmin();
   const coupons = await getCoupons();
 
@@ -88,6 +91,16 @@ export default async function AdminCouponsPage() {
           ))
         )}
       </div>
+    </div>
+  );
+}
+
+export default async function AdminCouponsPage() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <CouponsContent />
+      </Suspense>
     </div>
   );
 }

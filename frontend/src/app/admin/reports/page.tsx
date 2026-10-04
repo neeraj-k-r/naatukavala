@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import AdminBookingActions from "@/components/AdminBookingActions";
 import { MonthlyBarChart, RevenueAreaChart, StatusBars } from "@/components/AdminCharts";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminBookings, getAdminSalesReport } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { AdminPageHeaderSkeleton, AdminBookingCardSkeleton } from "@/components/AdminSkeletons";
 
 export const metadata = {
   title: "Sales report",
@@ -58,7 +60,7 @@ function BookingRow({
   );
 }
 
-export default async function AdminReportsPage({
+async function ReportsContent({
   searchParams,
 }: {
   searchParams: Promise<{ days?: string }>;
@@ -279,6 +281,20 @@ export default async function AdminReportsPage({
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+export default async function AdminReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ days?: string }>;
+}) {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <ReportsContent searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

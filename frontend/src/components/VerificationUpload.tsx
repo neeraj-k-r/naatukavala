@@ -135,30 +135,55 @@ export default function VerificationUpload({ shop }: { shop: Shop }) {
           )}
 
           {shop.verification_status === "rejected" && (
-            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
-              Your last submission was rejected. Upload a clearer image and resubmit.
-            </p>
+            <>
+              <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+                Your last submission was rejected. Upload a clearer image and resubmit.
+              </p>
+              {editing && (
+                <ImageEditor
+                  src={editing.url}
+                  fileName={editing.name}
+                  onCancel={closeEditor}
+                  onDone={(file) => {
+                    closeEditor();
+                    void uploadEdited(file);
+                  }}
+                />
+              )}
+
+              <button
+                type="submit"
+                disabled={pending || !docUrl || uploading}
+                className="mt-4 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {pending ? "Submitting…" : "Resubmit"}
+              </button>
+            </>
           )}
 
-          {editing && (
-            <ImageEditor
-              src={editing.url}
-              fileName={editing.name}
-              onCancel={closeEditor}
-              onDone={(file) => {
-                closeEditor();
-                void uploadEdited(file);
-              }}
-            />
-          )}
+          {shop.verification_status === "none" && (
+            <>
+              {editing && (
+                <ImageEditor
+                  src={editing.url}
+                  fileName={editing.name}
+                  onCancel={closeEditor}
+                  onDone={(file) => {
+                    closeEditor();
+                    void uploadEdited(file);
+                  }}
+                />
+              )}
 
-          <button
-            type="submit"
-            disabled={pending || !docUrl || uploading}
-            className="mt-4 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {pending ? "Submitting…" : shop.verification_status === "rejected" ? "Resubmit" : "Submit for review"}
-          </button>
+              <button
+                type="submit"
+                disabled={pending || !docUrl || uploading}
+                className="mt-4 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {pending ? "Submitting…" : "Submit for review"}
+              </button>
+            </>
+          )}
         </div>
       )}
     </form>

@@ -1,7 +1,10 @@
+import { Suspense } from "react";
+
 import PromotionDecision from "@/components/PromotionDecision";
 import { requireAdmin } from "@/lib/auth";
 import { getAllPromotions } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
+import { AdminCardListSkeleton, AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
 
 import type { Promotion } from "@/lib/types";
 
@@ -68,11 +71,9 @@ function PromotionCard({ promotion }: { promotion: Promotion }) {
   );
 }
 
-export default async function AdminPromotionsPage() {
+async function PromotionsContent() {
   await requireAdmin();
 
-  // Degrade gracefully when the migration hasn't been run yet — show a setup
-  // notice instead of crashing the whole admin section.
   let promotions: Promotion[] = [];
   let loadError: string | null = null;
   try {
@@ -112,55 +113,65 @@ export default async function AdminPromotionsPage() {
       )}
 
       {!loadError && (
-      <>
-      <section>
-        <h3 className="mb-3 font-bold text-slate-900 dark:text-slate-100">
-          Pending requests ({pending.length})
-        </h3>
-        {pending.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-            No pending promotion requests.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {pending.map((promotion) => (
-              <PromotionCard key={promotion.id} promotion={promotion} />
-            ))}
-          </div>
-        )}
-      </section>
+        <>
+          <section>
+            <h3 className="mb-3 font-bold text-slate-900 dark:text-slate-100">
+              Pending requests ({pending.length})
+            </h3>
+            {pending.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+                No pending promotion requests.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {pending.map((promotion) => (
+                  <PromotionCard key={promotion.id} promotion={promotion} />
+                ))}
+              </div>
+            )}
+          </section>
 
-      <section>
-        <h3 className="mb-3 font-bold text-slate-900 dark:text-slate-100">
-          Active ({active.length})
-        </h3>
-        {active.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-            Nothing promoted right now.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {active.map((promotion) => (
-              <PromotionCard key={promotion.id} promotion={promotion} />
-            ))}
-          </div>
-        )}
-      </section>
+          <section>
+            <h3 className="mb-3 font-bold text-slate-900 dark:text-slate-100">
+              Active ({active.length})
+            </h3>
+            {active.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+                Nothing promoted right now.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {active.map((promotion) => (
+                  <PromotionCard key={promotion.id} promotion={promotion} />
+                ))}
+              </div>
+            )}
+          </section>
 
-      {history.length > 0 && (
-        <section>
-          <h3 className="mb-3 font-bold text-slate-400 dark:text-slate-500">
-            History ({history.length})
-          </h3>
-          <div className="space-y-3 opacity-90">
-            {history.map((promotion) => (
-              <PromotionCard key={promotion.id} promotion={promotion} />
-            ))}
-          </div>
-        </section>
+          {history.length > 0 && (
+            <section>
+              <h3 className="mb-3 font-bold text-slate-400 dark:text-slate-500">
+                History ({history.length})
+              </h3>
+              <div className="space-y-3 opacity-90">
+                {history.map((promotion) => (
+                  <PromotionCard key={promotion.id} promotion={promotion} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
-      </>
-      )}
+    </div>
+  );
+}
+
+export default async function AdminPromotionsPage() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <PromotionsContent />
+      </Suspense>
     </div>
   );
 }

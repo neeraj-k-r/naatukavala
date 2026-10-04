@@ -1,14 +1,16 @@
+import { Suspense } from "react";
 import { requireAdmin } from "@/lib/auth";
 import { getAllShops } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import ShopDecisionButtons from "@/components/ShopDecisionButtons";
 import VerificationDecision from "@/components/VerificationDecision";
+import { AdminCardListSkeleton, AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
 
 export const metadata = {
   title: "Shops & sellers",
 };
 
-export default async function AdminShopsPage() {
+async function ShopsContent() {
   await requireAdmin();
   const shops = await getAllShops();
 
@@ -50,6 +52,16 @@ export default async function AdminShopsPage() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+export default async function AdminShopsPage() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <ShopsContent />
+      </Suspense>
     </div>
   );
 }

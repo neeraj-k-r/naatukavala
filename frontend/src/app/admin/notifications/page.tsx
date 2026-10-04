@@ -1,8 +1,11 @@
+import { Suspense } from "react";
+
 import NotificationReadButton from "@/components/NotificationReadButton";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminNotifications } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { shopUrl } from "@/lib/subdomain";
+import { AdminCardListSkeleton, AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
 
 export const metadata = {
   title: "Alerts",
@@ -10,7 +13,7 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminNotificationsPage() {
+async function NotificationsContent() {
   await requireAdmin();
   const notifications = await getAdminNotifications();
   const unread = notifications.filter(
@@ -84,6 +87,16 @@ export default async function AdminNotificationsPage() {
       {unread.length === 0 && notifications.length > 0 && (
         <p className="text-sm text-slate-400 dark:text-slate-500">All caught up.</p>
       )}
+    </div>
+  );
+}
+
+export default async function AdminNotificationsPage() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <NotificationsContent />
+      </Suspense>
     </div>
   );
 }

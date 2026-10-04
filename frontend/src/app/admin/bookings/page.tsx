@@ -1,9 +1,16 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import AdminBookingActions from "@/components/AdminBookingActions";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminBookings } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import {
+  AdminBookingCardSkeleton,
+  AdminPageHeaderSkeleton,
+  AdminTabsSkeleton,
+  AdminSearchSkeleton,
+} from "@/components/AdminSkeletons";
 
 export const metadata = {
   title: "Bookings & dispatch",
@@ -37,7 +44,7 @@ const statusPill: Record<string, string> = {
   cancelled: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
 };
 
-export default async function AdminBookingsPage({
+async function BookingsContent({
   searchParams,
 }: {
   searchParams: Promise<{ group?: string; search?: string }>;
@@ -47,7 +54,6 @@ export default async function AdminBookingsPage({
   const group = params.group && GROUPS.some((g) => g.id === params.group) ? params.group : "all";
   const search = (params.search ?? "").trim();
 
-  // The backend only knows a few status values; map the tab to a query it understands.
   const query =
     group === "delivered" || group === "cancelled"
       ? { status: group, limit: 60, ...(search ? { search } : {}) }
@@ -152,6 +158,20 @@ export default async function AdminBookingsPage({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+export default async function AdminBookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ group?: string; search?: string }>;
+}) {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <BookingsContent searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

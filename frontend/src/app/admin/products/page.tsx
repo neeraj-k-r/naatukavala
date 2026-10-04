@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import ProductDecisionButtons from "@/components/ProductDecisionButtons";
 import SuperadminDeleteProductButton from "@/components/SuperadminDeleteProductButton";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminProducts } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { AdminProductCardSkeleton, AdminPageHeaderSkeleton, AdminTabsSkeleton } from "@/components/AdminSkeletons";
 
 export const metadata = {
   title: "Product reviews",
@@ -21,7 +23,7 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-export default async function AdminProductsPage({
+async function ProductsContent({
   searchParams,
 }: {
   searchParams?: Promise<{ status?: string }>;
@@ -117,6 +119,20 @@ export default async function AdminProductsPage({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ status?: string }>;
+}) {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <ProductsContent searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

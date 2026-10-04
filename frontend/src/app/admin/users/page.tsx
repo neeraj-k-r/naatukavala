@@ -1,13 +1,15 @@
+import { Suspense } from "react";
 import { requireAdmin } from "@/lib/auth";
 import { getAllUsers } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import UserActions from "@/components/UserActions";
+import { AdminTableSkeleton, AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
 
 export const metadata = {
   title: "Users & roles",
 };
 
-export default async function AdminUsersPage() {
+async function UsersContent() {
   const user = await requireAdmin();
   const users = await getAllUsers();
 
@@ -47,10 +49,10 @@ export default async function AdminUsersPage() {
                       userRow.role === "superadmin"
                         ? "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-200"
                         : userRow.role === "admin"
-                          ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
-                          : userRow.role === "seller"
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
-                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200"
+                        : userRow.role === "seller"
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                     }`}
                   >
                     {userRow.role}
@@ -72,6 +74,16 @@ export default async function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+export default async function AdminUsersPage() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <Suspense fallback={<AdminPageHeaderSkeleton />}>
+        <UsersContent />
+      </Suspense>
     </div>
   );
 }

@@ -2,8 +2,31 @@
 
 import { useEffect, useState } from "react";
 
+import { createClient } from "@/lib/supabase/client";
+
 const TERMS_KEY = "naatukavala-terms-accepted";
 const TERMS_VERSION = "1";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+async function saveAcceptance(): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.access_token) return;
+
+  await fetch(`${API_URL}/terms/accept`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ version: TERMS_VERSION }),
+  }).catch(() => {
+    // Ignore network errors — localStorage is the source of truth for UI
+  });
+}
 
 export default function TermsAcceptance() {
   const [show, setShow] = useState(false);
@@ -20,9 +43,10 @@ export default function TermsAcceptance() {
   if (!checked) return null;
   if (!show) return null;
 
-  function accept() {
+  async function accept() {
     localStorage.setItem(TERMS_KEY, TERMS_VERSION);
     setShow(false);
+    await saveAcceptance();
   }
 
   return (

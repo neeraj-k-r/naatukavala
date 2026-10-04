@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@api-url",
+    "NEXT_PUBLIC_APP_DOMAIN": "@app-domain",
+    "NEXT_PUBLIC_COOKIE_DOMAIN": "",
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key"
+  }
+}

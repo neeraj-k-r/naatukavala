@@ -10,6 +10,22 @@ import cloudinary from "../lib/cloudinary.js";
 
 const router: Router = express.Router();
 
+// Handle preflight for multipart uploads (multer runs before global CORS)
+router.options("/", (req, res) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = (process.env.FRONTEND_URL ?? "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type");
+  }
+  res.sendStatus(204);
+});
+
 function ensureUploadDir(): string {
   const dir = join(process.cwd(), "uploads");
   mkdirSync(dir, { recursive: true });

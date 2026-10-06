@@ -28,11 +28,25 @@ export async function getPriceDropCount(): Promise<number> {
   return json.drops.length;
 }
 
-/** Uploads an image to the backend, returning the public Cloudinary URL. */
+/** Mirrors the backend limits so users get an instant message instead of a round trip. */
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
+/** Uploads an image or video to the backend, returning the public Cloudinary URL. */
 export async function uploadFile(file: File): Promise<string> {
+  const isVideo = file.type.startsWith("video/");
+  const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  if (file.size > maxBytes) {
+    throw new Error(
+      isVideo
+        ? "Video must be 50 MB or smaller."
+        : "Image must be 10 MB or smaller.",
+    );
+  }
+
   const token = await getAccessToken();
   if (!token) {
-    throw new Error("Please log in before uploading images.");
+    throw new Error("Please log in before uploading files.");
   }
 
   const formData = new FormData();

@@ -484,6 +484,7 @@ create table if not exists public.promotions (
   status text not null default 'requested' check (status in ('requested', 'approved', 'rejected', 'expired')),
   note text,
   decision_note text,
+  video_url text,
   starts_at timestamptz,
   ends_at timestamptz,
   decided_by uuid references auth.users (id),
@@ -735,4 +736,10 @@ create policy terms_acceptances_select_own on public.terms_acceptances
   for select using (user_id = auth.uid());
 create policy terms_acceptances_insert_own on public.terms_acceptances
   for insert with check (user_id = auth.uid());
+
+-- ------------------------------------------------------------
+-- Migration: add video_url to promotions (idempotent — safe to re-run).
+-- ------------------------------------------------------------
+alter table public.promotions
+  add column if not exists video_url text;
 

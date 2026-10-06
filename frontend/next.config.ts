@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Cap the generated widths: local photos are 1600px wide and cards/hero
+    // never need more, so 2x screens stop requesting upscaled 1920–3840
+    // variants (each one several hundred KB heavier than what's needed).
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600],
     remotePatterns: [
       {
         protocol: "https",

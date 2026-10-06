@@ -17,7 +17,7 @@ export default function OfflineGate({ children }: { children: React.ReactNode })
       {/* Fetch the offline illustration while there is still a connection so
           the browser has it cached when the network drops. */}
       <img
-        src="/naatukavaladisc.png"
+        src="/naatukavaladisc.webp"
         alt=""
         aria-hidden
         className="pointer-events-none absolute h-px w-px opacity-0"

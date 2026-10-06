@@ -1,7 +1,7 @@
-const CACHE_NAME = "naatukavala-v1";
+const CACHE_NAME = "naatukavala-v2";
 
 // Always available offline, even on the very first visit.
-const PRECACHE_URLS = ["/naatukavaladisc.png"];
+const PRECACHE_URLS = ["/naatukavaladisc.webp"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

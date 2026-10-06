@@ -6,14 +6,15 @@
  * (a dog sleeping by the shop) instead of a blank screen or browser error.
  *
  * Uses a plain <img> (not next/image) on purpose: the src stays the literal
- * /naatukavaladisc.png URL, so the preload done while online caches the
- * exact same request the offline page makes.
+ * /naatukavaladisc.webp URL, so the preload done while online caches the
+ * exact same request the offline page makes. WebP keeps that preload at
+ * ~160 KB instead of the 1.7 MB PNG (same art, alpha preserved).
  */
 export default function OfflinePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#faf5e9] px-6 py-12 text-center dark:bg-slate-950">
       <img
-        src="/naatukavaladisc.png"
+        src="/naatukavaladisc.webp"
         alt="A dog sleeping in front of a closed shop"
         width={320}
         height={320}

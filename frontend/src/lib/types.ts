@@ -60,6 +60,7 @@ export interface Product {
 
 export interface ProductWithShop extends Product {
   shop: Pick<Shop, "name" | "slug" | "delivery_charge" | "return_policy" | "verification_status" | "banner_url">;
+  promotion_video_url?: string | null;
 }
 
 export interface Order {

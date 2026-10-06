@@ -66,18 +66,23 @@ router.get("/bootstrap", async (req, res) => {
             const vj = await variantJoin();
             let productQuery = supabase
               .from("products")
-              .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}`)
+              .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}, promotions!inner(video_url)`)
               .in("id", promoProductIds)
               .eq("is_active", true)
-              .eq("shop.status", "approved");
+              .eq("shop.status", "approved")
+              .eq("promotions.status", "approved");
             if (await hasApprovalColumn()) {
               productQuery = productQuery.eq("approval_status", "approved");
             }
             const { data } = await productQuery;
             const rank = new Map(promoProductIds.map((id, i) => [id, i]));
-            products = ((data ?? []) as unknown as { id: string }[])
+            products = ((data ?? []) as unknown as { id: string; promotions: { video_url: string | null }[] }[])
               .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
-              .slice(0, 12);
+              .slice(0, 12)
+              .map((product) => ({
+                ...product,
+                promotion_video_url: product.promotions?.[0]?.video_url ?? null,
+              }));
           }
           if (promoShopIds.length > 0) {
             const { data } = await supabase

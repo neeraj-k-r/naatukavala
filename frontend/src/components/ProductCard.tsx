@@ -38,7 +38,16 @@ export default function ProductCard({
       className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="relative aspect-square overflow-hidden bg-slate-200 dark:bg-slate-800">
-        {image ? (
+        {product.promotion_video_url ? (
+          <video
+            src={product.promotion_video_url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        ) : image ? (
           <AdaptiveProductImage
             src={image}
             alt={product.name}

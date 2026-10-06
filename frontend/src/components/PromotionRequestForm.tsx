@@ -8,6 +8,33 @@ import SubmitButton from "@/components/SubmitButton";
 
 import type { Product } from "@/lib/types";
 
+function getEmbedUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // YouTube
+    if (u.hostname.includes("youtube.com") || u.hostname.includes("youtu.be")) {
+      const videoId = u.searchParams.get("v") || u.pathname.slice(1);
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Vimeo
+    if (u.hostname.includes("vimeo.com")) {
+      const videoId = u.pathname.split("/").pop();
+      return `https://player.vimeo.com/video/${videoId}`;
+    }
+    // Instagram - use embed endpoint
+    if (u.hostname.includes("instagram.com")) {
+      return `${url}/embed/`;
+    }
+    // Facebook
+    if (u.hostname.includes("facebook.com") || u.hostname.includes("fb.watch")) {
+      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export default function PromotionRequestForm({
   shopName,
   products,
@@ -21,6 +48,7 @@ export default function PromotionRequestForm({
   const [videoStage, setVideoStage] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const externalUrlRef = useRef<HTMLInputElement>(null);
 
   async function handleVideoUpload(file: File) {
     setVideoError(null);
@@ -40,6 +68,18 @@ export default function PromotionRequestForm({
       setVideoUploading(false);
       setVideoStage(null);
     }
+  }
+
+  function handleExternalUrl() {
+    const url = externalUrlRef.current?.value.trim();
+    if (!url) return;
+    const embedUrl = getEmbedUrl(url);
+    if (!embedUrl) {
+      setVideoError("Unsupported URL. Try YouTube, Vimeo, Instagram, or Facebook.");
+      return;
+    }
+    setVideoUrl(embedUrl);
+    setVideoError(null);
   }
 
   return (
@@ -110,51 +150,82 @@ export default function PromotionRequestForm({
         <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           Promotion video (optional)
         </label>
-        <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
-          {videoUrl ? (
-            <>
-              <video src={videoUrl} autoPlay muted loop playsInline className="w-full h-full object-cover" />
-              <button
-                type="button"
-                onClick={() => setVideoUrl("")}
-                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/70 text-xs text-white hover:bg-red-600"
-                aria-label="Remove video"
-              >
-                ✕
-              </button>
-            </>
-          ) : (
+
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <input
+              ref={externalUrlRef}
+              type="url"
+              placeholder="Paste Instagram, Facebook, YouTube, Vimeo link…"
+              className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            />
             <button
               type="button"
-              onClick={() => videoInputRef.current?.click()}
+              onClick={handleExternalUrl}
               disabled={videoUploading}
-              className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-emerald-400"
+              className="px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-50"
             >
-              {videoUploading ? (
-                <span className="text-sm">{videoStage ?? "Uploading…"}</span>
-              ) : (
-                <>
-                  <span className="text-2xl">＋</span>
-                  <span className="text-xs font-medium">Upload video (MP4, WebM)</span>
-                </>
-              )}
+              Add
             </button>
-          )}
+          </div>
+
+          <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+            {videoUrl ? (
+              <>
+                {getEmbedUrl(videoUrl) ? (
+                  <iframe
+                    src={getEmbedUrl(videoUrl)!}
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video src={videoUrl} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setVideoUrl("")}
+                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/70 text-xs text-white hover:bg-red-600"
+                  aria-label="Remove video"
+                >
+                  ✕
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => videoInputRef.current?.click()}
+                disabled={videoUploading}
+                className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-emerald-400"
+              >
+                {videoUploading ? (
+                  <span className="text-sm">{videoStage ?? "Uploading…"}</span>
+                ) : (
+                  <>
+                    <span className="text-2xl">＋</span>
+                    <span className="text-xs font-medium">Upload video (MP4, WebM)</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) handleVideoUpload(file);
+            }}
+          />
         </div>
-        <input
-          ref={videoInputRef}
-          type="file"
-          accept="video/mp4,video/webm,video/quicktime"
-          className="hidden"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) handleVideoUpload(file);
-          }}
-        />
+
         {videoError && <p className="mt-2 text-sm text-red-600">{videoError}</p>}
-        {!videoError && (
+        {!videoError && !videoUrl && (
           <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
-            Videos over 50 MB are compressed automatically before upload.
+            Upload a video file, or paste a link from YouTube, Vimeo, Instagram, or Facebook.
           </p>
         )}
       </div>

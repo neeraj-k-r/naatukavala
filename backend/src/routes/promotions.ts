@@ -88,6 +88,9 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
   const productId = typeof rawProductId === "string" && rawProductId.trim() ? rawProductId.trim() : null;
   const note = typeof req.body?.note === "string" ? req.body.note.trim() : "";
 
+  const rawVideoUrl = req.body?.video_url;
+  const videoUrl = typeof rawVideoUrl === "string" && rawVideoUrl.trim() ? rawVideoUrl.trim() : null;
+
   if (note.length > MAX_NOTE_LENGTH) {
     return res.status(400).json({ error: "Note must be under 300 characters." });
   }
@@ -134,6 +137,7 @@ router.post("/", requireAuth, requireRole(["seller", "admin", "superadmin"]), as
     shop_id: shop.id,
     product_id: productId,
     note: note || null,
+    video_url: videoUrl,
     status: "requested",
   });
 

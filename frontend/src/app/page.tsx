@@ -215,7 +215,7 @@ function CatalogSkeleton() {
   );
 }
 
-function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }) {
+function ShopCard({ shop, promoted = false }: { shop: Shop & { promotion_video_url?: string | null }; promoted?: boolean }) {
   return (
     <Link
       href={shopUrl(shop.slug)}
@@ -226,15 +226,26 @@ function ShopCard({ shop, promoted = false }: { shop: Shop; promoted?: boolean }
           Sponsored
         </span>
       )}
-      {shop.banner_url && (
+      {(shop.promotion_video_url || shop.banner_url) && (
         <div className="relative h-20 w-full overflow-hidden bg-slate-100">
-          <Image
-            src={shop.banner_url}
-            alt=""
-            fill
-            sizes="(max-width: 640px) 50vw, 25vw"
-            className="object-cover"
-          />
+          {shop.promotion_video_url ? (
+            <video
+              src={shop.promotion_video_url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <Image
+              src={shop.banner_url!}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 50vw, 25vw"
+              className="object-cover"
+            />
+          )}
         </div>
       )}
       <div className="p-4 sm:p-5">

@@ -45,7 +45,7 @@ router.get("/bootstrap", async (req, res) => {
           const now = new Date().toISOString();
           const { data: promos, error } = await supabase
             .from("promotions")
-            .select("shop_id, product_id, created_at")
+            .select("shop_id, product_id, created_at, video_url")
             .eq("status", "approved")
             .or("starts_at.is.null,starts_at.lte." + now)
             .or("ends_at.is.null,ends_at.gt." + now)
@@ -66,39 +66,43 @@ router.get("/bootstrap", async (req, res) => {
             const vj = await variantJoin();
             let productQuery = supabase
               .from("products")
-              .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}, promotions!inner(video_url)`)
+              .select(`*, shop:shops!inner(name, slug, delivery_charge, return_policy, verification_status, banner_url)${vj}`)
               .in("id", promoProductIds)
               .eq("is_active", true)
-              .eq("shop.status", "approved")
-              .eq("promotions.status", "approved");
+              .eq("shop.status", "approved");
             if (await hasApprovalColumn()) {
               productQuery = productQuery.eq("approval_status", "approved");
             }
             const { data } = await productQuery;
             const rank = new Map(promoProductIds.map((id, i) => [id, i]));
-            products = ((data ?? []) as unknown as { id: string; promotions: { video_url: string | null }[] }[])
+            products = ((data ?? []) as unknown as { id: string }[])
               .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
               .slice(0, 12)
-              .map((product) => ({
-                ...product,
-                promotion_video_url: product.promotions?.[0]?.video_url ?? null,
-              }));
+              .map((product) => {
+                const promo = (promos ?? []).find((p) => p.product_id === product.id);
+                return {
+                  ...product,
+                  promotion_video_url: promo?.video_url ?? null,
+                };
+              });
           }
           if (promoShopIds.length > 0) {
             const { data } = await supabase
               .from("shops")
-              .select("*, promotions!inner(video_url)")
+              .select("*")
               .in("id", promoShopIds)
-              .eq("status", "approved")
-              .eq("promotions.status", "approved");
+              .eq("status", "approved");
             const rank = new Map(promoShopIds.map((id, i) => [id, i]));
-            shops = ((data ?? []) as { id: string; promotions: { video_url: string | null }[] }[])
+            shops = ((data ?? []) as { id: string }[])
               .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
               .slice(0, 8)
-              .map((shop) => ({
-                ...shop,
-                promotion_video_url: shop.promotions?.[0]?.video_url ?? null,
-              }));
+              .map((shop) => {
+                const promo = (promos ?? []).find((p) => p.shop_id === shop.id && !p.product_id);
+                return {
+                  ...shop,
+                  promotion_video_url: promo?.video_url ?? null,
+                };
+              });
           }
           return { products, shops };
         })(),

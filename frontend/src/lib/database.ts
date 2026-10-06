@@ -116,6 +116,7 @@ interface Row {
     product_id: string | null;
     status: PromotionStatus;
     note: string | null;
+    video_url: string | null;
     decision_note: string | null;
     starts_at: string | null;
     ends_at: string | null;

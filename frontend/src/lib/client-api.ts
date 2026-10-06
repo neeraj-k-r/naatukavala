@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { compressVideo } from "@/lib/compressVideo";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -32,17 +33,44 @@ export async function getPriceDropCount(): Promise<number> {
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
+export type UploadStage =
+  | { phase: "compressing"; progress: number }
+  | { phase: "uploading" };
+
 /** Uploads an image or video to the backend, returning the public Cloudinary URL. */
-export async function uploadFile(file: File): Promise<string> {
+export async function uploadFile(
+  file: File,
+  onStage?: (stage: UploadStage) => void,
+): Promise<string> {
   const isVideo = file.type.startsWith("video/");
   const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-  if (file.size > maxBytes) {
-    throw new Error(
-      isVideo
-        ? "Video must be 50 MB or smaller."
-        : "Image must be 10 MB or smaller.",
-    );
+
+  let target = file;
+  if (target.size > maxBytes) {
+    if (!isVideo) {
+      throw new Error("Image must be 10 MB or smaller.");
+    }
+
+    // Oversized videos are shrunk in the browser rather than rejected —
+    // most clips are large only because phones record at high bitrate.
+    onStage?.({ phase: "compressing", progress: 0 });
+    try {
+      target = await compressVideo(file, (progress) =>
+        onStage?.({ phase: "compressing", progress }),
+      );
+    } catch {
+      throw new Error(
+        "This video is over 50 MB and couldn't be compressed here. Please upload a shorter clip.",
+      );
+    }
+    if (target.size > maxBytes) {
+      throw new Error(
+        "The video is still over 50 MB after compressing. Please upload a shorter clip.",
+      );
+    }
   }
+
+  onStage?.({ phase: "uploading" });
 
   const token = await getAccessToken();
   if (!token) {
@@ -50,7 +78,7 @@ export async function uploadFile(file: File): Promise<string> {
   }
 
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", target);
   formData.append("folder", "products");
 
   const res = await fetch(`${API_URL}/upload`, {

@@ -66,7 +66,13 @@ type ApiOptions = RequestInit & {
 // Per-instance response cache for public catalog reads. Keeps repeat page
 // views off the Render API entirely (and shields them from its cold starts).
 const publicCache = new Map<string, { expires: number; body: unknown }>();
+// Last good payload per path, kept past expiry: when the backend is asleep
+// or slow, we render yesterday's catalog instead of an empty page.
+const lastGoodPayload = new Map<string, unknown>();
 const PUBLIC_CACHE_MAX_ENTRIES = 100;
+// Render cold starts can take half a minute — never hold a page open that
+// long waiting for a cacheable public read.
+const PUBLIC_REQUEST_TIMEOUT_MS = 8000;
 
 /** Calls the backend API with the signed-in user's Supabase JWT attached. */
 export async function fetchApi<T>(path: string, options: ApiOptions = {}): Promise<T> {
@@ -80,15 +86,31 @@ export async function fetchApi<T>(path: string, options: ApiOptions = {}): Promi
     if (hit && hit.expires > Date.now()) return hit.body as T;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(headers ?? {}),
-    },
-    cache: "no-store",
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(headers ?? {}),
+      },
+      ...(cacheable
+        ? {
+            // Next's data cache survives cold server instances (a module Map
+            // does not), so a sleeping Render API can't stall the next visit.
+            next: { revalidate: publicTtl },
+            signal: AbortSignal.timeout(PUBLIC_REQUEST_TIMEOUT_MS),
+          }
+        : { cache: "no-store" as const }),
+    });
+  } catch (err) {
+    if (cacheable) {
+      const stale = lastGoodPayload.get(path);
+      if (stale !== undefined) return stale as T;
+    }
+    throw err;
+  }
 
   const text = await res.text();
   let body: unknown = null;
@@ -113,6 +135,7 @@ export async function fetchApi<T>(path: string, options: ApiOptions = {}): Promi
   if (cacheable && publicTtl) {
     if (publicCache.size >= PUBLIC_CACHE_MAX_ENTRIES) publicCache.clear();
     publicCache.set(path, { expires: Date.now() + publicTtl * 1000, body: data });
+    lastGoodPayload.set(path, data);
   }
 
   return data;

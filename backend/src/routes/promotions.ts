@@ -21,7 +21,7 @@ router.get("/spotlight", async (_req, res) => {
 
       const { data: promos, error } = await supabase
         .from("promotions")
-        .select("shop_id, product_id, created_at")
+        .select("shop_id, product_id, created_at, video_url")
         .eq("status", "approved")
         .or("starts_at.is.null,starts_at.lte." + now)
         .or("ends_at.is.null,ends_at.gt." + now)

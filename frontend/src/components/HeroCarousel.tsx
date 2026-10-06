@@ -68,6 +68,24 @@ export default function HeroCarousel() {
   const [paused, setPaused] = useState(false);
   const startX = useRef<number | null>(null);
 
+  // Only slide 1's photo loads on the critical path; the other two wait
+  // until the page has finished loading so they don't fight it for bandwidth.
+  const [warm, setWarm] = useState(false);
+
+  useEffect(() => {
+    const warmUp = () => setWarm(true);
+    const fallback = window.setTimeout(warmUp, 5000);
+    if (document.readyState === "complete") {
+      window.setTimeout(warmUp, 1000);
+      return () => window.clearTimeout(fallback);
+    }
+    window.addEventListener("load", warmUp, { once: true });
+    return () => {
+      window.removeEventListener("load", warmUp);
+      window.clearTimeout(fallback);
+    };
+  }, []);
+
   useEffect(() => {
     if (paused) return;
     const timer = setTimeout(
@@ -117,14 +135,16 @@ export default function HeroCarousel() {
             {slide.theme === "editorial" ? (
               <>
                 <span aria-hidden className="absolute inset-0">
-                  <Image
-                    src="/hero-market.jpg"
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 100vw, 60vw"
-                    priority={slideIndex === 0}
-                    className="object-cover object-center"
-                  />
+                  {(slideIndex === 0 || warm) && (
+                    <Image
+                      src="/hero-market.jpg"
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, 60vw"
+                      priority={slideIndex === 0}
+                      className="object-cover object-center"
+                    />
+                  )}
                   <span
                     aria-hidden
                     className="absolute inset-0 bg-gradient-to-r from-[#faf5e9] via-[#faf5e9]/85 via-[45%] to-[#faf5e9]/5 dark:from-slate-900 dark:via-slate-900/85 dark:to-slate-900/5"
@@ -159,7 +179,7 @@ export default function HeroCarousel() {
               </>
             ) : (
               <>
-                {slide.photo && (
+                {slide.photo && (slideIndex === 0 || warm) && (
                   <span aria-hidden className="absolute inset-0">
                     <Image
                       src={slide.photo}

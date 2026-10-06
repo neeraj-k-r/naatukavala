@@ -18,6 +18,7 @@ export default function PromotionRequestForm({
   const [state, action] = useActionState(requestPromotion, undefined);
   const [videoUrl, setVideoUrl] = useState("");
   const [videoUploading, setVideoUploading] = useState(false);
+  const [videoStage, setVideoStage] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,12 +26,19 @@ export default function PromotionRequestForm({
     setVideoError(null);
     setVideoUploading(true);
     try {
-      const url = await uploadFile(file);
+      const url = await uploadFile(file, (stage) => {
+        setVideoStage(
+          stage.phase === "compressing"
+            ? `Compressing… ${Math.round(stage.progress * 100)}%`
+            : "Uploading…",
+        );
+      });
       setVideoUrl(url);
     } catch (err) {
       setVideoError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setVideoUploading(false);
+      setVideoStage(null);
     }
   }
 
@@ -123,7 +131,7 @@ export default function PromotionRequestForm({
               className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-emerald-400"
             >
               {videoUploading ? (
-                <span className="text-sm">Uploading…</span>
+                <span className="text-sm">{videoStage ?? "Uploading…"}</span>
               ) : (
                 <>
                   <span className="text-2xl">＋</span>
@@ -144,6 +152,11 @@ export default function PromotionRequestForm({
           }}
         />
         {videoError && <p className="mt-2 text-sm text-red-600">{videoError}</p>}
+        {!videoError && (
+          <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+            Videos over 50 MB are compressed automatically before upload.
+          </p>
+        )}
       </div>
 
       <SubmitButton

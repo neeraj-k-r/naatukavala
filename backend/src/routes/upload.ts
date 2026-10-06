@@ -92,7 +92,8 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
       resource_type: isVideo ? "video" : "image",
     });
     return res.status(201).json({ url: result.secure_url });
-  } catch {
+  } catch (err) {
+    console.error("Cloudinary upload error:", err);
     return res.status(500).json({ error: "Upload failed. Please try again." });
   } finally {
     // Multer leaves the temp file behind — remove it so uploads/ can't

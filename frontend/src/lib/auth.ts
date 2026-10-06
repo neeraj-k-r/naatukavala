@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, hasSessionCookie } from "@/lib/supabase/server";
 import type { Profile, UserRole } from "@/lib/types";
 
 export interface AuthUser {
@@ -22,6 +22,10 @@ export const getUser = cache(async (): Promise<AuthUser | null> => {
   ) {
     return null;
   }
+
+  // No session cookie means no session — skip the Supabase roundtrips that
+  // would otherwise hold up the first byte of every page.
+  if (!(await hasSessionCookie())) return null;
 
   const supabase = await createClient();
 

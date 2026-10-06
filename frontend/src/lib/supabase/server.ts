@@ -7,6 +7,20 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 /**
+ * True when the request carries a Supabase session cookie.
+ *
+ * Anonymous visitors make up most traffic and would otherwise pay two
+ * network roundtrips to Supabase per page render just to learn nobody is
+ * signed in — checking the cookie first removes that from the critical path.
+ */
+export async function hasSessionCookie(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return cookieStore
+    .getAll()
+    .some((cookie) => cookie.name.includes("auth-token") && cookie.value !== "");
+}
+
+/**
  * Server-side Supabase client bound to the incoming request cookies.
  * Used inside Server Components, Server Actions and Route Handlers.
  */

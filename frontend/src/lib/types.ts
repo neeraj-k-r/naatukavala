@@ -131,6 +131,7 @@ export interface Promotion {
   status: PromotionStatus;
   note: string | null;
   decision_note: string | null;
+  video_url: string | null;
   starts_at: string | null;
   ends_at: string | null;
   decided_at: string | null;

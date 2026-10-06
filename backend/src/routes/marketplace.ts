@@ -82,13 +82,18 @@ router.get("/bootstrap", async (req, res) => {
           if (promoShopIds.length > 0) {
             const { data } = await supabase
               .from("shops")
-              .select("*")
+              .select("*, promotions!inner(video_url)")
               .in("id", promoShopIds)
-              .eq("status", "approved");
+              .eq("status", "approved")
+              .eq("promotions.status", "approved");
             const rank = new Map(promoShopIds.map((id, i) => [id, i]));
-            shops = ((data ?? []) as { id: string }[])
+            shops = ((data ?? []) as { id: string; promotions: { video_url: string | null }[] }[])
               .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
-              .slice(0, 8);
+              .slice(0, 8)
+              .map((shop) => ({
+                ...shop,
+                promotion_video_url: shop.promotions?.[0]?.video_url ?? null,
+              }));
           }
           return { products, shops };
         })(),

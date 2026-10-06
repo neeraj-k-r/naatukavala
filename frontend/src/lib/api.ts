@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, hasSessionCookie } from "@/lib/supabase/server";
 
 import type { Database } from "@/lib/database";
 import type {
@@ -38,6 +38,9 @@ export class ApiError extends Error {
  * validation roundtrip instead of each paying for its own.
  */
 const getAccessToken = cache(async (): Promise<string | null> => {
+  // Anonymous request: no cookie, no session — never worth a Supabase call.
+  if (!(await hasSessionCookie())) return null;
+
   const supabase = await createClient();
   // Validate the user server-side first: getSession() alone trusts whatever
   // is in the cookie without checking expiry/revocation.
@@ -51,19 +54,38 @@ const getAccessToken = cache(async (): Promise<string | null> => {
   return session?.access_token ?? null;
 });
 
+type ApiOptions = RequestInit & {
+  /**
+   * Seconds to reuse an anonymous GET response across requests. Only set it
+   * for public catalog data — responses are cached solely when nobody is
+   * signed in, so user-specific payloads never leak between visitors.
+   */
+  publicTtl?: number;
+};
+
+// Per-instance response cache for public catalog reads. Keeps repeat page
+// views off the Render API entirely (and shields them from its cold starts).
+const publicCache = new Map<string, { expires: number; body: unknown }>();
+const PUBLIC_CACHE_MAX_ENTRIES = 100;
+
 /** Calls the backend API with the signed-in user's Supabase JWT attached. */
-export async function fetchApi<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+export async function fetchApi<T>(path: string, options: ApiOptions = {}): Promise<T> {
+  const { publicTtl, headers, ...init } = options;
   const token = await getAccessToken();
+  const method = (init.method ?? "GET").toUpperCase();
+  const cacheable = Boolean(publicTtl) && !token && method === "GET";
+
+  if (cacheable) {
+    const hit = publicCache.get(path);
+    if (hit && hit.expires > Date.now()) return hit.body as T;
+  }
 
   const res = await fetch(`${API_URL}${path}`, {
-    ...options,
+    ...init,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers ?? {}),
+      ...(headers ?? {}),
     },
     cache: "no-store",
   });
@@ -86,14 +108,23 @@ export async function fetchApi<T>(
     throw new ApiError(res.status, message);
   }
 
-  return (body ?? {}) as T;
+  const data = (body ?? {}) as T;
+
+  if (cacheable && publicTtl) {
+    if (publicCache.size >= PUBLIC_CACHE_MAX_ENTRIES) publicCache.clear();
+    publicCache.set(path, { expires: Date.now() + publicTtl * 1000, body: data });
+  }
+
+  return data;
 }
 
 // ---------------------------------------------------------------- Public
 
 /** Approved shops only (visible to the public). */
 export async function getActiveShops(): Promise<Shop[]> {
-  const { shops } = await fetchApi<{ shops: Shop[] }>("/shops/marketplace");
+  const { shops } = await fetchApi<{ shops: Shop[] }>("/shops/marketplace", {
+    publicTtl: 30,
+  });
   return shops ?? [];
 }
 
@@ -126,6 +157,7 @@ export async function getMarketplace(
     if (filters.category) qs.set("category", filters.category);
     const data = await fetchApi<MarketplaceBundle>(
       `/marketplace/bootstrap${qs.size > 0 ? `?${qs}` : ""}`,
+      { publicTtl: 20 },
     );
     return {
       products: data.products ?? [],
@@ -164,6 +196,7 @@ export async function getMarketplaceProducts({
 
   const { products } = await fetchApi<{ products: ProductWithShop[] }>(
     `/products/marketplace${qs.size > 0 ? `?${qs}` : ""}`,
+    { publicTtl: 20 },
   );
   return products ?? [];
 }
@@ -172,6 +205,7 @@ export async function getMarketplaceProducts({
 export async function getCategories(): Promise<string[]> {
   const { categories } = await fetchApi<{ categories: string[] }>(
     "/products/categories",
+    { publicTtl: 60 },
   );
   return categories ?? [];
 }
@@ -182,6 +216,7 @@ export async function getShopBySlug(
   try {
     return await fetchApi<{ shop: Shop; products: Product[] }>(
       `/shops/${encodeURIComponent(slug)}`,
+      { publicTtl: 60 },
     );
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;

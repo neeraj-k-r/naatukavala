@@ -8,23 +8,22 @@ import { useEffect, useState } from "react";
  * connection drops or returns.
  */
 export function useOnlineStatus(): boolean {
-  const [online, setOnline] = useState<boolean>(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine,
-  );
+  // Always start from `true`: this hook renders on the server too, where
+  // navigator is undefined, so reading navigator.onLine for the initial
+  // state makes the first client render differ from the server HTML
+  // (React hydration error #418) whenever the browser is offline.
+  const [online, setOnline] = useState(true);
 
   useEffect(() => {
-    function handleOnline() {
-      setOnline(true);
-    }
-    function handleOffline() {
-      setOnline(false);
-    }
+    // Sync the real value immediately after mount, then follow changes.
+    const sync = () => setOnline(navigator.onLine);
+    sync();
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", sync);
+      window.removeEventListener("offline", sync);
     };
   }, []);
 

@@ -43,6 +43,11 @@ export default function PromotionRequestForm({
   products: Product[];
 }) {
   const [state, action] = useActionState(requestPromotion, undefined);
+  // Once a request is sent we replace the form with a confirmation card.
+  // Tracking the exact state object (rather than a boolean) keeps the form
+  // visible while a follow-up submission is still in flight.
+  const [dismissedState, setDismissedState] = useState<unknown>(null);
+  const requestSent = Boolean(state?.success) && state !== dismissedState;
   const [videoUrl, setVideoUrl] = useState("");
   const [videoUploading, setVideoUploading] = useState(false);
   const [videoStage, setVideoStage] = useState<string | null>(null);
@@ -82,6 +87,45 @@ export default function PromotionRequestForm({
     setVideoError(null);
   }
 
+  if (requestSent) {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-white p-6 text-center shadow-sm dark:border-emerald-900 dark:bg-slate-900">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-7 w-7 text-emerald-600 dark:text-emerald-400"
+            aria-hidden
+          >
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        </span>
+        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-slate-100">
+          Request sent!
+        </h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
+          Your promotion request is with our team. We&apos;ll review it shortly —
+          track its status under <strong>My requests</strong> below.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setDismissedState(state);
+            setVideoUrl("");
+            setVideoError(null);
+          }}
+          className="mt-5 inline-flex h-10 items-center gap-2 rounded-full border border-emerald-600 px-5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950"
+        >
+          Send another request
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form
       action={action}
@@ -97,11 +141,6 @@ export default function PromotionRequestForm({
       {state?.error && (
         <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
           {state.error}
-        </div>
-      )}
-      {state?.success && (
-        <div className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-          Request sent! Our team will review it soon.
         </div>
       )}
 

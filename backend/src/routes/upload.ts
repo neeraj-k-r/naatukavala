@@ -41,6 +41,9 @@ const ALLOWED_MIME = new Set([
   // but accept it here too (Cloudinary handles it) rather than failing.
   "image/heic",
   "image/heif",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
 ]);
 
 const upload = multer({
@@ -61,10 +64,12 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
     return res.status(400).json({ error: "No file uploaded." });
   }
 
+  const isVideo = req.file.mimetype.startsWith("video/");
+
   try {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "naatukavala",
-      resource_type: "image",
+      resource_type: isVideo ? "video" : "image",
     });
     return res.status(201).json({ url: result.secure_url });
   } catch {

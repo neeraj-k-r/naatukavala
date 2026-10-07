@@ -107,12 +107,52 @@ async function MarketplaceCatalog({
 
   return (
     <>
-      <DealsShelf
-        products={shelfProducts}
-        promotedIds={promotedProductIds}
-        wishlistIds={wishlistIds}
-        signedIn={signedIn}
-      />
+      {/* Trending + sponsored share one row on desktop; stacked on mobile */}
+      <div className={hasSpotlight ? "lg:grid lg:grid-cols-5 lg:items-start lg:gap-6" : undefined}>
+        <div className={hasSpotlight ? "lg:col-span-3 lg:[&>section]:mb-0" : undefined}>
+          <DealsShelf
+            products={shelfProducts}
+            promotedIds={promotedProductIds}
+            wishlistIds={wishlistIds}
+            signedIn={signedIn}
+          />
+        </div>
+        {hasSpotlight && (
+          <section className="mb-5 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:mb-6 lg:col-span-2 dark:border-amber-900 dark:from-amber-950 dark:to-slate-900 sm:p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-950">
+                Sponsored
+              </span>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Featured picks from our sellers
+              </h2>
+            </div>
+
+            {spotlight.products.length > 0 && (
+              <ProductGrid
+                products={spotlight.products}
+                promotedIds={promotedProductIds}
+                wishlistIds={wishlistIds}
+                signedIn={signedIn}
+              />
+            )}
+
+            {spotlight.shops.length > 0 && (
+              <div
+                className={
+                  spotlight.products.length > 0
+                    ? "mt-4 grid grid-cols-1 gap-3 sm:gap-4"
+                    : "grid grid-cols-1 gap-3 sm:gap-4"
+                }
+              >
+                {spotlight.shops.map((shop) => (
+                  <ShopCard key={shop.id} shop={shop} promoted />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
       <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center">
         <CategoryRail categories={categories} active={category} search={search} />
         <Suspense fallback={null}>
@@ -131,43 +171,6 @@ async function MarketplaceCatalog({
         </div>
         <ProductGrid products={products} promotedIds={promotedProductIds} wishlistIds={wishlistIds} signedIn={signedIn} />
       </section>
-
-      {/* Sponsored spotlight — admin-approved promotions get top placement */}
-      {hasSpotlight && (
-        <section className="mb-5 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:mb-6 dark:border-amber-900 dark:from-amber-950 dark:to-slate-900 sm:p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-950">
-              Sponsored
-            </span>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              Featured picks from our sellers
-            </h2>
-          </div>
-
-          {spotlight.products.length > 0 && (
-            <ProductGrid
-              products={spotlight.products}
-              promotedIds={promotedProductIds}
-              wishlistIds={wishlistIds}
-              signedIn={signedIn}
-            />
-          )}
-
-          {spotlight.shops.length > 0 && (
-            <div
-              className={
-                spotlight.products.length > 0
-                  ? "mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"
-                  : "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"
-              }
-            >
-              {spotlight.shops.map((shop) => (
-                <ShopCard key={shop.id} shop={shop} promoted />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
 
       {shops.length > 0 && (
         <section id="featured-shops" className="mt-5 scroll-mt-20 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mt-6 sm:p-5 dark:border-slate-800 dark:bg-slate-900">

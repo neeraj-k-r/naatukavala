@@ -86,7 +86,7 @@ export interface Order {
 
 export type ReturnStatus = "requested" | "approved" | "rejected";
 
-export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
+export type PromotionStatus = "requested" | "approved" | "rejected" | "expired" | "removed";
 
 export type ProductApproval = "approved" | "pending" | "rejected";
 

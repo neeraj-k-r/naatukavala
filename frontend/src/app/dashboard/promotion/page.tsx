@@ -14,6 +14,7 @@ const statusStyles: Record<string, string> = {
   approved: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
   rejected: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
   expired: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+  removed: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
 };
 
 export default async function PromotionPage() {
@@ -86,10 +87,15 @@ export default async function PromotionPage() {
                     {promotion.status === "approved" && promotion.ends_at && (
                       <> · runs till {formatDate(promotion.ends_at)}</>
                     )}
-                    {promotion.decision_note && (
+                    {promotion.decision_note && promotion.status !== "removed" && (
                       <> · “{promotion.decision_note}”</>
                     )}
                   </p>
+                  {promotion.status === "removed" && promotion.decision_note && (
+                    <p className="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                      Sponsorship removed by our team — {promotion.decision_note}
+                    </p>
+                  )}
                 </div>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[promotion.status] ?? "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"}`}

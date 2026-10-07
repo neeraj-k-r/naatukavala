@@ -19,6 +19,7 @@ const statusStyles: Record<string, string> = {
   approved: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
   rejected: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
   expired: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+  removed: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
 };
 
 function PromotionCard({ promotion }: { promotion: Promotion }) {
@@ -48,8 +49,15 @@ function PromotionCard({ promotion }: { promotion: Promotion }) {
             </p>
           )}
           {promotion.decision_note && (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Decision note: “{promotion.decision_note}”
+            <p
+              className={`mt-1 text-xs ${
+                promotion.status === "removed"
+                  ? "font-semibold text-rose-600 dark:text-rose-400"
+                  : "text-slate-500 dark:text-slate-400"
+              }`}
+            >
+              {promotion.status === "removed" ? "Removal reason" : "Decision note"}: “
+              {promotion.decision_note}”
             </p>
           )}
         </div>
@@ -85,7 +93,8 @@ async function PromotionsContent() {
   const pending = promotions.filter((p) => p.status === "requested");
   const active = promotions.filter((p) => p.status === "approved");
   const history = promotions.filter(
-    (p) => p.status === "rejected" || p.status === "expired",
+    (p) =>
+      p.status === "rejected" || p.status === "expired" || p.status === "removed",
   );
 
   return (

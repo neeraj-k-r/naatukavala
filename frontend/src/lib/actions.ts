@@ -265,7 +265,7 @@ export async function requestPromotion(state: unknown, formData: FormData) {
   return { success: true };
 }
 
-/** Admins approve (time-boxed), reject, or expire a promotion. */
+/** Admins approve (time-boxed), reject, expire, or remove a promotion. */
 export async function decidePromotion(state: unknown, formData: FormData) {
   const user = await getUser();
   if (!user) redirect("/login");
@@ -278,8 +278,11 @@ export async function decidePromotion(state: unknown, formData: FormData) {
   const durationDays = Number(formData.get("duration_days") ?? 30);
   const decisionNote = String(formData.get("decision_note") ?? "").trim();
 
-  if (!promotionId || !["approve", "reject", "expire"].includes(decision)) {
+  if (!promotionId || !["approve", "reject", "expire", "remove"].includes(decision)) {
     return { error: "Invalid decision." };
+  }
+  if (decision === "remove" && !decisionNote) {
+    return { error: "Tell the seller why the sponsorship is being removed." };
   }
 
   try {
@@ -296,6 +299,7 @@ export async function decidePromotion(state: unknown, formData: FormData) {
   }
 
   revalidatePath("/admin/promotions");
+  revalidatePath("/dashboard/promotion");
   revalidatePath("/");
   return { success: true };
 }

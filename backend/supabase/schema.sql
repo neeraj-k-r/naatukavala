@@ -481,7 +481,7 @@ create table if not exists public.promotions (
   id uuid primary key default gen_random_uuid(),
   shop_id uuid not null references public.shops (id) on delete cascade,
   product_id uuid references public.products (id) on delete cascade,
-  status text not null default 'requested' check (status in ('requested', 'approved', 'rejected', 'expired')),
+  status text not null default 'requested' check (status in ('requested', 'approved', 'rejected', 'expired', 'removed')),
   note text,
   decision_note text,
   video_url text,

@@ -242,6 +242,7 @@ export async function requestPromotion(state: unknown, formData: FormData) {
 
   const target = String(formData.get("target") ?? "shop");
   const note = String(formData.get("note") ?? "").trim();
+  const videoUrl = String(formData.get("video_url") ?? "").trim();
 
   if (note.length > 300) {
     return { error: "Note must be under 300 characters." };
@@ -253,6 +254,7 @@ export async function requestPromotion(state: unknown, formData: FormData) {
       body: JSON.stringify({
         product_id: target === "shop" ? null : target,
         note: note || null,
+        video_url: videoUrl || null,
       }),
     });
   } catch (err) {

@@ -234,18 +234,21 @@ router.get("/requests", requireAuth, requireRole(["admin", "superadmin"]), async
   });
 });
 
-/** Admin: approve (time-boxed), reject, or expire a promotion. */
+/** Admin: approve (time-boxed), reject, expire, or remove a promotion. */
 router.patch("/:id", requireAuth, requireRole(["admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
   const { decision, duration_days, decision_note } = req.body ?? {};
-  if (!["approve", "reject", "expire"].includes(decision)) {
+  if (!["approve", "reject", "expire", "remove"].includes(decision)) {
     return res.status(400).json({ error: "Invalid decision." });
   }
 
   const note = typeof decision_note === "string" ? decision_note.trim() : "";
   if (note.length > MAX_NOTE_LENGTH) {
     return res.status(400).json({ error: "Decision note must be under 300 characters." });
+  }
+  if (decision === "remove" && !note) {
+    return res.status(400).json({ error: "Tell the seller why the sponsorship is being removed." });
   }
 
   const duration = Number(duration_days ?? DEFAULT_DURATION_DAYS);
@@ -266,6 +269,7 @@ router.patch("/:id", requireAuth, requireRole(["admin", "superadmin"]), async (r
     approve: ["requested", "expired"],
     reject: ["requested"],
     expire: ["approved"],
+    remove: ["approved"],
   };
   if (!allowedFrom[decision].includes(promo.status)) {
     return res.status(400).json({ error: `Cannot ${decision} a ${promo.status} promotion.` });
@@ -273,7 +277,11 @@ router.patch("/:id", requireAuth, requireRole(["admin", "superadmin"]), async (r
 
   const now = new Date();
   const patch: Record<string, unknown> = {
-    status: decision === "approve" ? "approved" : decision === "reject" ? "rejected" : "expired",
+    status:
+      decision === "approve" ? "approved"
+      : decision === "reject" ? "rejected"
+      : decision === "remove" ? "removed"
+      : "expired",
     decision_note: note || null,
     decided_by: req.user.id,
     decided_at: now.toISOString(),
@@ -281,6 +289,9 @@ router.patch("/:id", requireAuth, requireRole(["admin", "superadmin"]), async (r
   if (decision === "approve") {
     patch.starts_at = now.toISOString();
     patch.ends_at = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000).toISOString();
+  }
+  if (decision === "remove" || decision === "expire") {
+    patch.ends_at = now.toISOString();
   }
 
   const { error } = await supabase

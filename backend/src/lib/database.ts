@@ -14,7 +14,7 @@ export type OrderStatus =
   | "shipped"
   | "delivered"
   | "cancelled";
-export type PromotionStatus = "requested" | "approved" | "rejected" | "expired";
+export type PromotionStatus = "requested" | "approved" | "rejected" | "expired" | "removed";
 export type ProductApproval = "approved" | "pending" | "rejected";
 
 interface Row {

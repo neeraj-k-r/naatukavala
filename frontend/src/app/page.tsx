@@ -119,7 +119,7 @@ async function MarketplaceCatalog({
         </div>
         {hasSpotlight && (
           <section className="mb-5 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 sm:mb-6 lg:col-span-2 dark:border-amber-900 dark:from-amber-950 dark:to-slate-900 sm:p-6">
-            <div className="mb-4 flex items-center gap-2 -mt-5">
+            <div className="mb-4 flex items-center gap-2 -mt-5 sm:-mt-6">
               <span className="rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-950">
                 Sponsored
               </span>

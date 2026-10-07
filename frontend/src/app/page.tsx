@@ -109,7 +109,7 @@ async function MarketplaceCatalog({
     <>
       {/* Trending + sponsored share one row on desktop; stacked on mobile */}
       <div className={hasSpotlight ? "lg:grid lg:grid-cols-5 lg:items-start lg:gap-6" : undefined}>
-        <div className={hasSpotlight ? "lg:col-span-3 lg:[&>section]:mb-0" : undefined}>
+        <div className={hasSpotlight ? "lg:col-span-3 lg:pt-6 lg:[&>section]:mb-0" : undefined}>
           <DealsShelf
             products={shelfProducts}
             promotedIds={promotedProductIds}

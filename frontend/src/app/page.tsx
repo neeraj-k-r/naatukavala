@@ -216,6 +216,59 @@ function CatalogSkeleton() {
 }
 
 function ShopCard({ shop, promoted = false }: { shop: Shop & { promotion_video_url?: string | null }; promoted?: boolean }) {
+  // Video-first layout: video fills the card, text floats on top.
+  if (shop.promotion_video_url) {
+    return (
+      <Link
+        href={shopUrl(shop.slug)}
+        className="group relative block overflow-hidden rounded-2xl shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      >
+        <div className="relative aspect-video w-full overflow-hidden bg-slate-900">
+          <video
+            src={shop.promotion_video_url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <span
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent"
+          />
+          {promoted && (
+            <span className="absolute right-2 top-2 z-10 rounded-full bg-amber-400 px-2.5 py-1 text-xs font-bold text-amber-950">
+              Sponsored
+            </span>
+          )}
+          <div className="absolute inset-x-0 bottom-0 z-10 flex items-center gap-2.5 p-4">
+            <div className="flex h-9 w-9 flex-none items-center justify-center overflow-hidden rounded-full bg-white/20 text-sm font-bold text-white backdrop-blur-sm sm:h-10 sm:w-10 sm:text-base">
+              {shop.logo_url ? (
+                <Image
+                  src={shop.logo_url}
+                  alt={shop.name}
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span>{shop.name.slice(0, 1).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-base font-bold text-white group-hover:underline sm:text-lg">
+                {shop.name}
+              </p>
+              {shop.tagline && (
+                <p className="truncate text-[13px] text-white/80 sm:text-sm">{shop.tagline}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <Link
       href={shopUrl(shop.slug)}
@@ -226,26 +279,15 @@ function ShopCard({ shop, promoted = false }: { shop: Shop & { promotion_video_u
           Sponsored
         </span>
       )}
-      {(shop.promotion_video_url || shop.banner_url) && (
+      {shop.banner_url && (
         <div className="relative h-20 w-full overflow-hidden bg-slate-100">
-          {shop.promotion_video_url ? (
-            <video
-              src={shop.promotion_video_url}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <Image
-              src={shop.banner_url!}
-              alt=""
-              fill
-              sizes="(max-width: 640px) 50vw, 25vw"
-              className="object-cover"
-            />
-          )}
+          <Image
+            src={shop.banner_url}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 50vw, 25vw"
+            className="object-cover"
+          />
         </div>
       )}
       <div className="p-4 sm:p-5">

@@ -1,10 +1,9 @@
 import { Suspense } from "react";
 
-import PromotionDecision from "@/components/PromotionDecision";
+import AdminPromotionCard from "@/components/AdminPromotionCard";
 import { requireAdmin } from "@/lib/auth";
 import { getAllPromotions } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
-import { AdminCardListSkeleton, AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
+import { AdminPageHeaderSkeleton } from "@/components/AdminSkeletons";
 
 import type { Promotion } from "@/lib/types";
 
@@ -13,71 +12,6 @@ export const metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-const statusStyles: Record<string, string> = {
-  requested: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  approved: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
-  rejected: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-  expired: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
-  removed: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
-};
-
-function PromotionCard({ promotion }: { promotion: Promotion }) {
-  return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            {promotion.product_id
-              ? (promotion.product_name ?? "Product")
-              : "Whole shop"}
-            <span className="font-normal text-slate-500 dark:text-slate-400">
-              {" "}
-              · {promotion.shop_name ?? "unknown shop"}
-              {promotion.shop_slug ? ` (${promotion.shop_slug})` : ""}
-            </span>
-          </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500">
-            Requested {formatDate(promotion.created_at)}
-            {promotion.status === "approved" && promotion.ends_at && (
-              <> · runs till {formatDate(promotion.ends_at)}</>
-            )}
-          </p>
-          {promotion.note && (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Seller note: “{promotion.note}”
-            </p>
-          )}
-          {promotion.decision_note && (
-            <p
-              className={`mt-1 text-xs ${
-                promotion.status === "removed"
-                  ? "font-semibold text-rose-600 dark:text-rose-400"
-                  : "text-slate-500 dark:text-slate-400"
-              }`}
-            >
-              {promotion.status === "removed" ? "Removal reason" : "Decision note"}: “
-              {promotion.decision_note}”
-            </p>
-          )}
-        </div>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[promotion.status] ?? "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"}`}
-        >
-          {promotion.status}
-        </span>
-      </div>
-
-      {(promotion.status === "requested" ||
-        promotion.status === "approved") && (
-        <PromotionDecision
-          promotionId={promotion.id}
-          status={promotion.status}
-        />
-      )}
-    </div>
-  );
-}
 
 async function PromotionsContent() {
   await requireAdmin();
@@ -134,7 +68,7 @@ async function PromotionsContent() {
             ) : (
               <div className="space-y-3">
                 {pending.map((promotion) => (
-                  <PromotionCard key={promotion.id} promotion={promotion} />
+                  <AdminPromotionCard key={promotion.id} promotion={promotion} />
                 ))}
               </div>
             )}
@@ -151,7 +85,7 @@ async function PromotionsContent() {
             ) : (
               <div className="space-y-3">
                 {active.map((promotion) => (
-                  <PromotionCard key={promotion.id} promotion={promotion} />
+                  <AdminPromotionCard key={promotion.id} promotion={promotion} />
                 ))}
               </div>
             )}
@@ -164,7 +98,7 @@ async function PromotionsContent() {
               </h3>
               <div className="space-y-3 opacity-90">
                 {history.map((promotion) => (
-                  <PromotionCard key={promotion.id} promotion={promotion} />
+                  <AdminPromotionCard key={promotion.id} promotion={promotion} />
                 ))}
               </div>
             </section>

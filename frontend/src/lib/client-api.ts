@@ -97,6 +97,28 @@ export async function uploadFile(
   return json.url;
 }
 
+export interface SearchSuggestion {
+  kind: "product" | "shop" | "category";
+  id?: string;
+  label: string;
+  sub?: string;
+}
+
+/** Google-style suggestions for the search box (public, no login needed). */
+export async function fetchSuggestions(q: string): Promise<SearchSuggestion[]> {
+  const term = q.trim();
+  if (term.length < 2) return [];
+  const res = await fetch(
+    `${API_URL}/products/suggest?q=${encodeURIComponent(term)}`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) return [];
+  const json = (await res.json().catch(() => ({}))) as {
+    suggestions?: SearchSuggestion[];
+  };
+  return Array.isArray(json.suggestions) ? json.suggestions : [];
+}
+
 export interface CouponCartLine {
   product_id: string;
   quantity: number;

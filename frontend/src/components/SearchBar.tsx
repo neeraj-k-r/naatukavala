@@ -4,6 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { fetchSuggestions, type SearchSuggestion } from "@/lib/client-api";
+import {
+  getSearchHistory,
+  removeSearchHistory,
+} from "@/lib/searchHistory";
 import { shopUrl } from "@/lib/subdomain";
 
 const DEBOUNCE_MS = 250;
@@ -38,6 +42,7 @@ export default function SearchBar({
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [history, setHistory] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   /** 0 = "Search for …" row, 1..n = suggestions. */
   const [highlight, setHighlight] = useState(0);
@@ -122,7 +127,9 @@ export default function SearchBar({
 
   const inline = variant === "inline";
   const term = query.trim();
-  const showList = open && term.length >= 2;
+  const showSuggestions = open && term.length >= 2;
+  const showHistory = open && term.length < 2 && history.length > 0;
+  const showList = showSuggestions || showHistory;
 
   const rowClass = (active: boolean) =>
     `flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition ${
@@ -157,7 +164,13 @@ export default function SearchBar({
             setHighlight(0);
           }}
           onFocus={() => {
-            if (term.length >= 2) setOpen(true);
+            if (term.length >= 2) {
+              setOpen(true);
+            } else {
+              const recent = getSearchHistory();
+              setHistory(recent);
+              setOpen(recent.length > 0);
+            }
           }}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
@@ -184,7 +197,51 @@ export default function SearchBar({
         </button>
       </form>
 
-      {showList && (
+      {showHistory && (
+        <ul
+          role="listbox"
+          aria-label="Recent searches"
+          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+        >
+          <li
+            aria-hidden
+            className="px-4 pb-1 pt-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500"
+          >
+            Recent searches
+          </li>
+          {history.map((item) => (
+            <li key={item} role="option" aria-selected={false} className="flex items-center">
+              <button
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  setQuery(item);
+                  runTextSearch(item);
+                }}
+                className="flex min-w-0 flex-1 items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <span aria-hidden className="text-slate-400">
+                  ◷
+                </span>
+                <span className="truncate">{item}</span>
+              </button>
+              <button
+                type="button"
+                aria-label={`Remove ${item} from history`}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  setHistory(removeSearchHistory(item));
+                }}
+                className="flex-none px-3 py-2.5 text-sm text-slate-400 hover:text-red-600 dark:text-slate-500"
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {showSuggestions && (
         <ul
           role="listbox"
           aria-label="Search suggestions"

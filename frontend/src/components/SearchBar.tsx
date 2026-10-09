@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { fetchSuggestions, type SearchSuggestion } from "@/lib/client-api";
 import {
+  addSearchHistory,
+  clearSearchHistory,
   getSearchHistory,
   removeSearchHistory,
 } from "@/lib/searchHistory";
@@ -71,6 +73,7 @@ export default function SearchBar({
   function runTextSearch(term: string) {
     const trimmed = term.trim();
     if (trimmed) {
+      addSearchHistory(trimmed);
       router.push(`/?q=${encodeURIComponent(trimmed)}`);
     } else {
       router.push("/");
@@ -82,6 +85,7 @@ export default function SearchBar({
   function goToSuggestion(s: SearchSuggestion) {
     setOpen(false);
     setQuery(s.label);
+    addSearchHistory(s.label);
     if (s.kind === "product" && s.id) {
       router.push(`/product/${s.id}`);
     } else if (s.kind === "shop" && s.id) {
@@ -238,6 +242,20 @@ export default function SearchBar({
               </button>
             </li>
           ))}
+          <li className="border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="button"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                clearSearchHistory();
+                setHistory([]);
+                setOpen(false);
+              }}
+              className="w-full px-4 py-2 text-center text-xs font-semibold text-slate-400 hover:text-red-600 dark:text-slate-500"
+            >
+              Clear all history
+            </button>
+          </li>
         </ul>
       )}
 

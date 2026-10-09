@@ -252,6 +252,85 @@ router.get("/categories", async (_req, res) => {
   }
 });
 
+/** Google-style suggestions: matching product names, shop names and categories. */
+router.get("/suggest", async (req, res) => {
+  const q = String(req.query.q ?? "").trim().slice(0, 50);
+  if (q.length < 2) return res.json({ suggestions: [] });
+
+  try {
+    const supabase = getSupabaseAdmin();
+    const like = `%${q}%`;
+    const approved = await hasApprovalColumn();
+
+    const [productsRes, shopsRes, catsRes] = await Promise.all([
+      (() => {
+        let query = supabase
+          .from("products")
+          .select("id, name, shop:shops!inner(name, status)")
+          .eq("is_active", true)
+          .eq("shop.status", "approved")
+          .ilike("name", like)
+          .limit(5);
+        if (approved) query = query.eq("approval_status", "approved");
+        return query;
+      })(),
+      supabase
+        .from("shops")
+        .select("id, name, slug")
+        .eq("status", "approved")
+        .ilike("name", like)
+        .limit(3),
+      (() => {
+        let query = supabase
+          .from("products")
+          .select("category, shop:shops!inner(status)")
+          .eq("is_active", true)
+          .eq("shop.status", "approved")
+          .not("category", "is", null)
+          .ilike("category", like)
+          .limit(20);
+        if (approved) query = query.eq("approval_status", "approved");
+        return query;
+      })(),
+    ]);
+
+    const suggestions: {
+      kind: "product" | "shop" | "category";
+      id?: string;
+      label: string;
+      sub?: string;
+    }[] = [];
+
+    for (const row of (productsRes.data ?? []) as { id: string; name: string; shop: { name: string } | null }[]) {
+      suggestions.push({
+        kind: "product",
+        id: row.id,
+        label: row.name,
+        sub: row.shop?.name ?? undefined,
+      });
+    }
+    for (const row of (shopsRes.data ?? []) as { id: string; name: string; slug: string }[]) {
+      suggestions.push({
+        kind: "shop",
+        id: row.slug,
+        label: row.name,
+        sub: "Shop",
+      });
+    }
+    const seenCats = new Set<string>();
+    for (const row of (catsRes.data ?? []) as { category: string | null }[]) {
+      if (!row.category || seenCats.has(row.category.toLowerCase())) continue;
+      seenCats.add(row.category.toLowerCase());
+      suggestions.push({ kind: "category", label: row.category, sub: "Category" });
+      if (seenCats.size >= 3) break;
+    }
+
+    return res.json({ suggestions: suggestions.slice(0, 8) });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Could not load suggestions." });
+  }
+});
+
 router.get("/owner", requireAuth, requireRole(["seller", "admin", "superadmin"]), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: "Not authenticated." });
 
